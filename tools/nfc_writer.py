@@ -122,30 +122,75 @@ class NFCWriter:
     def _write_ndef_message(self, ndef_data):
         """Write NDEF message to card"""
         try:
-            # For MiFare Ultralight
-            # Write NDEF data starting at page 4
+            # Try MiFare Ultralight first
+            print("📝 Trying MiFare Ultralight...")
             page = 4
             
-            # Write in 4-byte chunks
             for i in range(0, len(ndef_data), 4):
                 chunk = ndef_data[i:i+4]
                 
-                # Pad if necessary
                 if len(chunk) < 4:
                     chunk = chunk + b'\x00' * (4 - len(chunk))
                 
                 success = self.pn532.ntag2xx_write_block(page, chunk)
                 
                 if not success:
-                    print(f"❌ Failed to write page {page}")
-                    return False
+                    print(f"⚠️ Ultralight failed at page {page}")
+                    break
                 
                 page += 1
+            else:
+                return True  # Success if loop completed
+            
+            # Try MiFare Classic
+            print("📝 Trying MiFare Classic...")
+            
+            # Default key
+            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
+            
+            # Authenticate block 4 (sector 1)
+            if not self.pn532.mifare_classic_authenticate_block(
+                uid=self.pn532.read_passive_target(timeout=1),
+                block_number=4,
+                key_number=0x60,  # KEY_A
+                key=key
+            ):
+                print("❌ Authentication failed")
+                return False
+            
+            # Write data in 16-byte blocks
+            block = 4
+            for i in range(0, len(ndef_data), 16):
+                chunk = ndef_data[i:i+16]
+                
+                if len(chunk) < 16:
+                    chunk = chunk + b'\x00' * (16 - len(chunk))
+                
+                success = self.pn532.mifare_classic_write_block(block, chunk)
+                
+                if not success:
+                    print(f"❌ Failed to write block {block}")
+                    return False
+                
+                block += 1
+                
+                # Re-authenticate every 4 blocks (new sector)
+                if block % 4 == 0:
+                    if not self.pn532.mifare_classic_authenticate_block(
+                        uid=self.pn532.read_passive_target(timeout=1),
+                        block_number=block,
+                        key_number=0x60,
+                        key=key
+                    ):
+                        print(f"❌ Authentication failed at block {block}")
+                        return False
             
             return True
             
         except Exception as e:
             print(f"❌ Write error: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def read_card(self):
