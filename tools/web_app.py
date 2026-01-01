@@ -14,16 +14,25 @@ from pathlib import Path
 import base64
 
 # Add tools path
-sys.path.insert(0, str(Path(__file__).parent))
+SCRIPT_DIR = Path(__file__).parent.resolve()
+sys.path.insert(0, str(SCRIPT_DIR))
+
+# Repo path - auto detect
+REPO_PATH = SCRIPT_DIR.parent
+CLIENTS_PATH = REPO_PATH / 'clients'
+
+# Ensure directory exists
+CLIENTS_PATH.mkdir(parents=True, exist_ok=True)
+
+print(f"📁 Script directory: {SCRIPT_DIR}")
+print(f"📁 Repo path: {REPO_PATH}")
+print(f"📁 Clients path: {CLIENTS_PATH}")
+
 from create_card import CardGenerator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'maroof-secret-key-2025'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
-
-# Get repo path
-REPO_PATH = Path(__file__).parent.parent
-CLIENTS_PATH = REPO_PATH / 'clients'
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
