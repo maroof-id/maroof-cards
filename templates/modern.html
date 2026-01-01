@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="البطاقة التعريفية الرقمية لـ {{NAME}}">
+    <title>{{NAME}} - معروف</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex items-center justify-center p-4">
+    
+    <div class="w-full max-w-lg">
+        
+        <!-- البطاقة البسيطة -->
+        <div class="border-2 border-gray-900 p-8 md:p-12">
+            
+            <!-- الصورة -->
+            <div class="mb-8">
+                <div class="w-24 h-24 bg-gray-900 rounded-full flex items-center justify-center mx-auto">
+                    {{#if PHOTO}}
+                    <img src="{{PHOTO}}" alt="{{NAME}}" class="w-full h-full rounded-full object-cover">
+                    {{else}}
+                    <i class="fas fa-user text-4xl text-white"></i>
+                    {{/if}}
+                </div>
+            </div>
+            
+            <!-- الاسم -->
+            <h1 class="text-5xl font-bold text-gray-900 mb-4 text-center">{{NAME}}</h1>
+            
+            <!-- الوصف -->
+            <p class="text-gray-600 text-center text-lg mb-8 leading-relaxed">{{BIO}}</p>
+            
+            <!-- خط فاصل -->
+            <div class="border-t border-gray-300 my-8"></div>
+            
+            <!-- معلومات الاتصال - قائمة بسيطة -->
+            <div class="space-y-5">
+                
+                <!-- رقم الجوال -->
+                {{#if PHONE}}
+                <div class="group">
+                    <a href="tel:{{PHONE}}" 
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fas fa-phone text-gray-900 text-lg w-6"></i>
+                            <span class="text-gray-600 font-medium">الجوال</span>
+                        </div>
+                        <span class="text-gray-900 font-bold" dir="ltr">{{PHONE}}</span>
+                    </a>
+                </div>
+                {{/if}}
+                
+                <!-- WhatsApp -->
+                {{#if PHONE}}
+                <div class="group">
+                    <a href="https://wa.me/{{PHONE_INTL}}" 
+                       target="_blank"
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fab fa-whatsapp text-gray-900 text-xl w-6"></i>
+                            <span class="text-gray-600 font-medium">واتساب</span>
+                        </div>
+                        <i class="fas fa-arrow-left text-gray-400 group-hover:text-gray-900 transition-colors"></i>
+                    </a>
+                </div>
+                {{/if}}
+                
+                <!-- البريد الإلكتروني -->
+                {{#if EMAIL}}
+                <div class="group">
+                    <a href="mailto:{{EMAIL}}" 
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fas fa-envelope text-gray-900 text-lg w-6"></i>
+                            <span class="text-gray-600 font-medium">البريد</span>
+                        </div>
+                        <span class="text-gray-900 font-semibold text-sm">{{EMAIL}}</span>
+                    </a>
+                </div>
+                {{/if}}
+                
+                <!-- Instagram -->
+                {{#if INSTAGRAM}}
+                <div class="group">
+                    <a href="https://instagram.com/{{INSTAGRAM}}" 
+                       target="_blank"
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fab fa-instagram text-gray-900 text-xl w-6"></i>
+                            <span class="text-gray-600 font-medium">Instagram</span>
+                        </div>
+                        <span class="text-gray-900 font-bold">@{{INSTAGRAM}}</span>
+                    </a>
+                </div>
+                {{/if}}
+                
+                <!-- LinkedIn -->
+                {{#if LINKEDIN}}
+                <div class="group">
+                    <a href="https://linkedin.com/in/{{LINKEDIN}}" 
+                       target="_blank"
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fab fa-linkedin text-gray-900 text-xl w-6"></i>
+                            <span class="text-gray-600 font-medium">LinkedIn</span>
+                        </div>
+                        <span class="text-gray-900 font-bold">{{LINKEDIN}}</span>
+                    </a>
+                </div>
+                {{/if}}
+                
+                <!-- Twitter/X -->
+                {{#if TWITTER}}
+                <div class="group">
+                    <a href="https://x.com/{{TWITTER}}" 
+                       target="_blank"
+                       class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fab fa-x-twitter text-gray-900 text-xl w-6"></i>
+                            <span class="text-gray-600 font-medium">X</span>
+                        </div>
+                        <span class="text-gray-900 font-bold">@{{TWITTER}}</span>
+                    </a>
+                </div>
+                {{/if}}
+                
+            </div>
+            
+            <!-- خط فاصل -->
+            <div class="border-t border-gray-300 my-8"></div>
+            
+            <!-- زر حفظ -->
+            <button onclick="saveContact()" 
+                    class="w-full bg-gray-900 text-white font-bold py-4 px-6 hover:bg-gray-800 transition-colors flex items-center justify-center gap-3">
+                <i class="fas fa-download"></i>
+                <span>حفظ جهة الاتصال</span>
+            </button>
+            
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-8">
+            <p class="text-gray-400 text-sm">
+                <span class="text-gray-900 font-bold">معروف</span>
+            </p>
+        </div>
+        
+    </div>
+    
+    <script>
+        function saveContact() {
+            const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:{{NAME}}
+{{#if PHONE}}TEL;TYPE=CELL:{{PHONE}}{{/if}}
+{{#if EMAIL}}EMAIL:{{EMAIL}}{{/if}}
+{{#if INSTAGRAM}}URL:https://instagram.com/{{INSTAGRAM}}{{/if}}
+{{#if BIO}}NOTE:{{BIO}}{{/if}}
+END:VCARD`;
+            
+            const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '{{NAME}}.vcf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+    
+</body>
+</html>
