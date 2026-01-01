@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-معروف - واجهة الويب لإنشاء البطاقات
-Maroof Web Interface for Card Creation
+Maroof - Web Interface for Card Creation
+Digital Business Cards System
 """
 
 from flask import Flask, render_template_string, request, jsonify, send_file
@@ -12,14 +12,14 @@ import qrcode
 from io import BytesIO
 from pathlib import Path
 
-# إضافة مسار tools للـ imports
+# Add tools path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 from create_card import CardGenerator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'maroof-secret-key-2025'
 
-# HTML Template للواجهة
+# HTML Template
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -179,18 +179,25 @@ HTML_TEMPLATE = """
                     
                     <div class="bg-gray-50 rounded-2xl p-4 mb-6">
                         <p class="text-sm text-gray-600 mb-2">رابط البطاقة:</p>
-                        <a id="cardUrl" href="#" target="_blank" class="text-purple-600 font-bold break-all hover:underline"></a>
+                        <a id="cardUrl" href="#" target="_blank" class="text-purple-600 font-bold break-all hover:underline text-sm"></a>
                     </div>
                     
                     <div id="qrCode" class="mb-6"></div>
                     
-                    <div class="flex gap-3">
-                        <button onclick="copyUrl()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
-                            <i class="fas fa-copy mr-2"></i> نسخ
+                    <div class="space-y-3">
+                        <button onclick="writeNFC()" id="nfcBtn"
+                                class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl hover:shadow-xl transition-all">
+                            <i class="fas fa-wifi mr-2"></i> كتابة على NFC
                         </button>
-                        <button onclick="closeModal()" class="flex-1 gradient-bg text-white font-bold py-3 rounded-xl hover:shadow-xl transition-all">
-                            <i class="fas fa-plus mr-2"></i> جديد
-                        </button>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="copyUrl()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
+                                <i class="fas fa-copy mr-2"></i> نسخ
+                            </button>
+                            <button onclick="closeModal()" class="flex-1 gradient-bg text-white font-bold py-3 rounded-xl hover:shadow-xl transition-all">
+                                <i class="fas fa-plus mr-2"></i> جديد
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -214,7 +221,6 @@ HTML_TEMPLATE = """
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // تعطيل الزر
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> جاري الإنشاء...';
             
@@ -231,11 +237,9 @@ HTML_TEMPLATE = """
                 const result = await response.json();
                 
                 if (result.success) {
-                    // عرض النتيجة
                     document.getElementById('cardUrl').href = result.url;
                     document.getElementById('cardUrl').textContent = result.url;
                     
-                    // عرض QR Code
                     document.getElementById('qrCode').innerHTML = `
                         <img src="/api/qr?url=${encodeURIComponent(result.url)}" 
                              class="w-48 h-48 mx-auto rounded-xl border-4 border-gray-200">
@@ -251,10 +255,46 @@ HTML_TEMPLATE = """
                 alert('حدث خطأ: ' + error.message);
             }
             
-            // إعادة تفعيل الزر
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-magic mr-2"></i> إنشاء البطاقة';
         });
+        
+        async function writeNFC() {
+            const url = document.getElementById('cardUrl').textContent;
+            const btn = document.getElementById('nfcBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> جاري الكتابة... قرّب البطاقة';
+            
+            try {
+                const response = await fetch('/api/write_nfc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i> تمت الكتابة بنجاح!';
+                    btn.className = 'w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white font-bold py-4 rounded-xl';
+                    
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
+                        btn.className = 'w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl hover:shadow-xl transition-all';
+                    }, 3000);
+                } else {
+                    alert('❌ خطأ: ' + result.error);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
+                }
+            } catch (error) {
+                alert('❌ حدث خطأ: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
+            }
+        }
         
         function closeModal() {
             modal.classList.add('hidden');
@@ -271,7 +311,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# قائمة البطاقات
+# List Template
 LIST_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -292,13 +332,11 @@ LIST_TEMPLATE = """
     
     <div class="max-w-4xl mx-auto">
         
-        <!-- Header -->
         <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl p-8 text-center shadow-xl mb-6">
             <h1 class="text-3xl font-black text-white mb-2">📋 البطاقات المنشأة</h1>
             <p class="text-white/90">المجموع: {{ cards|length }} بطاقة</p>
         </div>
         
-        <!-- Cards List -->
         <div class="space-y-4">
             {% for card in cards %}
             <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
@@ -320,7 +358,6 @@ LIST_TEMPLATE = """
             {% endfor %}
         </div>
         
-        <!-- Back Button -->
         <div class="text-center mt-8">
             <a href="/" class="inline-block bg-gray-800 text-white px-8 py-4 rounded-2xl font-bold hover:bg-gray-900 transition-all">
                 <i class="fas fa-arrow-right mr-2"></i> رجوع
@@ -336,19 +373,19 @@ LIST_TEMPLATE = """
 # Routes
 @app.route('/')
 def index():
-    """الصفحة الرئيسية"""
+    """Main page"""
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/list')
 def list_cards():
-    """قائمة البطاقات"""
+    """List all cards"""
     generator = CardGenerator()
     cards = generator.list_cards()
     return render_template_string(LIST_TEMPLATE, cards=cards)
 
 @app.route('/api/create', methods=['POST'])
 def api_create():
-    """API لإنشاء بطاقة جديدة"""
+    """API endpoint to create new card"""
     try:
         data = request.json
         
@@ -364,9 +401,6 @@ def api_create():
             template=data.get('template', 'modern')
         )
         
-        # رفع لـ GitHub (اختياري - يمكن تعطيله للسرعة)
-        # generator.git_push(f"إضافة بطاقة: {data.get('name')}")
-        
         return jsonify({
             'success': True,
             'username': result['username'],
@@ -380,9 +414,56 @@ def api_create():
             'error': str(e)
         }), 400
 
+@app.route('/api/write_nfc', methods=['POST'])
+def api_write_nfc():
+    """API endpoint to write NFC card"""
+    try:
+        data = request.json
+        url = data.get('url', '')
+        
+        # Import NFC Writer
+        from nfc_writer import NFCWriter
+        
+        writer = NFCWriter()
+        
+        if not writer.connect():
+            return jsonify({
+                'success': False,
+                'error': 'NFC reader not connected!'
+            }), 400
+        
+        # Write URL to card
+        success = writer.write_url(url)
+        writer.close()
+        
+        if success:
+            # Play success sound
+            try:
+                import subprocess
+                subprocess.run(['aplay', '/usr/share/sounds/alsa/Front_Center.wav'], 
+                             check=False, capture_output=True, timeout=2)
+            except:
+                pass
+            
+            return jsonify({
+                'success': True,
+                'message': 'Card written successfully!'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to write card!'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
 @app.route('/api/qr')
 def api_qr():
-    """توليد QR Code"""
+    """Generate QR Code"""
     url = request.args.get('url', '')
     
     qr = qrcode.QRCode(version=1, box_size=10, border=2)
@@ -399,11 +480,11 @@ def api_qr():
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🎴 معروف - واجهة إنشاء البطاقات")
+    print("🎴 Maroof - Digital Business Cards")
     print("="*50)
-    print("\n📱 افتح من جوالك:")
-    print("   http://192.168.1.108:5000")
-    print("\n💻 أو من Pi:")
+    print("\n📱 Open from mobile:")
+    print("   http://192.168.1.100:5000")
+    print("\n💻 Or from Pi:")
     print("   http://localhost:5000")
     print("\n" + "="*50 + "\n")
     
