@@ -1,231 +1,180 @@
-#!/bin/bash
-# Maroof - Complete Installation Script
-# Digital Business Cards System
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+معروف - نظام إنشاء البطاقات التعريفية الرقمية
+Maroof Digital Business Cards Generator
+"""
 
-set -e  # Stop on any error
+import os
+import re
+import json
+import argparse
+from pathlib import Path
+from typing import Dict, Optional
+import subprocess
 
-echo "=================================================="
-echo "🎴 Maroof - Digital Business Cards System"
-echo "=================================================="
-echo ""
-
-# Colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Variables
-REPO_PATH="/home/Xmoha4/maroof-id.github.io"
-TOOLS_PATH="$REPO_PATH/tools"
-
-# Check Python
-echo -e "${BLUE}📋 Checking requirements...${NC}"
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python3 not installed!"
-    exit 1
-fi
-echo -e "${GREEN}✅ Python3 found${NC}"
-
-# Check Git
-if ! command -v git &> /dev/null; then
-    echo "❌ Git not installed!"
-    echo "📥 Installing..."
-    sudo apt update
-    sudo apt install -y git
-fi
-echo -e "${GREEN}✅ Git found${NC}"
-
-# Check Repository
-if [ ! -d "$REPO_PATH" ]; then
-    echo ""
-    echo -e "${YELLOW}⚠️  Repository not found!${NC}"
-    echo "📥 Cloning from GitHub..."
+class CardGenerator:
+    """مولّد البطاقات التعريفية"""
     
-    cd /home/Xmoha4
-    git clone https://github.com/maroof-id/maroof-id.github.io.git
+    def __init__(self, repo_path: str = None):
+        if repo_path is None:
+            # تحديد المسار تلقائياً
+            current_file = Path(__file__).resolve()
+            self.repo_path = current_file.parent.parent
+        else:
+            self.repo_path = Path(repo_path)
+            
+        self.templates_path = self.repo_path / "templates"
+        self.clients_path = self.repo_path / "clients"
+        
+        # التأكد من وجود المجلدات
+        self.clients_path.mkdir(exist_ok=True)
+        
+    def sanitize_username(self, name: str) -> str:
+        """تحويل الاسم لـ username صالح"""
+        name = name.strip()
+        
+        # تحويل العربي للإنجليزي
+        arabic_to_english = {
+            'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a',
+            'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j',
+            'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'th',
+            'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
+            'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z',
+            'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q',
+            'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+            'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a',
+            'ة': 'h', 'ء': 'a'
+        }
+        
+        result = []
+        for char in name.lower():
+            if char in arabic_to_english:
+                result.append(arabic_to_english[char])
+            elif char.isalnum() or char == '-':
+                result.append(char)
+            elif char == ' ':
+                result.append('-')
+        
+        username = ''.join(result)
+        username = re.sub(r'-+', '-', username)
+        username = username.strip('-')
+        
+        return username or 'user'
     
-    echo -e "${GREEN}✅ Cloned successfully${NC}"
-else
-    echo -e "${GREEN}✅ Repository exists${NC}"
-fi
+    def format_phone_international(self, phone: str) -> str:
+        """تحويل رقم الجوال لصيغة دولية"""
+        phone = re.sub(r'\D', '', phone)
+        
+        if phone.startswith('00966'):
+            return phone[2:]
+        elif phone.startswith('966'):
+            return phone
+        elif phone.startswith('0'):
+            return '966' + phone[1:]
+        else:
+            return '966' + phone
+    
+    def load_template(self, template_name: str) -> str:
+        """تحميل قالب HTML"""
+        template_file = self.templates_path / f"{template_name}.html"
+        
+        if not template_file.exists():
+            raise FileNotFoundError(f"القالب غير موجود: {template_name}")
+        
+        with open(template_file, 'r', encoding='utf-8') as f:
+            return f.read()
+    
+    def replace_variables(self, html: str, data: Dict[str, str]) -> str:
+        """استبدال المتغيرات في HTML"""
+        
+        if 'PHONE' in data and data['PHONE']:
+            data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
+        
+        for key, value in data.items():
+            if value:
+                html = html.replace(f'{{{{{key}}}}}', str(value))
+        
+        for key, value in data.items():
+            if value:
+                pattern = f'{{{{#if {key}}}}}(.*?){{{{/if}}}}'
+                html = re.sub(pattern, r'\1', html, flags=re.DOTALL)
+            else:
+                pattern = f'{{{{#if {key}}}}}.*?{{{{/if}}}}'
+                html = re.sub(pattern, '', html, flags=re.DOTALL)
+        
+        html = re.sub(r'\{\{[^}]+\}\}', '', html)
+        
+        return html
+    
+    def create_card(
+        self,
+        name: str,
+        phone: str = '',
+        email: str = '',
+        instagram: str = '',
+        linkedin: str = '',
+        twitter: str = '',
+        bio: str = '',
+        template: str = 'modern',
+        username: Optional[str] = None,
+        photo: str = ''
+    ) -> Dict[str, str]:
+        """إنشاء بطاقة جديدة"""
+        
+        if not username:
+            username = self.sanitize_username(name)
+        
+        client_dir = self.clients_path / username
+        client_dir.mkdir(exist_ok=True)
+        
+        data = {
+            'NAME': name,
+            'PHONE': phone,
+            'EMAIL': email,
+            'INSTAGRAM': instagram.lstrip('@'),
+            'LINKEDIN': linkedin,
+            'TWITTER': twitter.lstrip('@'),
+            'BIO': bio or f'{name}',
+            'PHOTO': photo
+        }
+        
+        html = self.load_template(template)
+        html = self.replace_variables(html, data)
+        
+        output_file = client_dir / 'index.html'
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(html)
+        
+        data_file = client_dir / 'data.json'
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        return {
+            'username': username,
+            'url': f'https://maroof-id.github.io/maroof-cards/{username}',
+            'path': str(output_file),
+            'template': template
+        }
+    
+    def list_cards(self) -> list:
+        """عرض قائمة البطاقات الموجودة"""
+        cards = []
+        
+        for client_dir in self.clients_path.iterdir():
+            if client_dir.is_dir():
+                data_file = client_dir / 'data.json'
+                if data_file.exists():
+                    with open(data_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        cards.append({
+                            'username': client_dir.name,
+                            'name': data.get('NAME', ''),
+                            'url': f'https://maroof-id.github.io/maroof-cards/{client_dir.name}'
+                        })
+        
+        return cards
 
-# Navigate to project
-cd "$REPO_PATH"
 
-# Create directories
-echo ""
-echo -e "${BLUE}📁 Creating directories...${NC}"
-
-mkdir -p templates
-mkdir -p clients
-mkdir -p tools
-mkdir -p assets/{css,js,images}
-
-echo -e "${GREEN}✅ Directories created${NC}"
-
-# Copy files from /home/claude
-echo ""
-echo -e "${BLUE}📋 Copying project files...${NC}"
-
-# Copy templates
-if [ -f /home/claude/modern-template.html ]; then
-    cp /home/claude/modern-template.html templates/modern.html
-    echo "  ✓ modern.html"
-fi
-
-if [ -f /home/claude/classic-template.html ]; then
-    cp /home/claude/classic-template.html templates/classic.html
-    echo "  ✓ classic.html"
-fi
-
-if [ -f /home/claude/minimal-template.html ]; then
-    cp /home/claude/minimal-template.html templates/minimal.html
-    echo "  ✓ minimal.html"
-fi
-
-# Copy scripts
-if [ -f /home/claude/create_card.py ]; then
-    cp /home/claude/create_card.py tools/
-    chmod +x tools/create_card.py
-    echo "  ✓ create_card.py"
-fi
-
-if [ -f /home/claude/web_app.py ]; then
-    cp /home/claude/web_app.py tools/
-    chmod +x tools/web_app.py
-    echo "  ✓ web_app.py"
-fi
-
-if [ -f /home/claude/nfc_writer.py ]; then
-    cp /home/claude/nfc_writer.py tools/
-    chmod +x tools/nfc_writer.py
-    echo "  ✓ nfc_writer.py"
-fi
-
-echo -e "${GREEN}✅ Files copied${NC}"
-
-# Install Python packages
-echo ""
-echo -e "${BLUE}📦 Installing Python packages...${NC}"
-
-# Create requirements.txt
-cat > tools/requirements.txt << 'EOF'
-Flask==3.0.0
-nfcpy==1.0.4
-gitpython==3.1.40
-qrcode==7.4.2
-pillow==10.1.0
-ndef==0.3.1
-EOF
-
-echo "  ⏳ Installing..."
-pip3 install --break-system-packages -r tools/requirements.txt > /dev/null 2>&1
-
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Packages installed successfully${NC}"
-else
-    echo -e "${YELLOW}⚠️  Some issues during installation${NC}"
-    echo "💡 You can install manually: pip3 install -r tools/requirements.txt --break-system-packages"
-fi
-
-# Create .gitignore
-echo ""
-echo -e "${BLUE}📝 Creating .gitignore...${NC}"
-
-cat > .gitignore << 'EOF'
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# System
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-EOF
-
-echo -e "${GREEN}✅ .gitignore created${NC}"
-
-# Setup Git
-echo ""
-echo -e "${BLUE}⚙️  Setting up Git...${NC}"
-
-git config user.name "Maroof System" 2>/dev/null || true
-git config user.email "maroof@example.com" 2>/dev/null || true
-
-echo -e "${GREEN}✅ Git configured${NC}"
-
-# Create quick start scripts
-echo ""
-echo -e "${BLUE}🚀 Creating startup scripts...${NC}"
-
-# Web startup script
-cat > start_web.sh << 'EOF'
-#!/bin/bash
-cd /home/Xmoha4/maroof-id.github.io
-python3 tools/web_app.py
-EOF
-chmod +x start_web.sh
-
-# Card creation script
-cat > create.sh << 'EOF'
-#!/bin/bash
-cd /home/Xmoha4/maroof-id.github.io
-python3 tools/create_card.py "$@"
-EOF
-chmod +x create.sh
-
-echo -e "${GREEN}✅ Scripts created${NC}"
-
-# Show summary
-echo ""
-echo "=================================================="
-echo -e "${GREEN}✅ Installation completed successfully!${NC}"
-echo "=================================================="
-echo ""
-echo "📋 Installed files:"
-echo "  ✓ 3 HTML templates (modern, classic, minimal)"
-echo "  ✓ create_card.py (Card generator)"
-echo "  ✓ web_app.py (Web interface)"
-echo "  ✓ nfc_writer.py (NFC writer)"
-echo ""
-echo "🚀 Usage methods:"
-echo ""
-echo "  1️⃣  Web interface (from mobile):"
-echo "      ./start_web.sh"
-echo "      Then open: http://192.168.1.108:5000"
-echo ""
-echo "  2️⃣  Command line:"
-echo "      ./create.sh --name \"Mohammed\" --phone 0501234567"
-echo ""
-echo "  3️⃣  NFC writing:"
-echo "      python3 tools/nfc_writer.py --url \"LINK\""
-echo ""
-echo "=================================================="
-echo ""
-echo -e "${YELLOW}💡 Tip: Start with the web interface${NC}"
-echo -e "${YELLOW}   Then open it from your phone!${NC}"
-echo ""
-
-# Ask to start web
-read -p "Do you want to start the web interface now? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo ""
-    echo "🚀 Starting web interface..."
-    ./start_web.sh
-fi
+if __name__ == '__main__':
+    print("CardGenerator module loaded!")
