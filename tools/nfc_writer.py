@@ -43,7 +43,7 @@ class NFCWriter:
             import ndeflib
             
             # Wait for card
-            tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
+            uri_record = ndeflib.UriRecord(url)
             
             if not tag:
                 print("❌ No card detected")
