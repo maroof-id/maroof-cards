@@ -40,7 +40,7 @@ class NFCWriter:
         print("💳 Place card on reader...")
         
         try:
-            import ndef as ndeflib
+            import ndeflib
             
             # Wait for card
             tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
