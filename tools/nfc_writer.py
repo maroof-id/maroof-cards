@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Maroof - NFC Writer for PN532
-Digital Business Cards System
+Uses nfcpy built-in NDEF support only
 """
 
 import nfc
@@ -31,7 +31,7 @@ class NFCWriter:
             return False
     
     def write_url(self, url: str):
-        """Write URL to NFC card"""
+        """Write URL to NFC card using nfcpy built-in NDEF"""
         if not self.clf:
             print("❌ Not connected!")
             return False
@@ -40,10 +40,8 @@ class NFCWriter:
         print("💳 Place card on reader...")
         
         try:
-            import ndeflib
-            
             # Wait for card
-            uri_record = ndeflib.UriRecord(url)
+            tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
             
             if not tag:
                 print("❌ No card detected")
@@ -51,23 +49,24 @@ class NFCWriter:
             
             print(f"✅ Card detected: {tag}")
             
-            # Create NDEF message
-            record = ndeflib.Record('U', 'urn:nfc:wkt:U', url.encode('utf-8'))
-            message = [record]
-            
-            # Write to card
-            if tag.ndef:
-                tag.ndef.records = message
-                print("✅ Card written successfully!")
-                print(f"📱 Card ready: {url}")
-                
-                # Success sound
-                self.beep_success()
-                
-                return True
-            else:
+            if not tag.ndef:
                 print("❌ Card doesn't support NDEF")
                 return False
+            
+            # Create NDEF URI record using nfcpy's built-in classes
+            # Format: Type (U for URI), ID, Data
+            uri_record = nfc.ndef.UriRecord(url)
+            
+            # Write to card
+            tag.ndef.records = [uri_record]
+            
+            print("✅ Card written successfully!")
+            print(f"📱 Card ready: {url}")
+            
+            # Success sound
+            self.beep_success()
+            
+            return True
                 
         except Exception as e:
             print(f"❌ Write error: {e}")
@@ -95,7 +94,7 @@ class NFCWriter:
             if tag.ndef:
                 for record in tag.ndef.records:
                     print(f"\n📄 Record: {record}")
-                    if hasattr(record, 'uri'):
+                    if isinstance(record, nfc.ndef.UriRecord):
                         print(f"🔗 URL: {record.uri}")
                         return record.uri
                 return True
