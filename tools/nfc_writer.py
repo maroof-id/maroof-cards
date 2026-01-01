@@ -25,6 +25,9 @@ class NFCWriter:
             return True
         except Exception as e:
             print(f"❌ Connection error: {e}")
+            print("\n💡 Make sure:")
+            print("  - NFC reader is connected via USB")
+            print("  - nfcpy is installed: pip3 install nfcpy --break-system-packages")
             return False
     
     def write_url(self, url: str):
@@ -37,7 +40,7 @@ class NFCWriter:
         print("💳 Place card on reader...")
         
         try:
-            import ndef
+            import ndef as ndeflib
             
             # Wait for card
             tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
@@ -49,7 +52,7 @@ class NFCWriter:
             print(f"✅ Card detected: {tag}")
             
             # Create NDEF message
-            uri_record = ndef.UriRecord(url)
+            uri_record = ndeflib.UriRecord(url)
             message = [uri_record]
             
             # Write to card
@@ -68,6 +71,8 @@ class NFCWriter:
                 
         except Exception as e:
             print(f"❌ Write error: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def read_card(self):
