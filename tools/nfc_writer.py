@@ -52,8 +52,8 @@ class NFCWriter:
             print(f"✅ Card detected: {tag}")
             
             # Create NDEF message
-            uri_record = ndeflib.UriRecord(url)
-            message = [uri_record]
+            record = ndeflib.Record('U', 'urn:nfc:wkt:U', url.encode('utf-8'))
+            message = [record]
             
             # Write to card
             if tag.ndef:
