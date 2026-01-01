@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-معروف - كتابة بطاقات NFC
-Maroof NFC Writer for PN532
+Maroof - NFC Writer for PN532
+Digital Business Cards System
 """
 
 import nfc
@@ -11,129 +11,109 @@ import sys
 from pathlib import Path
 
 class NFCWriter:
-    """كاتب بطاقات NFC"""
+    """NFC Card Writer"""
     
     def __init__(self):
         self.clf = None
         
     def connect(self):
-        """الاتصال بقارئ NFC"""
+        """Connect to NFC reader"""
         try:
-            print("🔍 جاري البحث عن قارئ NFC...")
+            print("🔍 Searching for NFC reader...")
             self.clf = nfc.ContactlessFrontend('usb')
-            print(f"✅ تم الاتصال بالقارئ: {self.clf}")
+            print(f"✅ Connected: {self.clf}")
             return True
         except Exception as e:
-            print(f"❌ خطأ في الاتصال: {e}")
-            print("\n💡 تأكد من:")
-            print("  - توصيل القارئ بـ USB")
-            print("  - تثبيت nfcpy: pip3 install nfcpy --break-system-packages")
+            print(f"❌ Connection error: {e}")
             return False
     
     def write_url(self, url: str):
-        """
-        كتابة رابط URL على بطاقة NFC
-        
-        Args:
-            url: الرابط المراد كتابته
-        """
+        """Write URL to NFC card"""
         if not self.clf:
-            print("❌ غير متصل بالقارئ!")
+            print("❌ Not connected!")
             return False
         
-        print(f"\n📝 جاهز للكتابة: {url}")
-        print("💳 قرّب البطاقة من القارئ...")
+        print(f"\n📝 Ready to write: {url}")
+        print("💳 Place card on reader...")
         
         try:
-            # انتظار البطاقة
+            import ndef
+            
+            # Wait for card
             tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
             
             if not tag:
-                print("❌ لم يتم اكتشاف بطاقة")
+                print("❌ No card detected")
                 return False
             
-            print(f"✅ تم اكتشاف البطاقة: {tag}")
+            print(f"✅ Card detected: {tag}")
             
-            # إنشاء NDEF Record لـ URL
-            import ndef
-            
-            # إنشاء رسالة NDEF
+            # Create NDEF message
             uri_record = ndef.UriRecord(url)
-            message = ndef.Message(uri_record)
+            message = [uri_record]
             
-            # كتابة على البطاقة
+            # Write to card
             if tag.ndef:
                 tag.ndef.records = message
-                print("✅ تم كتابة الرابط بنجاح!")
-                print(f"📱 البطاقة جاهزة: {url}")
+                print("✅ Card written successfully!")
+                print(f"📱 Card ready: {url}")
                 
-                # صوت تأكيد (اختياري)
+                # Success sound
                 self.beep_success()
                 
                 return True
             else:
-                print("❌ البطاقة لا تدعم NDEF")
+                print("❌ Card doesn't support NDEF")
                 return False
                 
         except Exception as e:
-            print(f"❌ خطأ في الكتابة: {e}")
+            print(f"❌ Write error: {e}")
             return False
     
     def read_card(self):
-        """قراءة محتوى بطاقة NFC"""
+        """Read NFC card"""
         if not self.clf:
-            print("❌ غير متصل بالقارئ!")
+            print("❌ Not connected!")
             return None
         
-        print("\n📖 قرّب البطاقة للقراءة...")
+        print("\n📖 Place card to read...")
         
         try:
             tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
             
             if not tag:
-                print("❌ لم يتم اكتشاف بطاقة")
+                print("❌ No card detected")
                 return None
             
-            print(f"✅ تم اكتشاف البطاقة: {tag}")
+            print(f"✅ Card detected: {tag}")
             
             if tag.ndef:
                 for record in tag.ndef.records:
-                    print(f"\n📄 السجل: {record}")
+                    print(f"\n📄 Record: {record}")
                     if hasattr(record, 'uri'):
-                        print(f"🔗 الرابط: {record.uri}")
+                        print(f"🔗 URL: {record.uri}")
                         return record.uri
                 return True
             else:
-                print("❌ البطاقة لا تحتوي على بيانات NDEF")
+                print("❌ Card has no NDEF data")
                 return None
                 
         except Exception as e:
-            print(f"❌ خطأ في القراءة: {e}")
+            print(f"❌ Read error: {e}")
             return None
     
     def beep_success(self):
-        """صوت تأكيد (باستخدام GPIO buzzer إن وُجد)"""
+        """Play success sound"""
         try:
-            # محاولة تشغيل صوت باستخدام pygame
-            import pygame
-            pygame.mixer.init()
-            # يمكن إضافة ملف صوت هنا
+            import subprocess
+            subprocess.run(['aplay', '/usr/share/sounds/alsa/Front_Center.wav'], 
+                         check=False, capture_output=True, timeout=2)
         except:
-            # إذا لم ينجح، استخدم beep النظام
-            try:
-                import os
-                os.system('beep -f 1000 -l 200')
-            except:
-                pass
+            pass
     
     def wait_for_card(self, timeout=30):
-        """
-        انتظار تقريب بطاقة
-        
-        Args:
-            timeout: المدة القصوى للانتظار (ثانية)
-        """
-        print(f"\n⏳ انتظار البطاقة (timeout: {timeout}s)...")
+        """Wait for card"""
+        print(f"\n⏳ Waiting for card (timeout: {timeout}s)...")
         
         start_time = time.time()
         
@@ -147,56 +127,49 @@ class NFCWriter:
             
             time.sleep(0.1)
         
-        print("⏱️ انتهى الوقت!")
+        print("⏱️ Timeout!")
         return None
     
     def close(self):
-        """إغلاق الاتصال"""
+        """Close connection"""
         if self.clf:
             self.clf.close()
-            print("👋 تم إغلاق الاتصال")
+            print("👋 Connection closed")
 
 
 def main():
-    """الدالة الرئيسية"""
+    """Main function"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='معروف - كتابة بطاقات NFC')
-    parser.add_argument('--url', '-u', help='الرابط المراد كتابته')
-    parser.add_argument('--read', '-r', action='store_true', help='قراءة البطاقة')
-    parser.add_argument('--wait', '-w', action='store_true', 
-                       help='وضع الانتظار المستمر')
+    parser = argparse.ArgumentParser(description='Maroof - NFC Writer')
+    parser.add_argument('--url', '-u', help='URL to write')
+    parser.add_argument('--read', '-r', action='store_true', help='Read card')
+    parser.add_argument('--wait', '-w', action='store_true', help='Continuous mode')
     
     args = parser.parse_args()
     
-    # إنشاء الكاتب
     writer = NFCWriter()
     
-    # الاتصال بالقارئ
     if not writer.connect():
         sys.exit(1)
     
     try:
         if args.read:
-            # قراءة البطاقة
             writer.read_card()
             
         elif args.url:
-            # كتابة رابط محدد
             writer.write_url(args.url)
             
         elif args.wait:
-            # وضع الانتظار المستمر
-            print("\n🔄 وضع الانتظار المستمر...")
-            print("💡 اضغط Ctrl+C للإيقاف\n")
+            print("\n🔄 Continuous mode...")
+            print("💡 Press Ctrl+C to stop\n")
             
             while True:
-                print("💳 قرّب بطاقة جديدة...")
+                print("💳 Place new card...")
                 tag = writer.wait_for_card(timeout=60)
                 
                 if tag:
-                    # اطلب الرابط
-                    url = input("\n🔗 أدخل الرابط (أو Enter للتخطي): ").strip()
+                    url = input("\n🔗 Enter URL (or Enter to skip): ").strip()
                     
                     if url:
                         writer.write_url(url)
@@ -205,17 +178,16 @@ def main():
                     print("\n" + "="*50 + "\n")
                     
         else:
-            # وضع تفاعلي
-            print("\n📝 وضع الكتابة التفاعلي")
-            url = input("🔗 أدخل الرابط: ").strip()
+            print("\n📝 Interactive mode")
+            url = input("🔗 Enter URL: ").strip()
             
             if url:
                 writer.write_url(url)
             else:
-                print("❌ لم تدخل رابط!")
+                print("❌ No URL entered!")
                 
     except KeyboardInterrupt:
-        print("\n\n⛔ تم الإيقاف بواسطة المستخدم")
+        print("\n\n⛔ Stopped by user")
         
     finally:
         writer.close()
