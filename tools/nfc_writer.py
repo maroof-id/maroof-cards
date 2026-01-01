@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Maroof - NFC Writer for PN532
-Uses nfcpy built-in NDEF support only
+Uses Adafruit PN532 library
 """
 
-import nfc
+import serial
 import time
 import sys
 from pathlib import Path
@@ -14,32 +14,36 @@ class NFCWriter:
     """NFC Card Writer"""
     
     def __init__(self):
-        self.clf = None
+        self.pn532 = None
+        self.uart = None
         
     def connect(self):
         """Connect to NFC reader"""
         try:
             print("🔍 Searching for NFC reader...")
-            self.clf = nfc.ContactlessFrontend('usb')
-            print(f"✅ Connected: {self.clf}")
+            from adafruit_pn532.uart import PN532_UART
+            
+            self.uart = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=1)
+            self.pn532 = PN532_UART(self.uart, debug=False)
+            
+            ic, ver, rev, support = self.pn532.firmware_version
+            print(f"✅ Connected: PN532 v{ver}.{rev}")
+            
+            # Configure PN532 to communicate with MiFare cards
+            self.pn532.SAM_configuration()
+            
             return True
-        except:
-            try:
-                print("🔄 Trying serial connection...")
-                self.clf = nfc.ContactlessFrontend('tty:USB0:pn532')
-                print(f"✅ Connected: {self.clf}")
-                return True
-            except Exception as e:
-                print(f"❌ Connection error: {e}")
-                print("\n💡 Make sure:")
-                print("  - NFC reader is connected via USB or Serial")
-                print("  - Check: ls -la /dev/ttyUSB*")
-                print("  - nfcpy is installed: pip3 install nfcpy --break-system-packages")
-                return False
+            
+        except Exception as e:
+            print(f"❌ Connection error: {e}")
+            print("\n💡 Make sure:")
+            print("  - NFC reader is connected to /dev/ttyUSB0")
+            print("  - Reader is in HSU/UART mode (SEL0=OFF, SEL1=ON)")
+            return False
     
     def write_url(self, url: str):
-        """Write URL to NFC card using nfcpy built-in NDEF"""
-        if not self.clf:
+        """Write URL to NFC card"""
+        if not self.pn532:
             print("❌ Not connected!")
             return False
         
@@ -47,32 +51,33 @@ class NFCWriter:
         print("💳 Place card on reader...")
         
         try:
-            # Wait for card
-            tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
+            # Wait for card (timeout 5 seconds)
+            uid = self.pn532.read_passive_target(timeout=5)
             
-            if not tag:
+            if not uid:
                 print("❌ No card detected")
                 return False
             
-            print(f"✅ Card detected: {tag}")
+            print(f"✅ Card detected: {uid.hex()}")
             
-            if not tag.ndef:
-                print("❌ Card doesn't support NDEF")
+            # Create NDEF URL record
+            ndef_url = self._create_ndef_url(url)
+            
+            # Write to card (blocks 4-7 on MiFare Classic)
+            # For MiFare Ultralight, use different blocks
+            success = self._write_ndef_message(ndef_url)
+            
+            if success:
+                print("✅ Card written successfully!")
+                print(f"📱 Card ready: {url}")
+                
+                # Success sound
+                self.beep_success()
+                
+                return True
+            else:
+                print("❌ Failed to write card")
                 return False
-            
-            # Create NDEF URI record using nfcpy's built-in classes
-            uri_record = nfc.ndef.UriRecord(url)
-            
-            # Write to card
-            tag.ndef.records = [uri_record]
-            
-            print("✅ Card written successfully!")
-            print(f"📱 Card ready: {url}")
-            
-            # Success sound
-            self.beep_success()
-            
-            return True
                 
         except Exception as e:
             print(f"❌ Write error: {e}")
@@ -80,33 +85,109 @@ class NFCWriter:
             traceback.print_exc()
             return False
     
+    def _create_ndef_url(self, url: str):
+        """Create NDEF URL message"""
+        # NDEF URL Record format
+        # See: https://learn.adafruit.com/adafruit-pn532-rfid-nfc/ndef
+        
+        # Remove http:// or https:// prefix
+        if url.startswith('https://'):
+            prefix = 0x04  # https://
+            url_data = url[8:]
+        elif url.startswith('http://'):
+            prefix = 0x03  # http://
+            url_data = url[7:]
+        else:
+            prefix = 0x00  # No prefix
+            url_data = url
+        
+        url_bytes = url_data.encode('utf-8')
+        payload_len = len(url_bytes) + 1  # +1 for prefix
+        
+        # NDEF message structure
+        message = bytearray([
+            0x03,  # NDEF message
+            payload_len + 5,  # Message length
+            0xD1,  # Record header (MB=1, ME=1, SR=1, TNF=0x01)
+            0x01,  # Type length
+            payload_len,  # Payload length
+            0x55,  # Type: 'U' (URI)
+            prefix,  # URI prefix
+        ])
+        message.extend(url_bytes)
+        message.append(0xFE)  # NDEF message terminator
+        
+        return bytes(message)
+    
+    def _write_ndef_message(self, ndef_data):
+        """Write NDEF message to card"""
+        try:
+            # For MiFare Ultralight
+            # Write NDEF data starting at page 4
+            page = 4
+            
+            # Write in 4-byte chunks
+            for i in range(0, len(ndef_data), 4):
+                chunk = ndef_data[i:i+4]
+                
+                # Pad if necessary
+                if len(chunk) < 4:
+                    chunk = chunk + b'\x00' * (4 - len(chunk))
+                
+                success = self.pn532.ntag2xx_write_block(page, chunk)
+                
+                if not success:
+                    print(f"❌ Failed to write page {page}")
+                    return False
+                
+                page += 1
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Write error: {e}")
+            return False
+    
     def read_card(self):
         """Read NFC card"""
-        if not self.clf:
+        if not self.pn532:
             print("❌ Not connected!")
             return None
         
         print("\n📖 Place card to read...")
         
         try:
-            tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
+            # Wait for card
+            uid = self.pn532.read_passive_target(timeout=5)
             
-            if not tag:
+            if not uid:
                 print("❌ No card detected")
                 return None
             
-            print(f"✅ Card detected: {tag}")
+            print(f"✅ Card detected: {uid.hex()}")
             
-            if tag.ndef:
-                for record in tag.ndef.records:
-                    print(f"\n📄 Record: {record}")
-                    if isinstance(record, nfc.ndef.UriRecord):
-                        print(f"🔗 URL: {record.uri}")
-                        return record.uri
-                return True
-            else:
-                print("❌ Card has no NDEF data")
-                return None
+            # Try to read NDEF data
+            try:
+                # Read from page 4 onwards
+                data = bytearray()
+                for page in range(4, 20):  # Read up to page 20
+                    block = self.pn532.ntag2xx_read_block(page)
+                    if block:
+                        data.extend(block)
+                    else:
+                        break
+                
+                print(f"\n📄 Raw data: {data.hex()}")
+                
+                # Try to parse NDEF
+                if data[0] == 0x03:  # NDEF message
+                    print("📱 NDEF message detected!")
+                
+                return data
+                
+            except Exception as e:
+                print(f"⚠️ Could not read NDEF: {e}")
+                return uid
                 
         except Exception as e:
             print(f"❌ Read error: {e}")
@@ -121,29 +202,10 @@ class NFCWriter:
         except:
             pass
     
-    def wait_for_card(self, timeout=30):
-        """Wait for card"""
-        print(f"\n⏳ Waiting for card (timeout: {timeout}s)...")
-        
-        start_time = time.time()
-        
-        while time.time() - start_time < timeout:
-            try:
-                tag = self.clf.connect(rdwr={'on-connect': lambda tag: False})
-                if tag:
-                    return tag
-            except:
-                pass
-            
-            time.sleep(0.1)
-        
-        print("⏱️ Timeout!")
-        return None
-    
     def close(self):
         """Close connection"""
-        if self.clf:
-            self.clf.close()
+        if self.uart:
+            self.uart.close()
             print("👋 Connection closed")
 
 
@@ -154,7 +216,6 @@ def main():
     parser = argparse.ArgumentParser(description='Maroof - NFC Writer')
     parser.add_argument('--url', '-u', help='URL to write')
     parser.add_argument('--read', '-r', action='store_true', help='Read card')
-    parser.add_argument('--wait', '-w', action='store_true', help='Continuous mode')
     
     args = parser.parse_args()
     
@@ -170,23 +231,6 @@ def main():
         elif args.url:
             writer.write_url(args.url)
             
-        elif args.wait:
-            print("\n🔄 Continuous mode...")
-            print("💡 Press Ctrl+C to stop\n")
-            
-            while True:
-                print("💳 Place new card...")
-                tag = writer.wait_for_card(timeout=60)
-                
-                if tag:
-                    url = input("\n🔗 Enter URL (or Enter to skip): ").strip()
-                    
-                    if url:
-                        writer.write_url(url)
-                    
-                    time.sleep(2)
-                    print("\n" + "="*50 + "\n")
-                    
         else:
             print("\n📝 Interactive mode")
             url = input("🔗 Enter URL: ").strip()
