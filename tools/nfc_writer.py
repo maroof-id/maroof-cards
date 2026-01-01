@@ -142,20 +142,45 @@ class NFCWriter:
             else:
                 return True  # Success if loop completed
             
-            # Try MiFare Classic
+            # Try MiFare Classic with multiple keys
             print("📝 Trying MiFare Classic...")
             
-            # Default key
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
+            # Common keys to try
+            keys = [
+                b'\xFF\xFF\xFF\xFF\xFF\xFF',  # Factory default
+                b'\xA0\xA1\xA2\xA3\xA4\xA5',  # MAD key
+                b'\xD3\xF7\xD3\xF7\xD3\xF7',  # NDEF key
+                b'\x00\x00\x00\x00\x00\x00',  # Null key
+                b'\xB0\xB1\xB2\xB3\xB4\xB5',  # Alternative
+            ]
             
-            # Authenticate block 4 (sector 1)
-            if not self.pn532.mifare_classic_authenticate_block(
-                uid=self.pn532.read_passive_target(timeout=1),
-                block_number=4,
-                key_number=0x60,  # KEY_A
-                key=key
-            ):
-                print("❌ Authentication failed")
+            authenticated = False
+            key_used = None
+            
+            for key in keys:
+                try:
+                    # Get fresh UID
+                    uid = self.pn532.read_passive_target(timeout=1)
+                    if not uid:
+                        continue
+                    
+                    # Try to authenticate block 4
+                    if self.pn532.mifare_classic_authenticate_block(
+                        uid=uid,
+                        block_number=4,
+                        key_number=0x60,  # KEY_A
+                        key=key
+                    ):
+                        authenticated = True
+                        key_used = key
+                        print(f"✅ Authenticated with key: {key.hex()}")
+                        break
+                except:
+                    continue
+            
+            if not authenticated:
+                print("❌ Authentication failed with all keys")
+                print("💡 Try a different card or format this one")
                 return False
             
             # Write data in 16-byte blocks
@@ -176,11 +201,12 @@ class NFCWriter:
                 
                 # Re-authenticate every 4 blocks (new sector)
                 if block % 4 == 0:
+                    uid = self.pn532.read_passive_target(timeout=1)
                     if not self.pn532.mifare_classic_authenticate_block(
-                        uid=self.pn532.read_passive_target(timeout=1),
+                        uid=uid,
                         block_number=block,
                         key_number=0x60,
-                        key=key
+                        key=key_used
                     ):
                         print(f"❌ Authentication failed at block {block}")
                         return False
@@ -211,24 +237,49 @@ class NFCWriter:
             
             print(f"✅ Card detected: {uid.hex()}")
             
-            # Try MiFare Classic
+            # Try MiFare Classic with multiple keys
             data = bytearray()
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
+            
+            # Common keys to try
+            keys = [
+                b'\xFF\xFF\xFF\xFF\xFF\xFF',  # Factory default
+                b'\xA0\xA1\xA2\xA3\xA4\xA5',  # MAD key
+                b'\xD3\xF7\xD3\xF7\xD3\xF7',  # NDEF key
+                b'\x00\x00\x00\x00\x00\x00',  # Null key
+                b'\xB0\xB1\xB2\xB3\xB4\xB5',  # Alternative
+            ]
             
             print("📝 Trying to read MiFare Classic...")
             
+            authenticated_key = None
+            
             try:
-                # Read blocks 4-7 (sector 1)
-                for block in range(4, 8):
-                    # Authenticate
-                    if not self.pn532.mifare_classic_authenticate_block(
+                # Try to authenticate with each key
+                for key in keys:
+                    if self.pn532.mifare_classic_authenticate_block(
                         uid=uid,
-                        block_number=block,
+                        block_number=4,
                         key_number=0x60,
                         key=key
                     ):
-                        print(f"⚠️ Auth failed at block {block}")
+                        authenticated_key = key
+                        print(f"✅ Authenticated with key: {key.hex()}")
                         break
+                
+                if not authenticated_key:
+                    print("⚠️ Authentication failed with all keys")
+                    return uid
+                
+                # Read blocks 4-7 (sector 1)
+                for block in range(4, 8):
+                    # Re-authenticate if needed
+                    if block > 4:
+                        self.pn532.mifare_classic_authenticate_block(
+                            uid=uid,
+                            block_number=block,
+                            key_number=0x60,
+                            key=authenticated_key
+                        )
                     
                     # Read block
                     block_data = self.pn532.mifare_classic_read_block(block)
