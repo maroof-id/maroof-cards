@@ -16,13 +16,20 @@ import subprocess
 class CardGenerator:
     """مولّد البطاقات التعريفية"""
     
-    def __init__(self, repo_path: str = "/home/Xmoha4/maroof-id.github.io"):
-        self.repo_path = Path(repo_path)
+    def __init__(self, repo_path: str = None):
+        if repo_path is None:
+            # تحديد المسار تلقائياً
+            current_file = Path(__file__).resolve()
+            self.repo_path = current_file.parent.parent
+        else:
+            self.repo_path = Path(repo_path)
+            
         self.templates_path = self.repo_path / "templates"
         self.clients_path = self.repo_path / "clients"
         
         # التأكد من وجود المجلدات
-        self.clients_path.mkdir(exist_ok=True)
+        self.clients_path.mkdir(parents=True, exist_ok=True)
+        self.templates_path.mkdir(parents=True, exist_ok=True)
         
     def sanitize_username(self, name: str) -> str:
         """
