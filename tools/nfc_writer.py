@@ -17,7 +17,7 @@ class NFCWriter:
         self.clf = None
         
     def connect(self):
-    """Connect to NFC reader"""
+        """Connect to NFC reader"""
         try:
             print("🔍 Searching for NFC reader...")
             self.clf = nfc.ContactlessFrontend('usb')
@@ -61,7 +61,6 @@ class NFCWriter:
                 return False
             
             # Create NDEF URI record using nfcpy's built-in classes
-            # Format: Type (U for URI), ID, Data
             uri_record = nfc.ndef.UriRecord(url)
             
             # Write to card
