@@ -17,18 +17,25 @@ class NFCWriter:
         self.clf = None
         
     def connect(self):
-        """Connect to NFC reader"""
+    """Connect to NFC reader"""
         try:
             print("🔍 Searching for NFC reader...")
             self.clf = nfc.ContactlessFrontend('usb')
             print(f"✅ Connected: {self.clf}")
             return True
-        except Exception as e:
-            print(f"❌ Connection error: {e}")
-            print("\n💡 Make sure:")
-            print("  - NFC reader is connected via USB")
-            print("  - nfcpy is installed: pip3 install nfcpy --break-system-packages")
-            return False
+        except:
+            try:
+                print("🔄 Trying serial connection...")
+                self.clf = nfc.ContactlessFrontend('tty:USB0:pn532')
+                print(f"✅ Connected: {self.clf}")
+                return True
+            except Exception as e:
+                print(f"❌ Connection error: {e}")
+                print("\n💡 Make sure:")
+                print("  - NFC reader is connected via USB or Serial")
+                print("  - Check: ls -la /dev/ttyUSB*")
+                print("  - nfcpy is installed: pip3 install nfcpy --break-system-packages")
+                return False
     
     def write_url(self, url: str):
         """Write URL to NFC card using nfcpy built-in NDEF"""
