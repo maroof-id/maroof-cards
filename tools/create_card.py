@@ -16,14 +16,8 @@ import subprocess
 class CardGenerator:
     """مولّد البطاقات التعريفية"""
     
-    def __init__(self, repo_path: str = None):
-        if repo_path is None:
-            # تحديد المسار تلقائياً
-            current_file = Path(__file__).resolve()
-            self.repo_path = current_file.parent.parent
-        else:
-            self.repo_path = Path(repo_path)
-            
+    def __init__(self, repo_path: str = "/home/Xmoha4/maroof-id.github.io"):
+        self.repo_path = Path(repo_path)
         self.templates_path = self.repo_path / "templates"
         self.clients_path = self.repo_path / "clients"
         
@@ -31,10 +25,14 @@ class CardGenerator:
         self.clients_path.mkdir(exist_ok=True)
         
     def sanitize_username(self, name: str) -> str:
-        """تحويل الاسم لـ username صالح"""
+        """
+        تحويل الاسم لـ username صالح
+        محمد أحمد → mohammed-ahmed
+        """
+        # إزالة المسافات الزائدة
         name = name.strip()
         
-        # تحويل العربي للإنجليزي
+        # تحويل العربي للإنجليزي (transliteration بسيط)
         arabic_to_english = {
             'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a',
             'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j',
@@ -56,15 +54,19 @@ class CardGenerator:
             elif char == ' ':
                 result.append('-')
         
+        # تنظيف النتيجة
         username = ''.join(result)
-        username = re.sub(r'-+', '-', username)
+        username = re.sub(r'-+', '-', username)  # إزالة الشرطات المتكررة
         username = username.strip('-')
         
         return username or 'user'
     
     def format_phone_international(self, phone: str) -> str:
-        """تحويل رقم الجوال لصيغة دولية"""
-        phone = re.sub(r'\D', '', phone)
+        """
+        تحويل رقم الجوال لصيغة دولية
+        0501234567 → 966501234567
+        """
+        phone = re.sub(r'\D', '', phone)  # إزالة كل شيء ماعدا الأرقام
         
         if phone.startswith('00966'):
             return phone[2:]
@@ -88,21 +90,27 @@ class CardGenerator:
     def replace_variables(self, html: str, data: Dict[str, str]) -> str:
         """استبدال المتغيرات في HTML"""
         
+        # إضافة رقم دولي
         if 'PHONE' in data and data['PHONE']:
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
         
+        # استبدال المتغيرات العادية {{VAR}}
         for key, value in data.items():
             if value:
                 html = html.replace(f'{{{{{key}}}}}', str(value))
         
+        # معالجة الشروط {{#if VAR}}...{{/if}}
         for key, value in data.items():
             if value:
+                # إذا كان القيمة موجودة، احذف علامات الشرط واترك المحتوى
                 pattern = f'{{{{#if {key}}}}}(.*?){{{{/if}}}}'
                 html = re.sub(pattern, r'\1', html, flags=re.DOTALL)
             else:
+                # إذا كانت القيمة فارغة، احذف كل المحتوى
                 pattern = f'{{{{#if {key}}}}}.*?{{{{/if}}}}'
                 html = re.sub(pattern, '', html, flags=re.DOTALL)
         
+        # استبدال المتغيرات المتبقية بفراغ
         html = re.sub(r'\{\{[^}]+\}\}', '', html)
         
         return html
@@ -120,14 +128,22 @@ class CardGenerator:
         username: Optional[str] = None,
         photo: str = ''
     ) -> Dict[str, str]:
-        """إنشاء بطاقة جديدة"""
+        """
+        إنشاء بطاقة جديدة
         
+        Returns:
+            dict: معلومات البطاقة المنشأة (username, url, path)
+        """
+        
+        # توليد username إذا لم يُحدد
         if not username:
             username = self.sanitize_username(name)
         
+        # إنشاء مجلد العميل
         client_dir = self.clients_path / username
         client_dir.mkdir(exist_ok=True)
         
+        # تحضير البيانات
         data = {
             'NAME': name,
             'PHONE': phone,
@@ -139,16 +155,24 @@ class CardGenerator:
             'PHOTO': photo
         }
         
+        # تحميل القالب
         html = self.load_template(template)
+        
+        # استبدال المتغيرات
         html = self.replace_variables(html, data)
         
+        # حفظ الملف
         output_file = client_dir / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
         
+        # حفظ البيانات كـ JSON (للتعديل لاحقاً)
         data_file = client_dir / 'data.json'
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        # إنشاء ملف vCard
+        self._create_vcard(data, username, client_dir)
         
         return {
             'username': username,
@@ -156,6 +180,73 @@ class CardGenerator:
             'path': str(output_file),
             'template': template
         }
+    
+    def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
+        """إنشاء ملف vCard لجهات الاتصال"""
+        vcard = f"""BEGIN:VCARD
+VERSION:3.0
+FN:{data.get('NAME', '')}
+"""
+        
+        if data.get('PHONE_INTL'):
+            vcard += f"TEL;TYPE=CELL:+{data['PHONE_INTL']}\n"
+        elif data.get('PHONE'):
+            vcard += f"TEL;TYPE=CELL:{data['PHONE']}\n"
+        
+        if data.get('EMAIL'):
+            vcard += f"EMAIL:{data['EMAIL']}\n"
+        
+        # Add URL
+        vcard += f"URL:https://maroof-id.github.io/maroof-cards/{username}\n"
+        
+        if data.get('BIO'):
+            vcard += f"NOTE:{data['BIO']}\n"
+        
+        # Add photo if exists
+        if data.get('PHOTO'):
+            vcard += f"PHOTO;VALUE=URL:{data['PHOTO']}\n"
+        
+        # Add social media in notes
+        social = []
+        if data.get('INSTAGRAM'):
+            social.append(f"Instagram: @{data['INSTAGRAM']}")
+        if data.get('LINKEDIN'):
+            social.append(f"LinkedIn: {data['LINKEDIN']}")
+        if data.get('TWITTER'):
+            social.append(f"Twitter: @{data['TWITTER']}")
+        
+        if social:
+            vcard += f"X-SOCIALPROFILE:{' | '.join(social)}\n"
+        
+        vcard += "END:VCARD"
+        
+        # Save vCard file
+        vcard_path = client_dir / 'contact.vcf'
+        with open(vcard_path, 'w', encoding='utf-8') as f:
+            f.write(vcard)
+        
+        return vcard_path
+    
+    def git_push(self, message: str = 'تحديث البطاقات'):
+        """رفع التعديلات لـ GitHub"""
+        try:
+            os.chdir(self.repo_path)
+            
+            # إضافة كل الملفات
+            subprocess.run(['git', 'add', '.'], check=True)
+            
+            # Commit
+            subprocess.run(['git', 'commit', '-m', message], check=True)
+            
+            # Push
+            subprocess.run(['git', 'push'], check=True)
+            
+            print("✅ تم رفع التحديثات لـ GitHub بنجاح!")
+            return True
+            
+        except subprocess.CalledProcessError as e:
+            print(f"❌ خطأ في رفع الملفات: {e}")
+            return False
     
     def list_cards(self) -> list:
         """عرض قائمة البطاقات الموجودة"""
@@ -170,11 +261,83 @@ class CardGenerator:
                         cards.append({
                             'username': client_dir.name,
                             'name': data.get('NAME', ''),
-                            'url': f'https://maroof-id.github.io/maroof-cards/{client_dir.name}'
+                            'url': f'https://maroof-id.github.io/{client_dir.name}'
                         })
         
         return cards
 
 
+def main():
+    """الدالة الرئيسية"""
+    parser = argparse.ArgumentParser(
+        description='معروف - نظام إنشاء البطاقات التعريفية',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    parser.add_argument('--name', '-n', required=True, help='الاسم الكامل')
+    parser.add_argument('--phone', '-p', default='', help='رقم الجوال')
+    parser.add_argument('--email', '-e', default='', help='البريد الإلكتروني')
+    parser.add_argument('--instagram', '-i', default='', help='Instagram username')
+    parser.add_argument('--linkedin', '-l', default='', help='LinkedIn username')
+    parser.add_argument('--twitter', '-t', default='', help='Twitter/X username')
+    parser.add_argument('--bio', '-b', default='', help='نبذة تعريفية')
+    parser.add_argument('--template', '-T', default='modern', 
+                       choices=['modern', 'classic', 'minimal'],
+                       help='القالب المستخدم')
+    parser.add_argument('--username', '-u', default='',
+                       help='اسم المستخدم (اختياري، يُولّد تلقائياً)')
+    parser.add_argument('--photo', default='', help='رابط الصورة الشخصية')
+    parser.add_argument('--push', action='store_true', 
+                       help='رفع لـ GitHub تلقائياً')
+    parser.add_argument('--list', action='store_true',
+                       help='عرض قائمة البطاقات الموجودة')
+    
+    args = parser.parse_args()
+    
+    generator = CardGenerator()
+    
+    # عرض القائمة
+    if args.list:
+        cards = generator.list_cards()
+        print(f"\n📋 البطاقات الموجودة ({len(cards)}):\n")
+        for card in cards:
+            print(f"  • {card['name']}")
+            print(f"    🔗 {card['url']}\n")
+        return
+    
+    # إنشاء بطاقة جديدة
+    print(f"\n🎴 جاري إنشاء بطاقة لـ {args.name}...\n")
+    
+    result = generator.create_card(
+        name=args.name,
+        phone=args.phone,
+        email=args.email,
+        instagram=args.instagram,
+        linkedin=args.linkedin,
+        twitter=args.twitter,
+        bio=args.bio,
+        template=args.template,
+        username=args.username or None,
+        photo=args.photo
+    )
+    
+    print(f"✅ تم إنشاء البطاقة بنجاح!")
+    print(f"\n📊 معلومات البطاقة:")
+    print(f"  👤 الاسم: {args.name}")
+    print(f"  🆔 Username: {result['username']}")
+    print(f"  🎨 القالب: {result['template']}")
+    print(f"  🔗 الرابط: {result['url']}")
+    print(f"  📁 المسار: {result['path']}")
+    
+    # رفع لـ GitHub
+    if args.push:
+        print(f"\n📤 جاري رفع البطاقة لـ GitHub...")
+        generator.git_push(f"إضافة بطاقة: {args.name}")
+    else:
+        print(f"\n💡 لرفع البطاقة لـ GitHub، استخدم: --push")
+    
+    print(f"\n🎉 انتهى!")
+
+
 if __name__ == '__main__':
-    print("CardGenerator module loaded!")
+    main()
