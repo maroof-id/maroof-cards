@@ -211,28 +211,64 @@ class NFCWriter:
             
             print(f"✅ Card detected: {uid.hex()}")
             
-            # Try to read NDEF data
+            # Try MiFare Classic
+            data = bytearray()
+            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
+            
+            print("📝 Trying to read MiFare Classic...")
+            
             try:
-                # Read from page 4 onwards
-                data = bytearray()
-                for page in range(4, 20):  # Read up to page 20
-                    block = self.pn532.ntag2xx_read_block(page)
-                    if block:
-                        data.extend(block)
-                    else:
+                # Read blocks 4-7 (sector 1)
+                for block in range(4, 8):
+                    # Authenticate
+                    if not self.pn532.mifare_classic_authenticate_block(
+                        uid=uid,
+                        block_number=block,
+                        key_number=0x60,
+                        key=key
+                    ):
+                        print(f"⚠️ Auth failed at block {block}")
                         break
+                    
+                    # Read block
+                    block_data = self.pn532.mifare_classic_read_block(block)
+                    if block_data:
+                        data.extend(block_data)
                 
-                print(f"\n📄 Raw data: {data.hex()}")
-                
-                # Try to parse NDEF
-                if data[0] == 0x03:  # NDEF message
-                    print("📱 NDEF message detected!")
-                
-                return data
-                
+                if data:
+                    print(f"\n📄 Raw data ({len(data)} bytes): {data.hex()}")
+                    
+                    # Try to parse NDEF
+                    if len(data) > 0 and data[0] == 0x03:
+                        msg_len = data[1]
+                        print(f"📱 NDEF message detected! Length: {msg_len}")
+                        
+                        # Try to extract URL
+                        if len(data) > 6 and data[2] == 0xD1 and data[5] == 0x55:
+                            prefix_code = data[6]
+                            
+                            prefixes = {
+                                0x00: '',
+                                0x01: 'http://www.',
+                                0x02: 'https://www.',
+                                0x03: 'http://',
+                                0x04: 'https://',
+                            }
+                            
+                            prefix = prefixes.get(prefix_code, '')
+                            url_data = data[7:7+msg_len-5]
+                            url = prefix + url_data.decode('utf-8', errors='ignore')
+                            
+                            print(f"🔗 URL: {url}")
+                    
+                    return data
+                else:
+                    print("⚠️ No data read")
+                    
             except Exception as e:
-                print(f"⚠️ Could not read NDEF: {e}")
-                return uid
+                print(f"⚠️ MiFare Classic read failed: {e}")
+            
+            return uid
                 
         except Exception as e:
             print(f"❌ Read error: {e}")
