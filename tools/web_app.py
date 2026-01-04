@@ -1,516 +1,667 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Maroof - Web Interface for Card Creation
-with Photo Upload and vCard Support
+Maroof Web App - Web interface for creating digital business cards
 """
 
-from flask import Flask, render_template_string, request, jsonify, send_file, send_from_directory
+from flask import Flask, request, jsonify, render_template_string, send_from_directory
 import os
 import sys
-import qrcode
-from io import BytesIO
 from pathlib import Path
-import base64
 
-# Add tools path
-SCRIPT_DIR = Path(__file__).parent.resolve()
-sys.path.insert(0, str(SCRIPT_DIR))
-
-# Repo path - auto detect
-REPO_PATH = SCRIPT_DIR.parent
-CLIENTS_PATH = REPO_PATH / 'clients'
-
-# Ensure directory exists
-CLIENTS_PATH.mkdir(parents=True, exist_ok=True)
-
-print(f"📁 Script directory: {SCRIPT_DIR}")
-print(f"📁 Repo path: {REPO_PATH}")
-print(f"📁 Clients path: {CLIENTS_PATH}")
+current_dir = Path(__file__).resolve().parent
+sys.path.append(str(current_dir))
 
 from create_card import CardGenerator
+from nfc_writer import NFCWriter
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'maroof-secret-key-2025'
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
+app.config['JSON_AS_ASCII'] = False
 
-HTML_TEMPLATE = """
+generator = CardGenerator()
+
+# HTML Templates
+HOME_PAGE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معروف - إنشاء بطاقة</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <title>Maroof - Create Card</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        #photoPreview { display: none; }
-        #photoPreview img { object-fit: cover; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .nav {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.show { display: block; }
+        .result h3 { color: #667eea; margin-bottom: 15px; }
+        .result a { color: #667eea; word-break: break-all; }
+        
+        .nfc-btn {
+            margin-top: 15px;
+            background: #4CAF50;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen p-4">
+<body>
+    <div class="nav">
+        <button class="nav-btn active" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> الرئيسية / Home
+        </button>
+        <button class="nav-btn" onclick="window.location.href='/settings'">
+            <i class="fas fa-cog"></i> الإعدادات / Settings
+        </button>
+    </div>
     
-    <div class="max-w-lg mx-auto">
+    <div class="container">
+        <h1>🎴 إنشاء بطاقة / Create Card</h1>
         
-        <div class="gradient-bg rounded-t-3xl p-6 text-center shadow-xl">
-            <h1 class="text-3xl font-black text-white mb-2">🎴 معروف</h1>
-            <p class="text-white/90">إنشاء بطاقة تعريفية جديدة</p>
-        </div>
-        
-        <div class="bg-white rounded-b-3xl shadow-2xl p-6">
-            
-            <form id="cardForm" enctype="multipart/form-data" class="space-y-4">
-                
-                <!-- الصورة الشخصية -->
-                <div class="text-center mb-6">
-                    <label class="block text-gray-700 font-bold mb-3">
-                        <i class="fas fa-camera text-purple-600"></i> الصورة الشخصية
-                    </label>
-                    
-                    <div id="photoPreview" class="mb-3">
-                        <img id="previewImg" class="w-32 h-32 rounded-full mx-auto border-4 border-purple-200">
-                    </div>
-                    
-                    <label for="photoInput" class="cursor-pointer inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all">
-                        <i class="fas fa-upload mr-2"></i> اختر صورة
-                    </label>
-                    <input type="file" id="photoInput" name="photo" accept="image/*" class="hidden">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fas fa-user text-purple-600"></i> الاسم الكامل *
-                    </label>
-                    <input type="text" name="name" required
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="محمد أحمد">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fas fa-phone text-green-600"></i> رقم الجوال
-                    </label>
-                    <input type="tel" name="phone" dir="ltr"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="0501234567">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fas fa-envelope text-red-600"></i> البريد الإلكتروني
-                    </label>
-                    <input type="email" name="email" dir="ltr"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="email@example.com">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fab fa-instagram text-pink-600"></i> Instagram
-                    </label>
-                    <input type="text" name="instagram" dir="ltr"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="@username">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fab fa-linkedin text-blue-600"></i> LinkedIn
-                    </label>
-                    <input type="text" name="linkedin" dir="ltr"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="username">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fab fa-x-twitter text-gray-700"></i> X (Twitter)
-                    </label>
-                    <input type="text" name="twitter" dir="ltr"
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
-                           placeholder="@username">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">
-                        <i class="fas fa-info-circle text-indigo-600"></i> نبذة تعريفية
-                    </label>
-                    <textarea name="bio" rows="3"
-                              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg resize-none"
-                              placeholder="مطور برمجيات، مهتم بالتقنية..."></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-bold mb-3">
-                        <i class="fas fa-paint-brush text-purple-600"></i> اختر التصميم
-                    </label>
-                    
-                    <div class="grid grid-cols-3 gap-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="template" value="modern" checked class="hidden peer">
-                            <div class="border-2 border-gray-200 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-xl p-4 text-center transition-all">
-                                <div class="text-3xl mb-2">🌈</div>
-                                <div class="font-bold text-sm">عصري</div>
-                            </div>
-                        </label>
-                        
-                        <label class="cursor-pointer">
-                            <input type="radio" name="template" value="classic" class="hidden peer">
-                            <div class="border-2 border-gray-200 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-xl p-4 text-center transition-all">
-                                <div class="text-3xl mb-2">🎴</div>
-                                <div class="font-bold text-sm">كلاسيكي</div>
-                            </div>
-                        </label>
-                        
-                        <label class="cursor-pointer">
-                            <input type="radio" name="template" value="minimal" class="hidden peer">
-                            <div class="border-2 border-gray-200 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-xl p-4 text-center transition-all">
-                                <div class="text-3xl mb-2">⚪</div>
-                                <div class="font-bold text-sm">بسيط</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-                
-                <button type="submit" id="submitBtn"
-                        class="w-full gradient-bg text-white font-black py-4 rounded-2xl hover:shadow-2xl transition-all text-lg mt-6">
-                    <i class="fas fa-magic mr-2"></i>
-                    <span>إنشاء البطاقة</span>
-                </button>
-                
-            </form>
-            
-        </div>
-        
-        <div id="resultModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-check text-white text-4xl"></i>
-                    </div>
-                    
-                    <h2 class="text-2xl font-black text-gray-800 mb-2">تم بنجاح! ✨</h2>
-                    <p class="text-gray-600 mb-6">تم إنشاء البطاقة التعريفية</p>
-                    
-                    <div class="bg-gray-50 rounded-2xl p-4 mb-6">
-                        <p class="text-sm text-gray-600 mb-2">رابط البطاقة:</p>
-                        <a id="cardUrl" href="#" target="_blank" class="text-purple-600 font-bold break-all hover:underline text-sm"></a>
-                    </div>
-                    
-                    <div id="qrCode" class="mb-6"></div>
-                    
-                    <div class="space-y-3">
-                        <button onclick="writeNFC()" id="nfcBtn"
-                                class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl hover:shadow-xl transition-all">
-                            <i class="fas fa-wifi mr-2"></i> كتابة على NFC
-                        </button>
-                        
-                        <div class="flex gap-3">
-                            <button onclick="copyUrl()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
-                                <i class="fas fa-copy mr-2"></i> نسخ
-                            </button>
-                            <button onclick="closeModal()" class="flex-1 gradient-bg text-white font-bold py-3 rounded-xl hover:shadow-xl transition-all">
-                                <i class="fas fa-plus mr-2"></i> جديد
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <form id="cardForm">
+            <div class="form-group">
+                <label>الاسم الكامل / Full Name *</label>
+                <input type="text" name="name" required>
             </div>
-        </div>
+            
+            <div class="form-group">
+                <label>رقم الجوال / Phone</label>
+                <input type="tel" name="phone" placeholder="05xxxxxxxx">
+            </div>
+            
+            <div class="form-group">
+                <label>البريد الإلكتروني / Email</label>
+                <input type="email" name="email">
+            </div>
+            
+            <div class="form-group">
+                <label>Instagram</label>
+                <input type="text" name="instagram" placeholder="username">
+            </div>
+            
+            <div class="form-group">
+                <label>LinkedIn</label>
+                <input type="text" name="linkedin" placeholder="username">
+            </div>
+            
+            <div class="form-group">
+                <label>Twitter/X</label>
+                <input type="text" name="twitter" placeholder="username">
+            </div>
+            
+            <div class="form-group">
+                <label>نبذة تعريفية / Bio</label>
+                <textarea name="bio"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>القالب / Template</label>
+                <select name="template">
+                    <option value="modern">عصري / Modern</option>
+                    <option value="classic">كلاسيكي / Classic</option>
+                    <option value="minimal">بسيط / Minimal</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn">إنشاء البطاقة / Create Card</button>
+        </form>
         
-        <div class="text-center mt-8">
-            <p class="text-gray-500 text-sm">
-                آخر 5 بطاقات:
-                <a href="/list" class="text-purple-600 font-bold hover:underline">عرض الكل</a>
-            </p>
+        <div id="result" class="result">
+            <h3>✅ تم إنشاء البطاقة بنجاح! / Card Created Successfully!</h3>
+            <p><strong>الرابط / Link:</strong> <a id="cardUrl" href="#" target="_blank"></a></p>
+            <button class="btn nfc-btn" onclick="writeNFC()">
+                <i class="fas fa-wifi"></i> كتابة على NFC / Write to NFC
+            </button>
         </div>
-        
     </div>
     
     <script>
-        const photoInput = document.getElementById('photoInput');
-        const photoPreview = document.getElementById('photoPreview');
-        const previewImg = document.getElementById('previewImg');
+        let currentUrl = '';
         
-        photoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewImg.src = e.target.result;
-                    photoPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        const form = document.getElementById('cardForm');
-        const modal = document.getElementById('resultModal');
-        const submitBtn = document.getElementById('submitBtn');
-        
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('cardForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> جاري الإنشاء...';
-            
-            const formData = new FormData(form);
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
             
             try {
                 const response = await fetch('/api/create', {
                     method: 'POST',
-                    body: formData
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
+                    currentUrl = result.url;
                     document.getElementById('cardUrl').href = result.url;
                     document.getElementById('cardUrl').textContent = result.url;
-                    
-                    document.getElementById('qrCode').innerHTML = `
-                        <img src="/api/qr?url=${encodeURIComponent(result.url)}" 
-                             class="w-48 h-48 mx-auto rounded-xl border-4 border-gray-200">
-                    `;
-                    
-                    modal.classList.remove('hidden');
-                    form.reset();
-                    photoPreview.style.display = 'none';
+                    document.getElementById('result').classList.add('show');
                 } else {
-                    alert('خطأ: ' + result.error);
+                    alert('Error: ' + result.error);
                 }
-                
             } catch (error) {
-                alert('حدث خطأ: ' + error.message);
+                alert('Error: ' + error);
             }
-            
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-magic mr-2"></i> إنشاء البطاقة';
         });
         
         async function writeNFC() {
-            const url = document.getElementById('cardUrl').textContent;
-            const btn = document.getElementById('nfcBtn');
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> جاري الكتابة... قرّب البطاقة';
+            if (!currentUrl) {
+                alert('Please create a card first');
+                return;
+            }
             
             try {
-                const response = await fetch('/api/write_nfc', {
+                const response = await fetch('/api/nfc/write', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url: currentUrl})
                 });
                 
                 const result = await response.json();
-                
-                if (result.success) {
-                    btn.innerHTML = '<i class="fas fa-check mr-2"></i> تمت الكتابة بنجاح!';
-                    btn.className = 'w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white font-bold py-4 rounded-xl';
-                    
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
-                        btn.className = 'w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 rounded-xl hover:shadow-xl transition-all';
-                    }, 3000);
-                } else {
-                    alert('❌ خطأ: ' + result.error);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
-                }
+                alert(result.message);
             } catch (error) {
-                alert('❌ حدث خطأ: ' + error.message);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-wifi mr-2"></i> كتابة على NFC';
+                alert('Write error: ' + error);
             }
         }
-        
-        function closeModal() {
-            modal.classList.add('hidden');
-        }
-        
-        function copyUrl() {
-            const url = document.getElementById('cardUrl').textContent;
-            navigator.clipboard.writeText(url);
-            alert('تم نسخ الرابط!');
-        }
     </script>
-    
 </body>
 </html>
 """
 
-LIST_TEMPLATE = """[نفس القالب السابق]"""
+SETTINGS_PAGE = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maroof - Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .nav {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .action-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .action-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .action-btn i {
+            font-size: 24px;
+            width: 40px;
+        }
+        
+        .read-btn { border-color: #2196F3; color: #2196F3; }
+        .write-btn { border-color: #4CAF50; color: #4CAF50; }
+        .duplicate-btn { border-color: #FF9800; color: #FF9800; }
+        .manual-btn { border-color: #9C27B0; color: #9C27B0; }
+        
+        .card-data {
+            display: none;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .card-data.show { display: block; }
+        
+        .card-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-small-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .delete-btn { background: #f44336; color: white; }
+        .edit-btn { background: #2196F3; color: white; }
+        .copy-btn { background: #FF9800; color: white; }
+        
+        .manual-input {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .manual-input.show { display: block; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <button class="nav-btn" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> الرئيسية / Home
+        </button>
+        <button class="nav-btn active">
+            <i class="fas fa-cog"></i> الإعدادات / Settings
+        </button>
+    </div>
+    
+    <div class="container">
+        <h1>⚙️ الإعدادات / Settings</h1>
+        
+        <div class="action-grid">
+            <button class="action-btn read-btn" onclick="readCard()">
+                <i class="fas fa-book-reader"></i>
+                <div>قراءة بطاقة / Read Card</div>
+            </button>
+            
+            <button class="action-btn duplicate-btn" onclick="duplicateCard()">
+                <i class="fas fa-copy"></i>
+                <div>نسخ بطاقة / Duplicate Card</div>
+            </button>
+            
+            <button class="action-btn manual-btn" onclick="toggleManual()">
+                <i class="fas fa-keyboard"></i>
+                <div>كتابة يدوية / Manual Write</div>
+            </button>
+        </div>
+        
+        <div id="cardData" class="card-data">
+            <h3>البيانات المقروءة / Card Data:</h3>
+            <div id="dataDisplay"></div>
+            
+            <div class="card-actions">
+                <button class="action-small-btn delete-btn" onclick="deleteCard()">
+                    <i class="fas fa-trash"></i> حذف / Delete
+                </button>
+                <button class="action-small-btn edit-btn" onclick="editCard()">
+                    <i class="fas fa-edit"></i> تعديل / Edit
+                </button>
+                <button class="action-small-btn copy-btn" onclick="copyCard()">
+                    <i class="fas fa-copy"></i> نسخ / Copy
+                </button>
+            </div>
+        </div>
+        
+        <div id="manualInput" class="manual-input">
+            <h3>كتابة يدوية / Manual Write</h3>
+            <input type="text" id="manualUrl" placeholder="Enter URL">
+            <button class="btn" onclick="writeManual()">
+                <i class="fas fa-wifi"></i> كتابة / Write to NFC
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let currentCardData = null;
+        
+        async function readCard() {
+            try {
+                const response = await fetch('/api/nfc/read');
+                const result = await response.json();
+                
+                if (result.success && result.data.url) {
+                    currentCardData = result.data;
+                    displayCardData(result.data);
+                } else {
+                    alert('No data found on card');
+                }
+            } catch (error) {
+                alert('Read error: ' + error);
+            }
+        }
+        
+        async function duplicateCard() {
+            alert('Place existing card on reader...');
+            await readCard();
+        }
+        
+        function toggleManual() {
+            const manual = document.getElementById('manualInput');
+            manual.classList.toggle('show');
+        }
+        
+        async function writeManual() {
+            const url = document.getElementById('manualUrl').value;
+            
+            if (!url) {
+                alert('Please enter URL');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/nfc/write', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url: url})
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Write error: ' + error);
+            }
+        }
+        
+        function displayCardData(data) {
+            const display = document.getElementById('dataDisplay');
+            display.innerHTML = `
+                <div class="card-info">
+                    <strong>URL:</strong> ${data.url}
+                </div>
+            `;
+            document.getElementById('cardData').classList.add('show');
+        }
+        
+        function deleteCard() {
+            if (confirm('Are you sure you want to delete this card?')) {
+                alert('Card deleted (not implemented yet)');
+            }
+        }
+        
+        function editCard() {
+            if (currentCardData) {
+                window.location.href = '/?edit=' + encodeURIComponent(currentCardData.url);
+            }
+        }
+        
+        function copyCard() {
+            if (currentCardData) {
+                window.location.href = '/?duplicate=' + encodeURIComponent(currentCardData.url);
+            }
+        }
+    </script>
+</body>
+</html>
+"""
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE)
+    """Home page"""
+    return render_template_string(HOME_PAGE)
+
+@app.route('/settings')
+def settings():
+    """Settings page"""
+    return render_template_string(SETTINGS_PAGE)
 
 @app.route('/api/create', methods=['POST'])
-def api_create():
-    """API endpoint to create new card with photo"""
+def create_card():
+    """API: Create new card"""
     try:
-        # Handle photo upload
-        photo_filename = None
-        if 'photo' in request.files:
-            photo = request.files['photo']
-            if photo and photo.filename:
-                # Will be saved by CardGenerator
-                photo_filename = photo.filename
+        data = request.get_json()
         
-        name = request.form.get('name', '')
-        username = CardGenerator().sanitize_username(name)
-        
-        # Save photo if exists
-        if photo_filename:
-            client_dir = CLIENTS_PATH / username
-            client_dir.mkdir(parents=True, exist_ok=True)
-            
-            ext = Path(photo_filename).suffix
-            photo_path = client_dir / f'photo{ext}'
-            request.files['photo'].save(str(photo_path))
-            
-            photo_url = f'https://maroof-id.github.io/maroof-cards/{username}/photo{ext}'
-        else:
-            photo_url = ''
-        
-        generator = CardGenerator()
         result = generator.create_card(
-            name=name,
-            phone=request.form.get('phone', ''),
-            email=request.form.get('email', ''),
-            instagram=request.form.get('instagram', ''),
-            linkedin=request.form.get('linkedin', ''),
-            twitter=request.form.get('twitter', ''),
-            bio=request.form.get('bio', ''),
-            template=request.form.get('template', 'modern'),
-            photo=photo_url
+            name=data.get('name', ''),
+            phone=data.get('phone', ''),
+            email=data.get('email', ''),
+            instagram=data.get('instagram', ''),
+            linkedin=data.get('linkedin', ''),
+            twitter=data.get('twitter', ''),
+            bio=data.get('bio', ''),
+            template=data.get('template', 'modern')
         )
+        
+        generator.git_push(f"Add card: {data.get('name', '')}")
         
         return jsonify({
             'success': True,
-            'username': result['username'],
             'url': result['url'],
-            'path': result['path']
+            'username': result['username']
         })
         
     except Exception as e:
         return jsonify({
             'success': False,
             'error': str(e)
-        }), 400
+        }), 500
 
-@app.route('/api/vcard/<username>')
-def api_vcard(username):
-    """Generate vCard file"""
+@app.route('/api/nfc/write', methods=['POST'])
+def nfc_write():
+    """API: Write to NFC"""
     try:
-        client_dir = CLIENTS_PATH / username
-        data_file = client_dir / 'data.json'
-        
-        if not data_file.exists():
-            return "Card not found", 404
-        
-        import json
-        with open(data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        # Create vCard
-        vcard = f"""BEGIN:VCARD
-VERSION:3.0
-FN:{data.get('NAME', '')}
-TEL;TYPE=CELL:+{data.get('PHONE_INTL', data.get('PHONE', ''))}
-EMAIL:{data.get('EMAIL', '')}
-URL:https://maroof-id.github.io/maroof-cards/{username}
-NOTE:{data.get('BIO', '')}
-"""
-        if data.get('PHOTO'):
-            vcard += f"PHOTO;VALUE=URL:{data['PHOTO']}\n"
-        
-        vcard += "END:VCARD"
-        
-        # Return as downloadable file
-        return vcard, 200, {
-            'Content-Type': 'text/vcard',
-            'Content-Disposition': f'attachment; filename="{username}.vcf"'
-        }
-        
-    except Exception as e:
-        return str(e), 500
-
-@app.route('/api/write_nfc', methods=['POST'])
-def api_write_nfc():
-    """Write to NFC card"""
-    try:
-        data = request.json
+        data = request.get_json()
         url = data.get('url', '')
         
-        from nfc_writer import NFCWriter
-        
         writer = NFCWriter()
-        
-        if not writer.connect():
-            return jsonify({
-                'success': False,
-                'error': 'NFC reader not connected!'
-            }), 400
-        
         success = writer.write_url(url)
         writer.close()
         
         if success:
-            try:
-                import subprocess
-                subprocess.run(['aplay', '/usr/share/sounds/alsa/Front_Center.wav'], 
-                             check=False, capture_output=True, timeout=2)
-            except:
-                pass
-            
+            generator.git_push(f"Write to NFC: {url}")
             return jsonify({
                 'success': True,
-                'message': 'Card written successfully!'
+                'message': '✅ Successfully written to NFC!'
             })
         else:
             return jsonify({
                 'success': False,
-                'error': 'Failed to write card!'
-            }), 400
+                'message': '❌ Write failed'
+            }), 500
             
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': str(e)
-        }), 400
+            'message': str(e)
+        }), 500
 
-@app.route('/api/qr')
-def api_qr():
-    """Generate QR Code"""
-    url = request.args.get('url', '')
-    
-    qr = qrcode.QRCode(version=1, box_size=10, border=2)
-    qr.add_data(url)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    buf = BytesIO()
-    img.save(buf, format='PNG')
-    buf.seek(0)
-    
-    return send_file(buf, mimetype='image/png')
+@app.route('/api/nfc/read', methods=['GET'])
+def nfc_read():
+    """API: Read from NFC"""
+    try:
+        writer = NFCWriter()
+        data = writer.read_card()
+        writer.close()
+        
+        if data:
+            return jsonify({
+                'success': True,
+                'data': data
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'No data found'
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
-    print("\n" + "="*50)
-    print("🎴 Maroof - Digital Business Cards")
-    print("="*50)
-    print("\n📱 Open from mobile:")
-    print("   http://192.168.1.103:5000")
-    print("\n💻 Or from Pi:")
-    print("   http://localhost:5000")
-    print("\n" + "="*50 + "\n")
-    
     app.run(host='0.0.0.0', port=5000, debug=True)
