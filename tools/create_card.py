@@ -148,6 +148,10 @@ class CardGenerator:
     ) -> Dict[str, str]:
         """Create new business card"""
         
+        # Validate required fields
+        if not name or not name.strip():
+            raise ValueError('Name is required')
+
         # Generate username
         if not username:
             base_username = self.sanitize_username(name)
@@ -168,6 +172,10 @@ class CardGenerator:
             'BIO': bio or f'{name}',
             'PHOTO': photo
         }
+
+        # Add international phone format and persist it
+        if data.get('PHONE'):
+            data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
         
         # Load and process template
         html = self.load_template(template)
@@ -235,21 +243,55 @@ FN:{data.get('NAME', '')}
         
         return vcard_path
     
-    def git_push(self, message: str = 'Update cards'):
-        """Push changes to GitHub"""
+    def git_push(self, message: str = 'Update cards', timeout: int = 30):
+        """Push changes to GitHub safely using `cwd` and handling 'nothing to commit'.
+
+        Returns True on success, False on failure.
+        """
         try:
-            os.chdir(self.repo_path)
-            
-            subprocess.run(['git', 'add', '.'], check=True)
-            subprocess.run(['git', 'commit', '-m', message], check=True)
-            subprocess.run(['git', 'push'], check=True)
-            
+            # Stage changes
+            subprocess.run(['git', 'add', '.'], cwd=self.repo_path, check=True, timeout=timeout)
+
+            # Check if there is anything to commit
+            status = subprocess.run(['git', 'status', '--porcelain'], cwd=self.repo_path, capture_output=True, text=True, check=True)
+            if not status.stdout.strip():
+                print('No changes to commit.')
+                # still attempt to push in case remote changed, but return True
+                try:
+                    subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout)
+                except subprocess.CalledProcessError as e:
+                    print(f"❌ Git push failed: {e}")
+                    return False
+                return True
+
+            # Commit changes
+            commit = subprocess.run(['git', 'commit', '-m', message], cwd=self.repo_path, capture_output=True, text=True)
+            if commit.returncode != 0:
+                combined = (commit.stdout or '') + (commit.stderr or '')
+                if 'nothing to commit' in combined.lower():
+                    print('No changes to commit.')
+                else:
+                    print('Git commit failed:', combined)
+                    return False
+
+            # Push
+            subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout)
             print("✅ Successfully pushed to GitHub")
             return True
-            
+
         except subprocess.CalledProcessError as e:
-            print(f"❌ Git push failed: {e}")
+            print(f"❌ Git command failed: {e}")
             return False
+        except subprocess.TimeoutExpired:
+            print("❌ Git command timed out")
+            return False
+
+    def git_push_background(self, message: str = 'Update cards'):
+        """Run git_push in a background thread and return the Thread object."""
+        from threading import Thread
+        t = Thread(target=self.git_push, args=(message,), daemon=True)
+        t.start()
+        return t
     
     def get_card_data(self, username: str) -> Optional[Dict]:
         """Load card data from username"""

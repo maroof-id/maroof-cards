@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Test User
+TEL;TYPE=CELL:+966555123456
+EMAIL:test@example.com
+URL:https://maroof-id.github.io/maroof-cards/test-user
+NOTE:Test User
+END:VCARD

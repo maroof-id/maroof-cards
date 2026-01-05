@@ -582,10 +582,15 @@ def settings():
 def create_card():
     """API: Create new card"""
     try:
-        data = request.get_json()
-        
+        data = request.get_json() or {}
+
+        # Server-side validation
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+
         result = generator.create_card(
-            name=data.get('name', ''),
+            name=name,
             phone=data.get('phone', ''),
             email=data.get('email', ''),
             instagram=data.get('instagram', ''),
@@ -594,15 +599,18 @@ def create_card():
             bio=data.get('bio', ''),
             template=data.get('template', 'modern')
         )
-        
-        generator.git_push(f"Add card: {data.get('name', '')}")
-        
+
+        # Push in background so HTTP response isn't blocked
+        generator.git_push_background(f"Add card: {name}")
+
         return jsonify({
             'success': True,
             'url': result['url'],
             'username': result['username']
         })
-        
+
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
     except Exception as e:
         return jsonify({
             'success': False,
@@ -613,55 +621,49 @@ def create_card():
 def nfc_write():
     """API: Write to NFC"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         url = data.get('url', '')
-        
+
+        if not url:
+            return jsonify({'success': False, 'message': 'URL is required'}), 400
+
         writer = NFCWriter()
-        success = writer.write_url(url)
-        writer.close()
-        
-        if success:
-            generator.git_push(f"Write to NFC: {url}")
-            return jsonify({
-                'success': True,
-                'message': '✅ Successfully written to NFC!'
-            })
+        ok, msg = writer.write_url(url, timeout=5)
+        try:
+            writer.close()
+        finally:
+            # ensure clf reference cleared even if close didn't set it
+            writer.clf = None
+
+        if ok:
+            # Run git push in background
+            generator.git_push_background(f"Write to NFC: {url}")
+            return jsonify({'success': True, 'message': '✅ Successfully written to NFC!'}), 200
         else:
-            return jsonify({
-                'success': False,
-                'message': '❌ Write failed'
-            }), 500
-            
+            return jsonify({'success': False, 'message': f'❌ Write failed: {msg}'}), 500
+
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        }), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/nfc/read', methods=['GET'])
 def nfc_read():
     """API: Read from NFC"""
     try:
         writer = NFCWriter()
-        data = writer.read_card()
-        writer.close()
-        
+        data, msg = writer.read_card(timeout=5)
+        try:
+            writer.close()
+        finally:
+            writer.clf = None
+
         if data:
-            return jsonify({
-                'success': True,
-                'data': data
-            })
+            return jsonify({'success': True, 'data': data}), 200
         else:
-            return jsonify({
-                'success': False,
-                'message': 'No data found'
-            }), 404
-            
+            return jsonify({'success': False, 'message': msg}), 404
+
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        }), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Changed default port to 5001 to avoid conflicts on Raspberry Pi
+    app.run(host='0.0.0.0', port=5001, debug=True)
