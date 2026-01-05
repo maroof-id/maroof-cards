@@ -134,3 +134,17 @@ class NFCWriter:
         """Close NFC reader connection"""
         if self.clf:
             self.clf.close()
+
+    def close_safe(self):
+        """Close NFC reader connection and clear reference"""
+        try:
+            if self.clf:
+                try:
+                    self.clf.close()
+                except Exception:
+                    pass
+        finally:
+            self.clf = None
+
+    # Backwards compatible alias
+    close = close_safe
