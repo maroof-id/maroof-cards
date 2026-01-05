@@ -16,23 +16,45 @@ except Exception:
     ndef = None
 
 class NFCWriter:
-    """NFC card reader/writer using PN532"""
-    
-    def __init__(self):
+    """NFC card reader/writer using PN532 (transport configurable).
+
+    By default the writer will try multiple transports in order to support
+    common Raspberry Pi setups (serial /dev/ttyUSB0, native usb, and tty AMA0).
+    Methods return tuples (success_or_data, message) for clearer handling.
+    """
+
+    def __init__(self, transport=None):
         self.clf = None
-    
+        self.transport = None
+        # Accept a single transport string or a list/tuple of transports to try
+        if transport is None:
+            # Try serial (/dev/ttyUSB0) first, then USB, then tty AMA0
+            self.transports = ['tty:USB0:pn532', 'usb', 'tty:AMA0:pn532']
+        elif isinstance(transport, (list, tuple)):
+            self.transports = list(transport)
+        else:
+            self.transports = [transport]
+
     def connect(self):
-        """Connect to NFC reader"""
+        """Connect to NFC reader trying configured transports in order"""
         if nfc is None:
             return False
 
-        try:
-            self.clf = nfc.ContactlessFrontend(self.transport)
-            return True
-        except Exception as e:
-            print(f"❌ Failed to connect to NFC reader: {e}")
-            self.clf = None
-            return False
+        last_err = None
+        for t in self.transports:
+            try:
+                self.clf = nfc.ContactlessFrontend(t)
+                self.transport = t
+                print(f"✅ Connected to NFC reader using transport: {t}")
+                return True
+            except Exception as e:
+                last_err = e
+                # try next transport
+                continue
+
+        print(f"❌ Failed to connect to NFC reader on transports {self.transports}: {last_err}")
+        self.clf = None
+        return False
     
     def write_url(self, url: str, timeout: int = 5):
         """Write URL to NFC card with timeout (seconds).
