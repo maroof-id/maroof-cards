@@ -1,0 +1,13 @@
+# Maroof - Digital Business Cards with NFC
+# Python Dependencies
+
+# Web Framework
+flask>=2.3.0
+
+# NFC Libraries
+nfcpy>=1.0.4
+ndef>=0.3.2
+
+# Additional useful libraries
+qrcode>=7.4.2
+Pillow>=10.0.0
