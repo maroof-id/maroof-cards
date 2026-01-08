@@ -10,7 +10,7 @@ import re
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 class CardGenerator:
     """Generates digital business cards"""
@@ -243,53 +243,141 @@ FN:{data.get('NAME', '')}
         
         return vcard_path
     
-    def git_push(self, message: str = 'Update cards', timeout: int = 30):
-        """Push changes to GitHub safely using `cwd` and handling 'nothing to commit'.
-
-        Returns True on success, False on failure.
+    def git_push(self, message: str = 'Update cards', timeout: int = 30) -> Tuple[bool, str]:
+        """Push changes to GitHub with proper error handling.
+        
+        Returns:
+            Tuple of (success: bool, message: str)
         """
         try:
             # Stage changes
-            subprocess.run(['git', 'add', '.'], cwd=self.repo_path, check=True, timeout=timeout)
+            try:
+                subprocess.run(
+                    ['git', 'add', '.'], 
+                    cwd=self.repo_path, 
+                    check=True, 
+                    timeout=timeout,
+                    capture_output=True
+                )
+            except subprocess.TimeoutExpired:
+                error_msg = "❌ مهلة انتظار: git add تجاوز الوقت / Timeout: git add took too long"
+                print(error_msg)
+                return False, error_msg
+            except subprocess.CalledProcessError as e:
+                error_msg = f"❌ خطأ: فشل إضافة الملفات / Error: git add failed - {e.stderr.decode() if e.stderr else str(e)}"
+                print(error_msg)
+                return False, error_msg
 
             # Check if there is anything to commit
-            status = subprocess.run(['git', 'status', '--porcelain'], cwd=self.repo_path, capture_output=True, text=True, check=True)
+            try:
+                status = subprocess.run(
+                    ['git', 'status', '--porcelain'], 
+                    cwd=self.repo_path, 
+                    capture_output=True, 
+                    text=True, 
+                    check=True,
+                    timeout=timeout
+                )
+            except subprocess.TimeoutExpired:
+                error_msg = "❌ مهلة انتظار: git status تجاوز الوقت / Timeout: git status took too long"
+                print(error_msg)
+                return False, error_msg
+            except subprocess.CalledProcessError as e:
+                error_msg = f"❌ خطأ: فشل التحقق من الحالة / Error: git status failed"
+                print(error_msg)
+                return False, error_msg
+
             if not status.stdout.strip():
-                print('No changes to commit.')
-                # still attempt to push in case remote changed, but return True
+                print("ℹ️ لا توجد تغييرات / No changes to commit")
+                # Try to push anyway in case remote changed
                 try:
-                    subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout)
+                    subprocess.run(
+                        ['git', 'push'], 
+                        cwd=self.repo_path, 
+                        check=True, 
+                        timeout=timeout,
+                        capture_output=True
+                    )
+                    print("✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub")
+                    return True, "✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub"
+                except subprocess.TimeoutExpired:
+                    error_msg = "❌ مهلة انتظار: git push تجاوز الوقت / Timeout: git push took too long"
+                    print(error_msg)
+                    return False, error_msg
                 except subprocess.CalledProcessError as e:
-                    print(f"❌ Git push failed: {e}")
-                    return False
-                return True
+                    error_msg = f"❌ خطأ: فشل دفع البيانات / Error: git push failed - GitHub may be offline"
+                    print(error_msg)
+                    return False, error_msg
 
             # Commit changes
-            commit = subprocess.run(['git', 'commit', '-m', message], cwd=self.repo_path, capture_output=True, text=True)
-            if commit.returncode != 0:
-                combined = (commit.stdout or '') + (commit.stderr or '')
-                if 'nothing to commit' in combined.lower():
-                    print('No changes to commit.')
-                else:
-                    print('Git commit failed:', combined)
-                    return False
+            try:
+                commit = subprocess.run(
+                    ['git', 'commit', '-m', message], 
+                    cwd=self.repo_path, 
+                    capture_output=True, 
+                    text=True,
+                    timeout=timeout
+                )
+                if commit.returncode != 0:
+                    combined = (commit.stdout or '') + (commit.stderr or '')
+                    if 'nothing to commit' in combined.lower():
+                        print("ℹ️ لا توجد تغييرات / No changes to commit")
+                    else:
+                        error_msg = f"❌ خطأ: فشل الحفظ / Git commit failed: {combined}"
+                        print(error_msg)
+                        return False, error_msg
+            except subprocess.TimeoutExpired:
+                error_msg = "❌ مهلة انتظار: git commit تجاوز الوقت / Timeout: git commit took too long"
+                print(error_msg)
+                return False, error_msg
 
             # Push
-            subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout)
-            print("✅ Successfully pushed to GitHub")
-            return True
+            try:
+                subprocess.run(
+                    ['git', 'push'], 
+                    cwd=self.repo_path, 
+                    check=True, 
+                    timeout=timeout,
+                    capture_output=True
+                )
+                success_msg = "✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub"
+                print(success_msg)
+                return True, success_msg
 
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Git command failed: {e}")
-            return False
-        except subprocess.TimeoutExpired:
-            print("❌ Git command timed out")
-            return False
+            except subprocess.TimeoutExpired:
+                error_msg = "❌ مهلة انتظار: git push تجاوز الوقت / Timeout: git push took too long"
+                print(error_msg)
+                return False, error_msg
+            except subprocess.CalledProcessError as e:
+                error_msg = "❌ خطأ: فشل دفع البيانات إلى GitHub / Error: git push failed - Check credentials or network"
+                print(error_msg)
+                return False, error_msg
 
-    def git_push_background(self, message: str = 'Update cards'):
-        """Run git_push in a background thread and return the Thread object."""
+        except Exception as e:
+            error_msg = f"❌ خطأ غير متوقع / Unexpected error: {str(e)}"
+            print(error_msg)
+            return False, error_msg
+
+    def git_push_background(self, message: str = 'Update cards', callback=None):
+        """Run git_push in a background thread with proper error handling.
+        
+        Args:
+            message: Commit message
+            callback: Optional callback function that receives (success: bool, message: str)
+        
+        Returns:
+            Thread object
+        """
+        def background_task():
+            success, msg = self.git_push(message)
+            if callback:
+                try:
+                    callback(success, msg)
+                except Exception as e:
+                    print(f"❌ خطأ في callback / Callback error: {e}")
+        
         from threading import Thread
-        t = Thread(target=self.git_push, args=(message,), daemon=True)
+        t = Thread(target=background_task, daemon=True)
         t.start()
         return t
     

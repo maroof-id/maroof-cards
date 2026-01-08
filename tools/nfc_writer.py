@@ -51,45 +51,55 @@ class NFCWriter:
             Tuple of (success: bool, message: str)
         """
         if not self.clf:
-            return False, "NFC reader not connected"
+            return False, "❌ قارئ NFC غير متصل / NFC reader not connected"
         
         print(f"\nReady to write: {url}")
         print("Place card on reader...")
         
         try:
-            import ndeflib
+            import ndef
             
             # Create NDEF message with URL
-            uri_record = ndeflib.Record('urn:nfc:wkt:U', data=url.encode())
+            uri_record = ndef.UriRecord(url)
             message = [uri_record]
             
-            # Wait for card
+            # Wait for card with timeout
             start_time = time.time()
             tag = None
+            last_error = None
             
             while time.time() - start_time < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
                     if tag:
                         break
-                except:
+                except Exception as e:
+                    last_error = str(e)
                     time.sleep(0.1)
             
             if not tag:
-                return False, f"No card detected within {timeout} seconds"
+                if last_error and 'timeout' in last_error.lower():
+                    return False, "❌ انتهت مهلة انتظار قارئ NFC / NFC reader timeout"
+                return False, f"❌ لم يتم اكتشاف بطاقة / No card detected within {timeout} seconds"
             
             print(f"Card detected: {tag}")
             
             # Write to card
-            if tag.ndef:
-                tag.ndef.records = message
-                print("Successfully written to NFC!")
-                return True, "Successfully written to NFC"
+            if tag.ndef is not None:
+                try:
+                    tag.ndef.records = message
+                    tag.close()
+                    print("Successfully written to NFC!")
+                    return True, "✅ تمت الكتابة على البطاقة بنجاح / Successfully written to NFC"
+                except Exception as write_err:
+                    return False, f"❌ خطأ في الكتابة / Write error: {str(write_err)}"
             else:
-                return False, "Card doesn't support NDEF format"
+                return False, "❌ البطاقة لا تدعم صيغة NDEF / Card doesn't support NDEF format"
                 
+        except ImportError:
+            return False, "❌ مكتبة ndef غير مثبتة / ndef library not installed"
         except Exception as e:
-            error_msg = f"Write error: {str(e)}"
+            error_msg = f"❌ خطأ: {str(e)} / Error: {str(e)}"
             print(f"Error: {error_msg}")
             return False, error_msg
     
@@ -101,25 +111,29 @@ class NFCWriter:
             Tuple of (data: Optional[Dict], message: str)
         """
         if not self.clf:
-            return None, "NFC reader not connected"
+            return None, "❌ قارئ NFC غير متصل / NFC reader not connected"
         
         print("\nPlace card on reader to read...")
         
         try:
-            # Wait for card
+            # Wait for card with timeout
             start_time = time.time()
             tag = None
+            last_error = None
             
             while time.time() - start_time < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
                     if tag:
                         break
-                except:
+                except Exception as e:
+                    last_error = str(e)
                     time.sleep(0.1)
             
             if not tag:
-                return None, f"No card detected within {timeout} seconds"
+                if last_error and 'timeout' in last_error.lower():
+                    return None, "❌ انتهت مهلة انتظار قارئ NFC / NFC reader timeout"
+                return None, f"❌ لم يتم اكتشاف بطاقة / No card detected within {timeout} seconds"
             
             print(f"Card detected: {tag}")
             
@@ -129,28 +143,31 @@ class NFCWriter:
             
             # Try to read NDEF data
             if tag.ndef:
-                for record in tag.ndef.records:
-                    print(f"  Record: {record}")
+                try:
+                    for record in tag.ndef.records:
+                        print(f"  Record: {record}")
+                        
+                        # Handle URI records
+                        if hasattr(record, 'uri'):
+                            result['url'] = record.uri
+                            print(f"  URL: {record.uri}")
+                        
+                        # Handle text records
+                        elif hasattr(record, 'text'):
+                            result['text'] = record.text
+                            print(f"  Text: {record.text}")
                     
-                    # Handle URI records
-                    if hasattr(record, 'uri'):
-                        result['url'] = record.uri
-                        print(f"  URL: {record.uri}")
-                    
-                    # Handle text records
-                    elif hasattr(record, 'text'):
-                        result['text'] = record.text
-                        print(f"  Text: {record.text}")
-                
-                if 'url' in result:
-                    return result, "Successfully read card"
-                else:
-                    return result, "Card has no URL data"
+                    if 'url' in result:
+                        return result, "✅ تم قراءة البطاقة بنجاح / Successfully read card"
+                    else:
+                        return result, "⚠️ البطاقة لا تحتوي بيانات رابط / Card has no URL data"
+                finally:
+                    tag.close()
             else:
-                return result, "Card has no NDEF data"
+                return result, "⚠️ البطاقة لا تحتوي بيانات NDEF / Card has no NDEF data"
                 
         except Exception as e:
-            error_msg = f"Read error: {str(e)}"
+            error_msg = f"❌ خطأ في القراءة / Read error: {str(e)}"
             print(f"Error: {error_msg}")
             return None, error_msg
     
