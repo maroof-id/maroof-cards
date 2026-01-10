@@ -9,29 +9,35 @@ class NFCWriter:
         self.clf = None
         
     def connect(self) -> bool:
-        print("Connecting NFC...")
-        try:
-            # محاولة واحدة فقط - أسرع منفذ
-            self.clf = nfc.ContactlessFrontend('tty:USB0:pn532')
-            print(f"Connected: {self.clf}")
+        """Connect to NFC reader"""
+        if self.clf:
             return True
-        except Exception as e:
-            print(f"Failed: {e}")
+            
+        try:
+            self.clf = nfc.ContactlessFrontend('tty:USB0:pn532')
+            return True
+        except:
             return False
     
-    def is_connected(self) -> bool:
-        return self.clf is not None
+    def close(self):
+        """Close and free the reader"""
+        if self.clf:
+            try:
+                self.clf.close()
+            except:
+                pass
+            finally:
+                self.clf = None
     
     def write_url(self, url: str, timeout: int = 10) -> Tuple[bool, str]:
-        if not self.clf:
-            # حاول الاتصال الآن
+        """Write URL and close connection"""
+        try:
+            # اتصال جديد
             if not self.connect():
                 return False, "Cannot connect to NFC reader"
-        
-        print(f"Writing: {url}")
-        print("Place card...")
-        
-        try:
+            
+            print(f"Writing: {url}")
+            
             import ndef
             record = ndef.UriRecord(url)
             
@@ -56,15 +62,16 @@ class NFCWriter:
                 
         except Exception as e:
             return False, f"Error: {str(e)}"
+        finally:
+            # إغلاق الاتصال بعد كل عملية
+            self.close()
     
     def read_card(self, timeout: int = 10) -> Tuple[Optional[Dict], str]:
-        if not self.clf:
+        """Read card and close connection"""
+        try:
             if not self.connect():
                 return None, "Cannot connect to NFC reader"
-        
-        print("Place card...")
-        
-        try:
+            
             start = time.time()
             tag = None
             
@@ -93,14 +100,9 @@ class NFCWriter:
                 
         except Exception as e:
             return None, f"Error: {str(e)}"
-    
-    def close(self):
-        if self.clf:
-            try:
-                self.clf.close()
-            except:
-                pass
-            self.clf = None
+        finally:
+            # إغلاق الاتصال بعد كل عملية
+            self.close()
 
 def main():
     import argparse
@@ -111,9 +113,6 @@ def main():
     
     args = parser.parse_args()
     writer = NFCWriter()
-    
-    if not writer.connect():
-        sys.exit(1)
     
     try:
         if args.read:
