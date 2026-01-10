@@ -6,7 +6,7 @@ flask>=2.3.0
 
 # NFC Libraries
 nfcpy>=1.0.4
-ndef>=0.3.2
+ndeflib>=0.3.3
 
 # Additional useful libraries
 qrcode>=7.4.2

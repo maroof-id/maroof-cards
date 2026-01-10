@@ -6,6 +6,7 @@ Fixed for AITRIP PN532 on Raspberry Pi
 """
 
 import nfc
+import ndeflib
 import time
 import sys
 from typing import Tuple, Optional, Dict
@@ -57,10 +58,8 @@ class NFCWriter:
         print("Place card on reader...")
         
         try:
-            import ndef
-            
             # Create NDEF message with URL
-            uri_record = ndef.UriRecord(url)
+            uri_record = ndeflib.Record('urn:nfc:wkt:U', data=url.encode())
             message = [uri_record]
             
             # Wait for card with timeout
