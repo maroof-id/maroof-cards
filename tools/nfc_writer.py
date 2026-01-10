@@ -20,8 +20,10 @@ class NFCWriter:
         print("Searching for NFC reader...")
         
         transports = [
+            ('tty:USB1:pn532', 'PN532 on USB1'),
             ('tty:USB0:pn532', 'PN532 on USB0'),
-            ('tty:/dev/ttyUSB0:pn532', 'PN532 backup'),
+            ('tty:/dev/ttyUSB1:pn532', 'PN532 ttyUSB1'),
+            ('tty:/dev/ttyUSB0:pn532', 'PN532 ttyUSB0'),
         ]
         
         for path, name in transports:
@@ -49,11 +51,9 @@ class NFCWriter:
         print("Place card on reader...")
         
         try:
-            # Create simple NDEF URI record
             import ndef
             record = ndef.UriRecord(url)
             
-            # Wait for card
             start_time = time.time()
             tag = None
             
