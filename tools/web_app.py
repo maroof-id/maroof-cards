@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Maroof Web App - Fixed for AITRIP PN532
+Maroof Web App - Enhanced NFC Stability
 """
 
 from flask import Flask, request, jsonify, render_template_string
@@ -19,18 +19,6 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 generator = CardGenerator()
-
-# Global NFC writer instance
-nfc_writer = None
-
-def get_nfc_writer():
-    """Get or create NFC writer instance"""
-    global nfc_writer
-    if nfc_writer is None:
-        nfc_writer = NFCWriter()
-        if not nfc_writer.connect():
-            return None
-    return nfc_writer
 
 # HTML Templates
 HOME_PAGE = """
@@ -158,10 +146,15 @@ HOME_PAGE = """
         .result p {
             font-size: 14px;
             line-height: 1.5;
+            margin: 8px 0;
         }
         .nfc-btn {
             margin-top: 10px;
             background: #4CAF50;
+        }
+        .retry-btn {
+            margin-top: 10px;
+            background: #ff9800;
         }
         .loading {
             display: none;
@@ -181,6 +174,20 @@ HOME_PAGE = """
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .help-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .help-box strong {
+            display: block;
+            margin-bottom: 5px;
         }
         @media (max-width: 600px) {
             .container { padding: 15px; }
@@ -259,14 +266,19 @@ HOME_PAGE = """
         <div id="result" class="result">
             <h3 id="resultTitle"></h3>
             <p id="resultMessage"></p>
+            <div id="helpBox" class="help-box" style="display:none;"></div>
             <button class="btn nfc-btn" id="nfcBtn" onclick="writeNFC()" style="display:none;">
                 <i class="fas fa-wifi"></i> كتابة على NFC
+            </button>
+            <button class="btn retry-btn" id="retryBtn" onclick="retryNFC()" style="display:none;">
+                <i class="fas fa-redo"></i> إعادة المحاولة
             </button>
         </div>
     </div>
     
     <script>
         let currentUrl = '';
+        let nfcRetryCount = 0;
         
         document.getElementById('cardForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -274,9 +286,9 @@ HOME_PAGE = """
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
             
-            // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('submitBtn').disabled = true;
+            document.getElementById('result').style.display = 'none';
             
             try {
                 const response = await fetch('/api/create', {
@@ -292,17 +304,22 @@ HOME_PAGE = """
                 
                 if (result.success) {
                     currentUrl = result.url;
+                    nfcRetryCount = 0;
                     document.getElementById('result').className = 'result show success';
                     document.getElementById('resultTitle').textContent = '✅ تمت الإنشاء بنجاح!';
                     document.getElementById('resultMessage').innerHTML = 
                         `<strong>الرابط:</strong> <a href="${result.url}" target="_blank">${result.url}</a>`;
                     document.getElementById('nfcBtn').style.display = 'block';
+                    document.getElementById('retryBtn').style.display = 'none';
+                    document.getElementById('helpBox').style.display = 'none';
                     document.getElementById('cardForm').reset();
                 } else {
                     document.getElementById('result').className = 'result show error';
                     document.getElementById('resultTitle').textContent = '❌ حدث خطأ';
                     document.getElementById('resultMessage').textContent = result.error || 'خطأ غير معروف';
                     document.getElementById('nfcBtn').style.display = 'none';
+                    document.getElementById('retryBtn').style.display = 'none';
+                    document.getElementById('helpBox').style.display = 'none';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
@@ -311,6 +328,8 @@ HOME_PAGE = """
                 document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
                 document.getElementById('resultMessage').textContent = error.toString();
                 document.getElementById('nfcBtn').style.display = 'none';
+                document.getElementById('retryBtn').style.display = 'none';
+                document.getElementById('helpBox').style.display = 'none';
             }
         });
         
@@ -323,7 +342,11 @@ HOME_PAGE = """
             const nfcBtn = document.getElementById('nfcBtn');
             const originalText = nfcBtn.innerHTML;
             nfcBtn.disabled = true;
-            nfcBtn.innerHTML = '<div class="spinner"></div> جاري الكتابة...';
+            nfcBtn.innerHTML = '<div class="spinner"></div> جاري الكتابة... ضع البطاقة على القارئ';
+            
+            document.getElementById('resultMessage').innerHTML = 
+                `<strong>الرابط:</strong> <a href="${currentUrl}" target="_blank">${currentUrl}</a><br>
+                <em>⏳ جاري الكتابة... ضع بطاقة NFC على القارئ الآن</em>`;
             
             try {
                 const response = await fetch('/api/nfc/write', {
@@ -338,15 +361,72 @@ HOME_PAGE = """
                 nfcBtn.innerHTML = originalText;
                 
                 if (result.success) {
-                    alert('✅ ' + result.message);
+                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('resultTitle').textContent = '✅ نجحت الكتابة!';
+                    document.getElementById('resultMessage').innerHTML = 
+                        `<strong>الرابط:</strong> <a href="${currentUrl}" target="_blank">${currentUrl}</a><br>
+                        <strong>✅ ${result.message}</strong>`;
+                    document.getElementById('helpBox').style.display = 'none';
+                    document.getElementById('retryBtn').style.display = 'none';
+                    nfcRetryCount = 0;
                 } else {
-                    alert('❌ ' + result.message);
+                    nfcRetryCount++;
+                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('resultTitle').textContent = '❌ فشلت الكتابة';
+                    document.getElementById('resultMessage').innerHTML = 
+                        `<strong>❌ ${result.message}</strong>`;
+                    
+                    // Show help based on error
+                    const helpBox = document.getElementById('helpBox');
+                    if (result.message.includes('Cannot connect') || result.message.includes('غير متصل')) {
+                        helpBox.innerHTML = `
+                            <strong>⚠️ القارئ غير متصل:</strong>
+                            1. افصل قارئ NFC من USB<br>
+                            2. انتظر 5 ثواني<br>
+                            3. وصّله مرة أخرى<br>
+                            4. اضغط "إعادة المحاولة"
+                        `;
+                        helpBox.style.display = 'block';
+                        document.getElementById('retryBtn').style.display = 'block';
+                    } else if (result.message.includes('NDEF') || result.message.includes('لا تدعم')) {
+                        helpBox.innerHTML = `
+                            <strong>⚠️ البطاقة غير مدعومة:</strong>
+                            هذه البطاقة لا تدعم NDEF.<br>
+                            استخدم بطاقة <strong>NTAG213</strong> أو <strong>NTAG215</strong> أو <strong>NTAG216</strong>
+                        `;
+                        helpBox.style.display = 'block';
+                        document.getElementById('retryBtn').style.display = 'block';
+                    } else if (result.message.includes('No card') || result.message.includes('لم يتم اكتشاف')) {
+                        helpBox.innerHTML = `
+                            <strong>⚠️ لم يتم اكتشاف بطاقة:</strong>
+                            1. تأكد من وضع البطاقة بشكل صحيح على القارئ<br>
+                            2. حاول مرة أخرى
+                        `;
+                        helpBox.style.display = 'block';
+                        document.getElementById('retryBtn').style.display = 'block';
+                    } else {
+                        helpBox.style.display = 'none';
+                        document.getElementById('retryBtn').style.display = 'block';
+                    }
                 }
             } catch (error) {
                 nfcBtn.disabled = false;
                 nfcBtn.innerHTML = originalText;
-                alert('❌ خطأ في الاتصال: ' + error);
+                document.getElementById('result').className = 'result show error';
+                document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+                document.getElementById('resultMessage').textContent = error.toString();
+                document.getElementById('retryBtn').style.display = 'block';
             }
+        }
+        
+        function retryNFC() {
+            if (nfcRetryCount >= 3) {
+                if (confirm('تم المحاولة 3 مرات. هل تريد الذهاب لصفحة الإعدادات لاختبار القارئ؟')) {
+                    window.location.href = '/settings';
+                }
+                return;
+            }
+            writeNFC();
         }
     </script>
 </body>
@@ -420,6 +500,9 @@ SETTINGS_PAGE = """
             opacity: 0.6;
             cursor: not-allowed;
         }
+        .btn-test {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
         .result {
             margin-top: 15px;
             padding: 15px;
@@ -443,6 +526,16 @@ SETTINGS_PAGE = """
             border-radius: 4px;
             overflow-x: auto;
             font-size: 12px;
+        }
+        .help-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.6;
         }
         .loading {
             display: none;
@@ -481,26 +574,73 @@ SETTINGS_PAGE = """
     
     <div class="container">
         <h1>⚙️ الإعدادات</h1>
+        
+        <button class="btn btn-test" onclick="testReader()" id="testBtn">
+            <i class="fas fa-stethoscope"></i> اختبار قارئ NFC
+        </button>
+        
         <button class="btn" onclick="readCard()" id="readBtn">
             <i class="fas fa-book"></i> قراءة بطاقة NFC
         </button>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>جاري قراءة البطاقة...</p>
+            <p id="loadingText">جاري الاختبار...</p>
         </div>
         
         <div id="result" class="result">
             <h3 id="resultTitle"></h3>
             <pre id="resultContent"></pre>
         </div>
+        
+        <div class="help-box" style="margin-top: 20px;">
+            <strong>💡 نصائح:</strong><br>
+            • إذا فشل الاتصال، افصل القارئ ووصّله مرة أخرى<br>
+            • استخدم بطاقات NTAG213/215/216 للحصول على أفضل النتائج<br>
+            • تأكد من وضع البطاقة بشكل صحيح على القارئ
+        </div>
     </div>
     
     <script>
+        async function testReader() {
+            const testBtn = document.getElementById('testBtn');
+            testBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'جاري اختبار القارئ...';
+            document.getElementById('result').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/nfc/test');
+                const result = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                testBtn.disabled = false;
+                
+                if (result.success) {
+                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('resultTitle').textContent = '✅ القارئ يعمل بشكل صحيح';
+                    document.getElementById('resultContent').textContent = result.message;
+                } else {
+                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('resultTitle').textContent = '❌ فشل الاتصال';
+                    document.getElementById('resultContent').textContent = result.message + '\n\n⚠️ افصل القارئ من USB، انتظر 5 ثواني، ووصّله مرة أخرى ثم أعد المحاولة';
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').className = 'result show error';
+                document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+                document.getElementById('resultContent').textContent = error.toString();
+                testBtn.disabled = false;
+            }
+        }
+        
         async function readCard() {
             const readBtn = document.getElementById('readBtn');
             readBtn.disabled = true;
             document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'ضع البطاقة على القارئ...';
             document.getElementById('result').style.display = 'none';
             
             try {
@@ -542,6 +682,28 @@ def index():
 def settings():
     return render_template_string(SETTINGS_PAGE)
 
+@app.route('/api/nfc/test', methods=['GET'])
+def nfc_test():
+    """Test NFC reader connection"""
+    try:
+        writer = NFCWriter()
+        if writer.connect():
+            writer.close()
+            return jsonify({
+                'success': True,
+                'message': '✅ القارئ متصل ويعمل بشكل صحيح / NFC reader connected and working'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': '❌ فشل الاتصال بالقارئ / Failed to connect to NFC reader'
+            }), 503
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'❌ خطأ: {str(e)} / Error: {str(e)}'
+        }), 500
+
 @app.route('/api/create', methods=['POST'])
 def create_card():
     try:
@@ -565,7 +727,6 @@ def create_card():
             template=data.get('template', 'modern')
         )
 
-        # Git push in background with callback
         def git_callback(success, msg):
             if not success:
                 print(f"⚠️ تحذير: فشل دفع البيانات / Warning: {msg}")
@@ -579,16 +740,10 @@ def create_card():
             'message': '✅ تمت الإنشاء بنجاح / Card created successfully'
         }), 201
 
-    except ValueError as e:
-        return jsonify({
-            'success': False, 
-            'error': f'❌ {str(e)}'
-        }), 400
     except Exception as e:
-        error_msg = str(e)
         return jsonify({
             'success': False, 
-            'error': f'❌ خطأ: {error_msg} / Error: {error_msg}'
+            'error': f'❌ خطأ: {str(e)} / Error: {str(e)}'
         }), 500
 
 @app.route('/api/nfc/write', methods=['POST'])
@@ -603,17 +758,11 @@ def nfc_write():
                 'message': '❌ الرابط مطلوب / URL is required'
             }), 400
 
-        writer = get_nfc_writer()
-        if not writer:
-            return jsonify({
-                'success': False, 
-                'message': '❌ قارئ NFC غير متصل / NFC reader not connected'
-            }), 503
-
+        writer = NFCWriter()
         ok, msg = writer.write_url(url, timeout=15)
+        writer.close()
 
         if ok:
-            # Git push in background with callback
             def git_callback(success, git_msg):
                 if not success:
                     print(f"⚠️ تحذير: فشل دفع البيانات / Warning: {git_msg}")
@@ -624,23 +773,17 @@ def nfc_write():
             return jsonify({'success': False, 'message': msg}), 500
 
     except Exception as e:
-        error_msg = str(e)
         return jsonify({
             'success': False, 
-            'message': f'❌ خطأ: {error_msg} / Error: {error_msg}'
+            'message': f'❌ خطأ: {str(e)} / Error: {str(e)}'
         }), 500
 
 @app.route('/api/nfc/read', methods=['GET'])
 def nfc_read():
     try:
-        writer = get_nfc_writer()
-        if not writer:
-            return jsonify({
-                'success': False, 
-                'message': '❌ قارئ NFC غير متصل / NFC reader not connected'
-            }), 503
-
+        writer = NFCWriter()
         data, msg = writer.read_card(timeout=15)
+        writer.close()
 
         if data:
             return jsonify({'success': True, 'data': data, 'message': msg}), 200
@@ -651,22 +794,13 @@ def nfc_read():
             }), 404
 
     except Exception as e:
-        error_msg = str(e)
         return jsonify({
             'success': False, 
-            'message': f'❌ خطأ: {error_msg} / Error: {error_msg}'
+            'message': f'❌ خطأ: {str(e)} / Error: {str(e)}'
         }), 500
 
 if __name__ == '__main__':
-    # Initialize NFC on startup
-    print("Initializing NFC reader...")
-    writer = get_nfc_writer()
-    if writer:
-        print("✅ NFC reader ready!")
-    else:
-        print("⚠️ NFC reader not connected - some features may not work")
-    
-    # Run Flask app without debug mode in production
-    app.run(host='0.0.0.0', port=5001, debug=False)
-
-
+    print("🚀 Maroof NFC System Starting...")
+    print("📍 Server will run on: http://0.0.0.0:8080")
+    print("⚠️  Note: NFC reader will connect on-demand for better stability")
+    app.run(host='0.0.0.0', port=8080, debug=False)
