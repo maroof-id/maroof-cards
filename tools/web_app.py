@@ -621,7 +621,7 @@ SETTINGS_PAGE_V2 = """
                 } else {
                     document.getElementById('result').className = 'result show error';
                     document.getElementById('resultTitle').textContent = 'Connection Failed';
-                    document.getElementById('resultContent').textContent = result.message + '\n\nDisconnect reader from USB, wait 5 seconds, reconnect and try again';
+                    document.getElementById('resultContent').textContent = result.message + '\n\nDisconnect USB reader, wait 5 sec, reconnect';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
