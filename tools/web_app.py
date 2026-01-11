@@ -4,7 +4,6 @@
 Maroof Web App - Enhanced NFC Stability
 """
 
-
 import sys
 from pathlib import Path
 
