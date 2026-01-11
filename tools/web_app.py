@@ -430,7 +430,7 @@ HOME_PAGE = """
 </html>
 """
 
-SETTINGS_PAGE = """
+SETTINGS_PAGE_V2 = """
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -677,7 +677,7 @@ def index():
 
 @app.route('/settings')
 def settings():
-    return render_template_string(SETTINGS_PAGE)
+    return render_template_string(SETTINGS_PAGE_V2)
 
 @app.route('/api/nfc/test', methods=['GET'])
 def nfc_test():
