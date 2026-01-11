@@ -4,8 +4,7 @@
 Maroof - Digital Business Cards Generator
 Creates professional digital business cards with NFC support
 """
-ش
-import os
+
 import re
 import json
 import subprocess
