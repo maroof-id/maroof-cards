@@ -4,6 +4,8 @@
 Maroof Web App - Enhanced NFC Stability
 """
 
+from flask import Flask, request, jsonify, render_template_string
+import os
 import sys
 from pathlib import Path
 
