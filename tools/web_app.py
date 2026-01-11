@@ -306,7 +306,7 @@ HOME_PAGE = """
                 if (result.success) {
                     currentUrl = result.url;
                     nfcRetryCount = 0;
-                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Created Successfully!';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>URL:</strong> <a href="' + result.url + '" target="_blank">' + result.url + '</a>';
@@ -315,7 +315,7 @@ HOME_PAGE = """
                     document.getElementById('helpBox').style.display = 'none';
                     document.getElementById('cardForm').reset();
                 } else {
-                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Error Occurred';
                     document.getElementById('resultMessage').textContent = result.error || 'Unknown error';
                     document.getElementById('nfcBtn').style.display = 'none';
@@ -325,7 +325,7 @@ HOME_PAGE = """
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('submitBtn').disabled = false;
-                document.getElementById('result').className = 'result show error';
+                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultMessage').textContent = error.toString();
                 document.getElementById('nfcBtn').style.display = 'none';
@@ -362,7 +362,7 @@ HOME_PAGE = """
                 nfcBtn.innerHTML = originalText;
 
                 if (result.success) {
-                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Write Successful!';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>URL:</strong> <a href="' + currentUrl + '" target="_blank">' + currentUrl + '</a><br>' +
@@ -372,7 +372,7 @@ HOME_PAGE = """
                     nfcRetryCount = 0;
                 } else {
                     nfcRetryCount++;
-                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Write Failed';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>' + result.message + '</strong>';
@@ -409,7 +409,7 @@ HOME_PAGE = """
             } catch (error) {
                 nfcBtn.disabled = false;
                 nfcBtn.innerHTML = originalText;
-                document.getElementById('result').className = 'result show error';
+                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultMessage').textContent = error.toString();
                 document.getElementById('retryBtn').style.display = 'block';
@@ -615,18 +615,18 @@ SETTINGS_PAGE_V2 = """
                 testBtn.disabled = false;
 
                 if (result.success) {
-                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Reader Working Correctly';
                     document.getElementById('resultContent').textContent = result.message;
                 } else {
-                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Connection Failed';
                     document.getElementById('resultContent').textContent = result.message + ' --- Disconnect USB reader, wait 5 sec, reconnect';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result').style.display = 'block';
-                document.getElementById('result').className = 'result show error';
+                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultContent').textContent = error.toString();
                 testBtn.disabled = false;
@@ -649,18 +649,18 @@ SETTINGS_PAGE_V2 = """
                 readBtn.disabled = false;
 
                 if (result.success && result.data) {
-                    document.getElementById('result').className = 'result show success';
+                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Read Successful';
                     document.getElementById('resultContent').textContent = JSON.stringify(result.data, null, 2);
                 } else {
-                    document.getElementById('result').className = 'result show error';
+                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Read Error';
                     document.getElementById('resultContent').textContent = result.message || 'Unknown error';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result').style.display = 'block';
-                document.getElementById('result').className = 'result show error';
+                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultContent').textContent = error.toString();
                 readBtn.disabled = false;
