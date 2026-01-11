@@ -800,4 +800,4 @@ if __name__ == '__main__':
     print("Maroof NFC System Starting...")
     print("Server will run on: http://0.0.0.0:7070")
     print("Note: NFC reader will connect on-demand for better stability")
-    app.run(host='0.0.0.0', port=7070, debug=False)
+    app.run(host='0.0.0.0', port=7070, debug=False)# Force reload Sun 11 Jan 19:14:52 +03 2026
