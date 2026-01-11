@@ -798,6 +798,6 @@ def nfc_read():
 
 if __name__ == '__main__':
     print("Maroof NFC System Starting...")
-    print("Server will run on: http://0.0.0.0:8080")
+    print("Server will run on: http://0.0.0.0:7070")
     print("Note: NFC reader will connect on-demand for better stability")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=7070, debug=False)
