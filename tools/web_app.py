@@ -622,7 +622,7 @@ SETTINGS_PAGE_V2 = """
                     document.getElementById('result').className = 'result show error';
                     document.getElementById('resultTitle').textContent = 'Connection Failed';
                     # Fixed line below
-                    document.getElementById('resultContent').textContent = result.message + '\n\nDisconnect USB reader, wait 5 sec, reconnect';
+                    document.getElementById('resultContent').textContent = result.message + ' --- Disconnect USB reader, wait 5 sec, reconnect';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
