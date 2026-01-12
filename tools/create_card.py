@@ -8,6 +8,7 @@ Creates professional digital business cards with NFC support
 import re
 import json
 import subprocess
+import base64
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
@@ -160,6 +161,34 @@ class CardGenerator:
         client_dir = self.clients_path / username
         client_dir.mkdir(exist_ok=True)
 
+        # Save photo if provided (Base64 format)
+        photo_path = ''
+        if photo and photo.startswith('data:image'):
+            try:
+                # Parse data URL: data:image/jpeg;base64,/9j/4AAQ...
+                match = re.match(r'data:image/(\w+);base64,(.+)', photo)
+                if match:
+                    image_format = match.group(1).lower()  # jpg, png, gif, etc
+                    image_data = match.group(2)
+                    
+                    # Decode base64
+                    image_bytes = base64.b64decode(image_data)
+                    
+                    # Save to file
+                    photo_filename = f'photo.{image_format}'
+                    photo_file_path = client_dir / photo_filename
+                    
+                    with open(photo_file_path, 'wb') as f:
+                        f.write(image_bytes)
+                    
+                    # Set relative path for HTML
+                    photo_path = f'./{photo_filename}'
+                    
+                    print(f"✅ Photo saved: {photo_file_path}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not save photo - {e}")
+                photo_path = ''
+
         # Prepare data
         data = {
             'NAME': name,
@@ -169,7 +198,7 @@ class CardGenerator:
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
             'BIO': bio or f'{name}',
-            'PHOTO': photo
+            'PHOTO': photo_path  # Use local path instead of base64
         }
 
         # Add international phone format and persist it
@@ -195,7 +224,7 @@ class CardGenerator:
 
         return {
             'username': username,
-            'url': f'https://maroof-id.github.io/maroof-cards/{username}',
+            'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
             'path': str(output_file),
             'template': template
         }
@@ -215,13 +244,15 @@ FN:{data.get('NAME', '')}
         if data.get('EMAIL'):
             vcard += f"EMAIL:{data['EMAIL']}\n"
 
-        vcard += f"URL:https://maroof-id.github.io/maroof-cards/{username}\n"
+        vcard += f"URL:https://maroof-id.github.io/maroof-cards/clients/{username}/\n"
 
         if data.get('BIO'):
             vcard += f"NOTE:{data['BIO']}\n"
 
-        if data.get('PHOTO'):
-            vcard += f"PHOTO;VALUE=URL:{data['PHOTO']}\n"
+        # Add photo URL if exists
+        if data.get('PHOTO') and data['PHOTO'].startswith('./'):
+            photo_url = f"https://maroof-id.github.io/maroof-cards/clients/{username}/{data['PHOTO'][2:]}"
+            vcard += f"PHOTO;VALUE=URL:{photo_url}\n"
 
         social = []
         if data.get('INSTAGRAM'):
@@ -259,11 +290,11 @@ FN:{data.get('NAME', '')}
                     capture_output=True
                 )
             except subprocess.TimeoutExpired:
-                error_msg = "❌ مهلة انتظار: git add تجاوز الوقت / Timeout: git add took too long"
+                error_msg = "Timeout: git add took too long"
                 print(error_msg)
                 return False, error_msg
             except subprocess.CalledProcessError as e:
-                error_msg = f"❌ خطأ: فشل إضافة الملفات / Error: git add failed - {e.stderr.decode() if e.stderr else str(e)}"
+                error_msg = f"Error: git add failed - {e.stderr.decode() if e.stderr else str(e)}"
                 print(error_msg)
                 return False, error_msg
 
@@ -278,16 +309,16 @@ FN:{data.get('NAME', '')}
                     timeout=timeout
                 )
             except subprocess.TimeoutExpired:
-                error_msg = "❌ مهلة انتظار: git status تجاوز الوقت / Timeout: git status took too long"
+                error_msg = "Timeout: git status took too long"
                 print(error_msg)
                 return False, error_msg
             except subprocess.CalledProcessError as e:
-                error_msg = f"❌ خطأ: فشل التحقق من الحالة / Error: git status failed"
+                error_msg = f"Error: git status failed"
                 print(error_msg)
                 return False, error_msg
 
             if not status.stdout.strip():
-                print("ℹ️ لا توجد تغييرات / No changes to commit")
+                print("No changes to commit")
                 # Try to push anyway in case remote changed
                 try:
                     subprocess.run(
@@ -297,14 +328,14 @@ FN:{data.get('NAME', '')}
                         timeout=timeout,
                         capture_output=True
                     )
-                    print("✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub")
-                    return True, "✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub"
+                    print("Successfully pushed to GitHub")
+                    return True, "Successfully pushed to GitHub"
                 except subprocess.TimeoutExpired:
-                    error_msg = "❌ مهلة انتظار: git push تجاوز الوقت / Timeout: git push took too long"
+                    error_msg = "Timeout: git push took too long"
                     print(error_msg)
                     return False, error_msg
                 except subprocess.CalledProcessError as e:
-                    error_msg = f"❌ خطأ: فشل دفع البيانات / Error: git push failed - GitHub may be offline"
+                    error_msg = f"Error: git push failed - GitHub may be offline"
                     print(error_msg)
                     return False, error_msg
 
@@ -320,13 +351,13 @@ FN:{data.get('NAME', '')}
                 if commit.returncode != 0:
                     combined = (commit.stdout or '') + (commit.stderr or '')
                     if 'nothing to commit' in combined.lower():
-                        print("ℹ️ لا توجد تغييرات / No changes to commit")
+                        print("No changes to commit")
                     else:
-                        error_msg = f"❌ خطأ: فشل الحفظ / Git commit failed: {combined}"
+                        error_msg = f"Git commit failed: {combined}"
                         print(error_msg)
                         return False, error_msg
             except subprocess.TimeoutExpired:
-                error_msg = "❌ مهلة انتظار: git commit تجاوز الوقت / Timeout: git commit took too long"
+                error_msg = "Timeout: git commit took too long"
                 print(error_msg)
                 return False, error_msg
 
@@ -339,21 +370,21 @@ FN:{data.get('NAME', '')}
                     timeout=timeout,
                     capture_output=True
                 )
-                success_msg = "✅ تم دفع البيانات بنجاح / Successfully pushed to GitHub"
+                success_msg = "Successfully pushed to GitHub"
                 print(success_msg)
                 return True, success_msg
 
             except subprocess.TimeoutExpired:
-                error_msg = "❌ مهلة انتظار: git push تجاوز الوقت / Timeout: git push took too long"
+                error_msg = "Timeout: git push took too long"
                 print(error_msg)
                 return False, error_msg
             except subprocess.CalledProcessError as e:
-                error_msg = "❌ خطأ: فشل دفع البيانات إلى GitHub / Error: git push failed - Check credentials or network"
+                error_msg = "Error: git push failed - Check credentials or network"
                 print(error_msg)
                 return False, error_msg
 
         except Exception as e:
-            error_msg = f"❌ خطأ غير متوقع / Unexpected error: {str(e)}"
+            error_msg = f"Unexpected error: {str(e)}"
             print(error_msg)
             return False, error_msg
 
@@ -373,7 +404,7 @@ FN:{data.get('NAME', '')}
                 try:
                     callback(success, msg)
                 except Exception as e:
-                    print(f"❌ خطأ في callback / Callback error: {e}")
+                    print(f"Callback error: {e}")
 
         from threading import Thread
         t = Thread(target=background_task, daemon=True)
@@ -415,7 +446,7 @@ FN:{data.get('NAME', '')}
                         cards.append({
                             'username': client_dir.name,
                             'name': data.get('NAME', ''),
-                            'url': f'https://maroof-id.github.io/maroof-cards/{client_dir.name}'
+                            'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'
                         })
 
         return cards

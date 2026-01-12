@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Maroof Web App - Enhanced NFC Stability
+Maroof Web App - Enhanced NFC Stability with Photo Upload
 English Version - No Arabic Text
 """
 
@@ -18,6 +18,7 @@ from nfc_writer import NFCWriter
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB max file size
 
 generator = CardGenerator()
 
@@ -100,6 +101,43 @@ HOME_PAGE = """
             resize: vertical;
             min-height: 80px;
         }
+        
+        /* Photo upload styling */
+        input[type="file"] {
+            padding: 8px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        input[type="file"]:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        
+        .photo-help {
+            color: #999;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .photo-preview {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .photo-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
         .btn {
             width: 100%;
             padding: 12px;
@@ -218,6 +256,15 @@ HOME_PAGE = """
             </div>
 
             <div class="form-group">
+                <label>Profile Photo</label>
+                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small class="photo-help">Optional - JPG, PNG, GIF, WebP (Max 5MB)</small>
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <img id="previewImage" src="" alt="Preview">
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>Phone Number</label>
                 <input type="tel" name="phone" placeholder="05xxxxxxxx">
             </div>
@@ -250,6 +297,9 @@ HOME_PAGE = """
             <div class="form-group">
                 <label>Template</label>
                 <select name="template">
+                    <option value="professional">Professional (Recommended)</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="friendly">Friendly</option>
                     <option value="modern">Modern</option>
                     <option value="classic">Classic</option>
                     <option value="minimal">Minimal</option>
@@ -281,11 +331,66 @@ HOME_PAGE = """
         let currentUrl = '';
         let nfcRetryCount = 0;
 
+        // Photo preview functionality
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Check file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Photo too large! Maximum size is 5MB');
+                    e.target.value = '';
+                    document.getElementById('photoPreview').style.display = 'none';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('previewImage').src = event.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('photoPreview').style.display = 'none';
+            }
+        });
+
         document.getElementById('cardForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const formData = new FormData(e.target);
+            
+            // Handle photo upload
+            const photoFile = document.getElementById('photoInput').files[0];
+            let photoBase64 = '';
+            
+            if (photoFile) {
+                // Check file size again
+                if (photoFile.size > 5 * 1024 * 1024) {
+                    alert('Photo too large! Maximum size is 5MB');
+                    return;
+                }
+                
+                // Convert to base64
+                try {
+                    photoBase64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(photoFile);
+                    });
+                } catch (error) {
+                    alert('Failed to read photo file');
+                    return;
+                }
+            }
+            
+            // Prepare data object
             const data = Object.fromEntries(formData);
+            delete data.photo; // Remove file input from data
+            if (photoBase64) {
+                data.photo = photoBase64; // Add base64 photo
+            }
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('submitBtn').disabled = true;
@@ -306,7 +411,8 @@ HOME_PAGE = """
                 if (result.success) {
                     currentUrl = result.url;
                     nfcRetryCount = 0;
-                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result success';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Created Successfully!';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>URL:</strong> <a href="' + result.url + '" target="_blank">' + result.url + '</a>';
@@ -314,8 +420,10 @@ HOME_PAGE = """
                     document.getElementById('retryBtn').style.display = 'none';
                     document.getElementById('helpBox').style.display = 'none';
                     document.getElementById('cardForm').reset();
+                    document.getElementById('photoPreview').style.display = 'none';
                 } else {
-                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Error Occurred';
                     document.getElementById('resultMessage').textContent = result.error || 'Unknown error';
                     document.getElementById('nfcBtn').style.display = 'none';
@@ -325,7 +433,8 @@ HOME_PAGE = """
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('submitBtn').disabled = false;
-                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultMessage').textContent = error.toString();
                 document.getElementById('nfcBtn').style.display = 'none';
@@ -362,7 +471,8 @@ HOME_PAGE = """
                 nfcBtn.innerHTML = originalText;
 
                 if (result.success) {
-                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result success';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Write Successful!';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>URL:</strong> <a href="' + currentUrl + '" target="_blank">' + currentUrl + '</a><br>' +
@@ -372,7 +482,8 @@ HOME_PAGE = """
                     nfcRetryCount = 0;
                 } else {
                     nfcRetryCount++;
-                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Write Failed';
                     document.getElementById('resultMessage').innerHTML =
                         '<strong>' + result.message + '</strong>';
@@ -409,7 +520,8 @@ HOME_PAGE = """
             } catch (error) {
                 nfcBtn.disabled = false;
                 nfcBtn.innerHTML = originalText;
-                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultMessage').textContent = error.toString();
                 document.getElementById('retryBtn').style.display = 'block';
@@ -615,18 +727,21 @@ SETTINGS_PAGE_V2 = """
                 testBtn.disabled = false;
 
                 if (result.success) {
-                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result success';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Reader Working Correctly';
                     document.getElementById('resultContent').textContent = result.message;
                 } else {
-                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Connection Failed';
                     document.getElementById('resultContent').textContent = result.message + ' --- Disconnect USB reader, wait 5 sec, reconnect';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result').style.display = 'block';
-                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultContent').textContent = error.toString();
                 testBtn.disabled = false;
@@ -649,18 +764,21 @@ SETTINGS_PAGE_V2 = """
                 readBtn.disabled = false;
 
                 if (result.success && result.data) {
-                    document.getElementById('result').className = 'result success'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result success';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Read Successful';
                     document.getElementById('resultContent').textContent = JSON.stringify(result.data, null, 2);
                 } else {
-                    document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').className = 'result error';
+                    document.getElementById('result').style.display = 'block';
                     document.getElementById('resultTitle').textContent = 'Read Error';
                     document.getElementById('resultContent').textContent = result.message || 'Unknown error';
                 }
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result').style.display = 'block';
-                document.getElementById('result').className = 'result error'; document.getElementById('result').style.display = 'block';
+                document.getElementById('result').className = 'result error';
+                document.getElementById('result').style.display = 'block';
                 document.getElementById('resultTitle').textContent = 'Connection Error';
                 document.getElementById('resultContent').textContent = error.toString();
                 readBtn.disabled = false;
@@ -721,7 +839,8 @@ def create_card():
             linkedin=data.get('linkedin', ''),
             twitter=data.get('twitter', ''),
             bio=data.get('bio', ''),
-            template=data.get('template', 'modern')
+            template=data.get('template', 'modern'),
+            photo=data.get('photo', '')  # Add photo parameter
         )
 
         def git_callback(success, msg):
@@ -800,4 +919,5 @@ if __name__ == '__main__':
     print("Maroof NFC System Starting...")
     print("Server will run on: http://0.0.0.0:7070")
     print("Note: NFC reader will connect on-demand for better stability")
-    app.run(host='0.0.0.0', port=7070, debug=False)# Force reload Sun 11 Jan 19:14:52 +03 2026
+    print("Photo upload: Enabled (Max 5MB)")
+    app.run(host='0.0.0.0', port=7070, debug=False)
