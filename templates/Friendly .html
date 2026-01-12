@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{NAME}} - معروف</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans (English) + Noto Kufi Arabic (Arabic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --teal: #4ECDC4;
+            --teal-dark: #3ab8af;
+            --teal-light: #7ee8e1;
+            --bg-soft: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-dark: #2D3436;
+            --text-light: #636e72;
+            --border-soft: #e9ecef;
+        }
+        
+        body {
+            font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-soft);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+        
+        .container {
+            background: var(--card-bg);
+            border-radius: 28px;
+            max-width: 480px;
+            width: 100%;
+            padding: 40px 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-soft);
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .profile-photo {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 44px;
+            font-weight: 700;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(78, 205, 196, 0.25);
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .name {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+        
+        .bio {
+            font-size: 15px;
+            color: var(--text-light);
+            line-height: 1.6;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+        
+        /* English text styling */
+        .name[lang="en"], .bio[lang="en"] {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        /* Contact Buttons - Friendly rounded style */
+        .contact-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            padding: 15px 18px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-soft);
+            border-radius: 20px;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.2s ease;
+            gap: 14px;
+        }
+        
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.15);
+            border-color: var(--teal);
+            background: rgba(78, 205, 196, 0.03);
+        }
+        
+        .contact-btn:active {
+            transform: translateY(0);
+        }
+        
+        .contact-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            flex-shrink: 0;
+        }
+        
+        .contact-info {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .contact-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+        
+        .contact-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        /* WhatsApp Friendly Style */
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25D366 0%, #20c75a 100%);
+            border: none;
+            color: white;
+        }
+        
+        .whatsapp-btn:hover {
+            background: linear-gradient(135deg, #20c75a 0%, #1ba850 100%);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+        }
+        
+        .whatsapp-btn .contact-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .whatsapp-btn .contact-label,
+        .whatsapp-btn .contact-value {
+            color: white;
+        }
+        
+        /* Phone Icon */
+        .phone-icon {
+            background: rgba(78, 205, 196, 0.12);
+            color: var(--teal);
+        }
+        
+        /* Email Icon */
+        .email-icon {
+            background: rgba(52, 152, 219, 0.12);
+            color: #3498db;
+        }
+        
+        /* Social Links - Fun style */
+        .social-section {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            font-size: 21px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px) rotate(3deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .social-btn:active {
+            transform: translateY(-1px) rotate(0deg);
+        }
+        
+        .instagram-btn { 
+            background: linear-gradient(45deg, #f09433 0%, #dc2743 50%, #bc1888 100%); 
+        }
+        
+        .linkedin-btn { 
+            background: #0077b5; 
+        }
+        
+        .twitter-btn { 
+            background: #1DA1F2; 
+        }
+        
+        /* Save Contact Button - Friendly Teal */
+        .save-contact {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.3);
+        }
+        
+        .save-contact:hover {
+            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.4);
+        }
+        
+        .save-contact:active {
+            transform: translateY(0);
+        }
+        
+        /* Fun Divider */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--border-soft) 30%, var(--teal) 50%, var(--border-soft) 70%, transparent 100%);
+            margin: 24px 0;
+            border-radius: 2px;
+        }
+        
+        /* Decorative circles in background */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-light), transparent);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal), transparent);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 36px 26px;
+                border-radius: 24px;
+            }
+            
+            .name {
+                font-size: 23px;
+            }
+            
+            .bio {
+                font-size: 14px;
+            }
+            
+            .profile-photo {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            
+            .contact-btn {
+                padding: 14px 16px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.02) translateY(-5px);
+            }
+            100% {
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .container {
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* Floating animation for profile photo */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        
+        .profile-photo {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .profile-photo {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="profile-photo">
+                {{#if PHOTO}}
+                <img src="{{PHOTO}}" alt="{{NAME}}">
+                {{/if}}
+                {{#if !PHOTO}}
+                {{NAME_INITIAL}}
+                {{/if}}
+            </div>
+            
+            <h1 class="name">{{NAME}}</h1>
+            
+            {{#if BIO}}
+            <p class="bio">{{BIO}}</p>
+            {{/if}}
+        </div>
+        
+        <!-- Contact Buttons -->
+        <div class="contact-section">
+            {{#if PHONE}}
+            <!-- WhatsApp Button -->
+            <a href="https://wa.me/{{PHONE_INTL}}" class="contact-btn whatsapp-btn" target="_blank">
+                <div class="contact-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-label">واتساب / WhatsApp</div>
+                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
+                </div>
+            </a>
+            
+            <!-- Phone Button -->
+            <a href="tel:+{{PHONE_INTL}}" class="contact-btn">
+                <div class="contact-icon phone-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-label">اتصال / Call</div>
+                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
+                </div>
+            </a>
+            {{/if}}
+            
+            {{#if EMAIL}}
+            <!-- Email Button -->
+            <a href="mailto:{{EMAIL}}" class="contact-btn">
+                <div class="contact-icon email-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-label">بريد إلكتروني / Email</div>
+                    <div class="contact-value">{{EMAIL}}</div>
+                </div>
+            </a>
+            {{/if}}
+        </div>
+        
+        <!-- Social Links -->
+        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
+        <div class="divider"></div>
+        {{/if}}{{/if}}{{/if}}
+        
+        <div class="social-section">
+            {{#if INSTAGRAM}}
+            <a href="https://instagram.com/{{INSTAGRAM}}" class="social-btn instagram-btn" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+            {{/if}}
+            
+            {{#if LINKEDIN}}
+            <a href="https://linkedin.com/in/{{LINKEDIN}}" class="social-btn linkedin-btn" target="_blank" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+            {{/if}}
+            
+            {{#if TWITTER}}
+            <a href="https://twitter.com/{{TWITTER}}" class="social-btn twitter-btn" target="_blank" aria-label="Twitter">
+                <i class="fab fa-twitter"></i>
+            </a>
+            {{/if}}
+        </div>
+        
+        <!-- Save Contact Button -->
+        <a href="./contact.vcf" download class="save-contact">
+            <i class="fas fa-user-plus"></i>
+            <span>إضافة لجهات الاتصال / Add to Contacts</span>
+        </a>
+    </div>
+</body>
+</html>
