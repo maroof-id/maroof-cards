@@ -10,7 +10,6 @@
         </a>
         <a href="/dashboard" class="nav-btn">
             <i class="fas fa-th-large"></i> لوحة التحكم
-            <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
         </a>
         <a href="/settings" class="nav-btn active">
             <i class="fas fa-cog"></i> الإعدادات
@@ -28,47 +27,91 @@
             <span>جاري الفحص...</span>
         </div>
         
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="button-group">
             <button class="btn btn-warning" onclick="testReader()" id="testBtn">
-                <i class="fas fa-stethoscope"></i> اختبار القارئ
+                <i class="fas fa-stethoscope"></i> اختبار
             </button>
             <button class="btn btn-secondary" onclick="resetReader()" id="resetBtn">
-                <i class="fas fa-redo"></i> إعادة ضبط القارئ
+                <i class="fas fa-redo"></i> إعادة ضبط
             </button>
             <button class="btn btn-outline" onclick="readCard()" id="readBtn">
-                <i class="fas fa-book"></i> قراءة بطاقة
+                <i class="fas fa-book"></i> قراءة
             </button>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p id="loadingText" style="margin-top: 10px;">جاري المعالجة...</p>
+            <p id="loadingText">جاري المعالجة...</p>
         </div>
 
         <div id="result" style="margin-top: 20px; display: none;">
-            <h3 id="resultTitle" style="margin-bottom: 10px;"></h3>
-            <pre id="resultContent" style="background: var(--light-gray); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;"></pre>
+            <h3 id="resultTitle"></h3>
+            <pre id="resultContent"></pre>
         </div>
     </div>
 
     <div class="card" id="readResultCard" style="display: none;">
-        <h2>📖 بيانات البطاقة المقروءة</h2>
+        <h2>📖 بيانات البطاقة</h2>
         <div id="readResult"></div>
-        <button class="btn" onclick="useReadData()" style="margin-top: 15px;">
-            <i class="fas fa-copy"></i> استخدام هذه البيانات لتعديل البطاقة
+        <button class="btn" onclick="useReadData()">
+            <i class="fas fa-copy"></i> استخدام البيانات
         </button>
     </div>
 
-    <div class="card" style="background: #fff3cd; border-left: 4px solid var(--warning);">
-        <h3 style="color: var(--warning); margin-bottom: 10px;">💡 نصائح</h3>
-        <ul style="margin-right: 20px; line-height: 1.8;">
-            <li>إذا فشل الاتصال بالقارئ، افصله من USB وأعد توصيله</li>
-            <li>استخدم بطاقات NTAG213/215/216 للحصول على أفضل النتائج</li>
-            <li>تأكد من وضع البطاقة بشكل صحيح على القارئ</li>
-            <li>انتظر حتى تظهر رسالة النجاح قبل رفع البطاقة</li>
+    <div class="card tips-card">
+        <h3>💡 نصائح</h3>
+        <ul>
+            <li>افصل القارئ وأعد توصيله عند فشل الاتصال</li>
+            <li>استخدم بطاقات NTAG213/215/216</li>
+            <li>ضع البطاقة بشكل صحيح على القارئ</li>
         </ul>
     </div>
 </div>
+
+<style>
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.button-group button {
+    flex: 1;
+    min-width: 100px;
+}
+
+.tips-card {
+    background: #fff3cd;
+    border-left: 4px solid var(--warning);
+}
+
+.tips-card h3 {
+    color: var(--warning);
+    margin-bottom: 10px;
+}
+
+.tips-card ul {
+    margin-right: 20px;
+    line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .button-group button {
+        width: 100%;
+    }
+    
+    #resultContent {
+        font-size: 11px;
+        overflow-x: auto;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -83,15 +126,15 @@ async function checkReaderStatus() {
         const statusDiv = document.getElementById('readerStatus');
         if (result.success) {
             statusDiv.className = 'reader-status online';
-            statusDiv.innerHTML = '<span class="status-dot green"></span><span>🟢 القارئ متصل وجاهز</span>';
+            statusDiv.innerHTML = '<span class="status-dot green"></span><span>🟢 متصل وجاهز</span>';
         } else {
             statusDiv.className = 'reader-status offline';
-            statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 القارئ غير متصل</span>';
+            statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 غير متصل</span>';
         }
     } catch (error) {
         const statusDiv = document.getElementById('readerStatus');
         statusDiv.className = 'reader-status offline';
-        statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 خطأ في الاتصال</span>';
+        statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 خطأ</span>';
     }
 }
 
@@ -99,7 +142,6 @@ async function testReader() {
     const testBtn = document.getElementById('testBtn');
     testBtn.disabled = true;
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('loadingText').textContent = 'جاري الاختبار...';
     document.getElementById('result').style.display = 'none';
 
     try {
@@ -111,20 +153,20 @@ async function testReader() {
         testBtn.disabled = false;
 
         if (result.success) {
-            document.getElementById('resultTitle').textContent = '✅ القارئ يعمل بشكل صحيح';
+            document.getElementById('resultTitle').textContent = '✅ القارئ يعمل';
             document.getElementById('resultTitle').style.color = 'var(--success)';
             document.getElementById('resultContent').textContent = result.message;
             checkReaderStatus();
         } else {
-            document.getElementById('resultTitle').textContent = '❌ فشل الاتصال بالقارئ';
+            document.getElementById('resultTitle').textContent = '❌ فشل';
             document.getElementById('resultTitle').style.color = 'var(--error)';
-            document.getElementById('resultContent').textContent = result.message + '\n\nافصل القارئ من USB وأعد توصيله';
+            document.getElementById('resultContent').textContent = result.message;
             checkReaderStatus();
         }
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+        document.getElementById('resultTitle').textContent = '❌ خطأ';
         document.getElementById('resultTitle').style.color = 'var(--error)';
         document.getElementById('resultContent').textContent = error.toString();
         testBtn.disabled = false;
@@ -132,13 +174,9 @@ async function testReader() {
 }
 
 async function resetReader() {
-    if (!confirm('هل تريد إعادة ضبط القارئ?\n\nافصل القارئ من USB ثم اضغط موافق')) return;
-    
-    alert('الآن أعد توصيل القارئ بـ USB');
-    
-    setTimeout(() => {
-        testReader();
-    }, 3000);
+    if (!confirm('إعادة ضبط القارئ؟')) return;
+    alert('افصل القارئ من USB ثم أعد توصيله');
+    setTimeout(testReader, 3000);
 }
 
 async function readCard() {
@@ -158,7 +196,7 @@ async function readCard() {
 
         if (result.success && result.data) {
             document.getElementById('result').style.display = 'block';
-            document.getElementById('resultTitle').textContent = '✅ تمت القراءة بنجاح';
+            document.getElementById('resultTitle').textContent = '✅ نجح';
             document.getElementById('resultTitle').style.color = 'var(--success)';
             document.getElementById('resultContent').textContent = JSON.stringify(result.data, null, 2);
             
@@ -166,14 +204,14 @@ async function readCard() {
             displayReadData(result.data);
         } else {
             document.getElementById('result').style.display = 'block';
-            document.getElementById('resultTitle').textContent = '❌ فشلت القراءة';
+            document.getElementById('resultTitle').textContent = '❌ فشل';
             document.getElementById('resultTitle').style.color = 'var(--error)';
-            document.getElementById('resultContent').textContent = result.message || 'خطأ غير معروف';
+            document.getElementById('resultContent').textContent = result.message;
         }
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+        document.getElementById('resultTitle').textContent = '❌ خطأ';
         document.getElementById('resultTitle').style.color = 'var(--error)';
         document.getElementById('resultContent').textContent = error.toString();
         readBtn.disabled = false;
@@ -186,9 +224,6 @@ function displayReadData(data) {
     if (data.url) {
         html += `<p><strong>الرابط:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>`;
     }
-    if (data.type) {
-        html += `<p><strong>النوع:</strong> ${data.type}</p>`;
-    }
     html += '</div>';
     
     document.getElementById('readResult').innerHTML = html;
@@ -197,14 +232,13 @@ function displayReadData(data) {
 
 function useReadData() {
     if (!readData || !readData.url) {
-        alert('لا توجد بيانات للاستخدام');
+        alert('لا توجد بيانات');
         return;
     }
     
     const match = readData.url.match(/clients\/([^\/]+)\/?$/);
     if (match) {
-        const username = match[1];
-        window.location.href = `/edit/${username}`;
+        window.location.href = `/edit/${match[1]}`;
     } else {
         alert('لم يتم العثور على البطاقة');
     }
