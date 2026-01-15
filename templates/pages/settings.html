@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Maroof - الإعدادات{% endblock %}
+
+{% block body %}
+<div class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-btn">
+            <i class="fas fa-plus-circle"></i> إنشاء بطاقة
+        </a>
+        <a href="/dashboard" class="nav-btn">
+            <i class="fas fa-th-large"></i> لوحة التحكم
+            <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
+        </a>
+        <a href="/settings" class="nav-btn active">
+            <i class="fas fa-cog"></i> الإعدادات
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>⚙️ إعدادات القارئ</h1>
+
+    <div class="card">
+        <h2>حالة القارئ</h2>
+        <div id="readerStatus" class="reader-status offline" style="margin: 20px 0;">
+            <span class="status-dot red"></span>
+            <span>جاري الفحص...</span>
+        </div>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-warning" onclick="testReader()" id="testBtn">
+                <i class="fas fa-stethoscope"></i> اختبار القارئ
+            </button>
+            <button class="btn btn-secondary" onclick="resetReader()" id="resetBtn">
+                <i class="fas fa-redo"></i> إعادة ضبط القارئ
+            </button>
+            <button class="btn btn-outline" onclick="readCard()" id="readBtn">
+                <i class="fas fa-book"></i> قراءة بطاقة
+            </button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p id="loadingText" style="margin-top: 10px;">جاري المعالجة...</p>
+        </div>
+
+        <div id="result" style="margin-top: 20px; display: none;">
+            <h3 id="resultTitle" style="margin-bottom: 10px;"></h3>
+            <pre id="resultContent" style="background: var(--light-gray); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px;"></pre>
+        </div>
+    </div>
+
+    <div class="card" id="readResultCard" style="display: none;">
+        <h2>📖 بيانات البطاقة المقروءة</h2>
+        <div id="readResult"></div>
+        <button class="btn" onclick="useReadData()" style="margin-top: 15px;">
+            <i class="fas fa-copy"></i> استخدام هذه البيانات لتعديل البطاقة
+        </button>
+    </div>
+
+    <div class="card" style="background: #fff3cd; border-left: 4px solid var(--warning);">
+        <h3 style="color: var(--warning); margin-bottom: 10px;">💡 نصائح</h3>
+        <ul style="margin-right: 20px; line-height: 1.8;">
+            <li>إذا فشل الاتصال بالقارئ، افصله من USB وأعد توصيله</li>
+            <li>استخدم بطاقات NTAG213/215/216 للحصول على أفضل النتائج</li>
+            <li>تأكد من وضع البطاقة بشكل صحيح على القارئ</li>
+            <li>انتظر حتى تظهر رسالة النجاح قبل رفع البطاقة</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let readData = null;
+
+async function checkReaderStatus() {
+    try {
+        const response = await fetch('/api/nfc/test');
+        const result = await response.json();
+        
+        const statusDiv = document.getElementById('readerStatus');
+        if (result.success) {
+            statusDiv.className = 'reader-status online';
+            statusDiv.innerHTML = '<span class="status-dot green"></span><span>🟢 القارئ متصل وجاهز</span>';
+        } else {
+            statusDiv.className = 'reader-status offline';
+            statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 القارئ غير متصل</span>';
+        }
+    } catch (error) {
+        const statusDiv = document.getElementById('readerStatus');
+        statusDiv.className = 'reader-status offline';
+        statusDiv.innerHTML = '<span class="status-dot red"></span><span>🔴 خطأ في الاتصال</span>';
+    }
+}
+
+async function testReader() {
+    const testBtn = document.getElementById('testBtn');
+    testBtn.disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loadingText').textContent = 'جاري الاختبار...';
+    document.getElementById('result').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/nfc/test');
+        const result = await response.json();
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        testBtn.disabled = false;
+
+        if (result.success) {
+            document.getElementById('resultTitle').textContent = '✅ القارئ يعمل بشكل صحيح';
+            document.getElementById('resultTitle').style.color = 'var(--success)';
+            document.getElementById('resultContent').textContent = result.message;
+            checkReaderStatus();
+        } else {
+            document.getElementById('resultTitle').textContent = '❌ فشل الاتصال بالقارئ';
+            document.getElementById('resultTitle').style.color = 'var(--error)';
+            document.getElementById('resultContent').textContent = result.message + '\n\nافصل القارئ من USB وأعد توصيله';
+            checkReaderStatus();
+        }
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+        document.getElementById('resultTitle').style.color = 'var(--error)';
+        document.getElementById('resultContent').textContent = error.toString();
+        testBtn.disabled = false;
+    }
+}
+
+async function resetReader() {
+    if (!confirm('هل تريد إعادة ضبط القارئ?\n\nافصل القارئ من USB ثم اضغط موافق')) return;
+    
+    alert('الآن أعد توصيل القارئ بـ USB');
+    
+    setTimeout(() => {
+        testReader();
+    }, 3000);
+}
+
+async function readCard() {
+    const readBtn = document.getElementById('readBtn');
+    readBtn.disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loadingText').textContent = 'ضع البطاقة على القارئ...';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('readResultCard').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/nfc/read');
+        const result = await response.json();
+
+        document.getElementById('loading').style.display = 'none';
+        readBtn.disabled = false;
+
+        if (result.success && result.data) {
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('resultTitle').textContent = '✅ تمت القراءة بنجاح';
+            document.getElementById('resultTitle').style.color = 'var(--success)';
+            document.getElementById('resultContent').textContent = JSON.stringify(result.data, null, 2);
+            
+            readData = result.data;
+            displayReadData(result.data);
+        } else {
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('resultTitle').textContent = '❌ فشلت القراءة';
+            document.getElementById('resultTitle').style.color = 'var(--error)';
+            document.getElementById('resultContent').textContent = result.message || 'خطأ غير معروف';
+        }
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('resultTitle').textContent = '❌ خطأ في الاتصال';
+        document.getElementById('resultTitle').style.color = 'var(--error)';
+        document.getElementById('resultContent').textContent = error.toString();
+        readBtn.disabled = false;
+    }
+}
+
+function displayReadData(data) {
+    let html = '<div style="background: var(--light-gray); padding: 15px; border-radius: 8px;">';
+    html += `<p><strong>UID:</strong> ${data.uid}</p>`;
+    if (data.url) {
+        html += `<p><strong>الرابط:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>`;
+    }
+    if (data.type) {
+        html += `<p><strong>النوع:</strong> ${data.type}</p>`;
+    }
+    html += '</div>';
+    
+    document.getElementById('readResult').innerHTML = html;
+    document.getElementById('readResultCard').style.display = 'block';
+}
+
+function useReadData() {
+    if (!readData || !readData.url) {
+        alert('لا توجد بيانات للاستخدام');
+        return;
+    }
+    
+    const match = readData.url.match(/clients\/([^\/]+)\/?$/);
+    if (match) {
+        const username = match[1];
+        window.location.href = `/edit/${username}`;
+    } else {
+        alert('لم يتم العثور على البطاقة');
+    }
+}
+
+checkReaderStatus();
+setInterval(checkReaderStatus, 30000);
+</script>
+{% endblock %}
