@@ -122,7 +122,7 @@ class CardGenerator:
 
     def load_template(self, template_name: str) -> str:
         """Load HTML template"""
-        template_file = self.templates_path / f"{template_name}.html"
+        template_file = self.templates_path / "cards" / f"{template_name}.html"
 
         if not template_file.exists():
             raise FileNotFoundError(f"Template not found: {template_name}")

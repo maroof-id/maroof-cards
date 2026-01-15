@@ -149,8 +149,11 @@ def register_card():
             name=name,
             phone=data.get('phone', ''),
             email=data.get('email', ''),
+            instagram=data.get('instagram', ''),
+            linkedin=data.get('linkedin', ''),
+            twitter=data.get('twitter', ''),
             bio=data.get('bio', ''),
-            template='professional',
+            template=data.get('template', 'professional'),
             photo=data.get('photo', ''),
             source='client'
         )
@@ -166,60 +169,6 @@ def register_card():
 
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
-
-@app.route('/api/cards', methods=['GET'])
-def list_cards():
-    """List all cards with stats"""
-    try:
-        cards = generator.list_cards()
-        
-        stats = {
-            'pending': len([c for c in cards if c.get('status') == 'pending']),
-            'printed': len([c for c in cards if c.get('status') == 'printed']),
-            'modified': len([c for c in cards if c.get('status') == 'modified']),
-            'total': len(cards)
-        }
-        
-        return jsonify({'success': True, 'cards': cards, 'stats': stats})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/cards/<username>', methods=['GET'])
-def get_card(username):
-    """Get card data"""
-    try:
-        data = generator.get_card_data(username)
-        if data:
-            return jsonify({'success': True, 'data': data})
-        return jsonify({'success': False, 'error': 'Card not found'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/cards/<username>', methods=['PUT'])
-def update_card(username):
-    """Update existing card"""
-    try:
-        data = request.get_json() or {}
-        
-        result = generator.update_card(
-            username=username,
-            name=data.get('name'),
-            phone=data.get('phone'),
-            email=data.get('email'),
-            instagram=data.get('instagram'),
-            linkedin=data.get('linkedin'),
-            twitter=data.get('twitter'),
-            bio=data.get('bio'),
-            template=data.get('template'),
-            photo=data.get('photo')
-        )
-
-        generator.git_push_background(f"Update card: {username}")
-
-        return jsonify({'success': True, 'message': 'Card updated'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/api/cards/<username>', methods=['DELETE'])
 def delete_card(username):
     """Delete card"""
