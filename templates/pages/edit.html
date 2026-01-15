@@ -1,0 +1,223 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Maroof - تعديل بطاقة{% endblock %}
+
+{% block body %}
+<div class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-btn">
+            <i class="fas fa-plus-circle"></i> إنشاء بطاقة
+        </a>
+        <a href="/dashboard" class="nav-btn">
+            <i class="fas fa-th-large"></i> لوحة التحكم
+        </a>
+        <a href="/settings" class="nav-btn">
+            <i class="fas fa-cog"></i> الإعدادات
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>✏️ تعديل البطاقة</h1>
+
+        <div id="alert" class="alert"></div>
+
+        <div id="loading" class="loading" style="display: block;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">جاري التحميل...</p>
+        </div>
+
+        <form id="editForm" style="display: none;">
+            <input type="hidden" id="username" value="">
+            
+            <div class="form-group">
+                <label>الاسم الكامل *</label>
+                <input type="text" name="name" id="name" required>
+            </div>
+
+            <div class="form-group">
+                <label>الصورة الشخصية</label>
+                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
+                    اختياري - اترك فارغاً للإبقاء على الصورة الحالية
+                </small>
+                <div class="photo-preview" id="currentPhoto" style="display: none; margin-top: 10px;">
+                    <p style="font-size: 13px; color: var(--dark-gray); margin-bottom: 5px;">الصورة الحالية:</p>
+                    <img id="currentPhotoImg" src="" alt="الصورة الحالية">
+                </div>
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <p style="font-size: 13px; color: var(--dark-gray); margin-bottom: 5px;">الصورة الجديدة:</p>
+                    <img id="previewImage" src="" alt="معاينة">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <input type="tel" name="phone" id="phone">
+            </div>
+
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" id="email">
+            </div>
+
+            <div class="form-group">
+                <label>Instagram</label>
+                <input type="text" name="instagram" id="instagram">
+            </div>
+
+            <div class="form-group">
+                <label>LinkedIn</label>
+                <input type="text" name="linkedin" id="linkedin">
+            </div>
+
+            <div class="form-group">
+                <label>Twitter/X</label>
+                <input type="text" name="twitter" id="twitter">
+            </div>
+
+            <div class="form-group">
+                <label>نبذة تعريفية</label>
+                <textarea name="bio" id="bio"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>التصميم</label>
+                <select name="template" id="template">
+                    <option value="professional">Professional</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="modern">Modern</option>
+                    <option value="classic">Classic</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn" id="submitBtn">
+                    <i class="fas fa-save"></i> حفظ التعديلات
+                </button>
+                <a href="/dashboard" class="btn btn-outline">
+                    <i class="fas fa-times"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const username = window.location.pathname.split('/').pop();
+
+async function loadCard() {
+    try {
+        const response = await fetch(`/api/cards/${username}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const data = result.data;
+            document.getElementById('username').value = username;
+            document.getElementById('name').value = data.NAME || '';
+            document.getElementById('phone').value = data.PHONE || '';
+            document.getElementById('email').value = data.EMAIL || '';
+            document.getElementById('instagram').value = data.INSTAGRAM || '';
+            document.getElementById('linkedin').value = data.LINKEDIN || '';
+            document.getElementById('twitter').value = data.TWITTER || '';
+            document.getElementById('bio').value = data.BIO || '';
+            
+            if (data.PHOTO) {
+                const photoUrl = `https://maroof-id.github.io/maroof-cards/clients/${username}/${data.PHOTO.replace('./', '')}`;
+                document.getElementById('currentPhotoImg').src = photoUrl;
+                document.getElementById('currentPhoto').style.display = 'block';
+            }
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('editForm').style.display = 'block';
+        } else {
+            showAlert('فشل تحميل البيانات', 'error');
+        }
+    } catch (error) {
+        showAlert('خطأ في الاتصال', 'error');
+    }
+}
+
+document.getElementById('photoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            e.target.value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('previewImage').src = event.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+});
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const photoFile = document.getElementById('photoInput').files[0];
+    let photoBase64 = '';
+    
+    if (photoFile) {
+        try {
+            photoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(photoFile);
+            });
+        } catch (error) {
+            showAlert('فشل قراءة الصورة', 'error');
+            return;
+        }
+    }
+    
+    const data = Object.fromEntries(formData);
+    delete data.photo;
+    if (photoBase64) {
+        data.photo = photoBase64;
+    }
+    
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const response = await fetch(`/api/cards/${username}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        document.getElementById('submitBtn').disabled = false;
+
+        if (result.success) {
+            showAlert('✅ تم حفظ التعديلات بنجاح! سيتم تحديث البطاقة على GitHub...', 'success');
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        } else {
+            showAlert(result.error || 'حدث خطأ', 'error');
+        }
+    } catch (error) {
+        document.getElementById('submitBtn').disabled = false;
+        showAlert('خطأ في الاتصال', 'error');
+    }
+});
+
+loadCard();
+</script>
+{% endblock %}

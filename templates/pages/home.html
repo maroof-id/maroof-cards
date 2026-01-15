@@ -1,0 +1,249 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Maroof - إنشاء بطاقة{% endblock %}
+
+{% block body %}
+<div class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-btn active">
+            <i class="fas fa-plus-circle"></i> إنشاء بطاقة
+        </a>
+        <a href="/dashboard" class="nav-btn">
+            <i class="fas fa-th-large"></i> لوحة التحكم
+            <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
+        </a>
+        <a href="/settings" class="nav-btn">
+            <i class="fas fa-cog"></i> الإعدادات
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>إنشاء بطاقة جديدة</h1>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="cardForm">
+            <div class="form-group">
+                <label>الاسم الكامل *</label>
+                <input type="text" name="name" required placeholder="أدخل الاسم الكامل">
+            </div>
+
+            <div class="form-group">
+                <label>الصورة الشخصية</label>
+                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
+                    اختياري - JPG, PNG, GIF (الحد الأقصى 5MB)
+                </small>
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <img id="previewImage" src="" alt="معاينة">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <input type="tel" name="phone" placeholder="05xxxxxxxx">
+            </div>
+
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" name="email" placeholder="example@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>Instagram</label>
+                <input type="text" name="instagram" placeholder="username">
+            </div>
+
+            <div class="form-group">
+                <label>LinkedIn</label>
+                <input type="text" name="linkedin" placeholder="username">
+            </div>
+
+            <div class="form-group">
+                <label>Twitter/X</label>
+                <input type="text" name="twitter" placeholder="username">
+            </div>
+
+            <div class="form-group">
+                <label>نبذة تعريفية</label>
+                <textarea name="bio" placeholder="اكتب نبذة تعريفية قصيرة عنك"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>التصميم</label>
+                <select name="template">
+                    <option value="professional">Professional (موصى به)</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="modern">Modern</option>
+                    <option value="classic">Classic</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">
+                <i class="fas fa-check-circle"></i> إنشاء البطاقة
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">جاري الإنشاء...</p>
+        </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display: none;">
+        <h2>✅ تم إنشاء البطاقة بنجاح!</h2>
+        <div id="resultContent"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-success" onclick="writeToNFC()">
+                <i class="fas fa-wifi"></i> كتابة على NFC
+            </button>
+            <button class="btn btn-outline" onclick="resetForm()">
+                <i class="fas fa-plus"></i> إنشاء بطاقة جديدة
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentUrl = '';
+let currentUsername = '';
+
+// Photo preview
+document.getElementById('photoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            e.target.value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('previewImage').src = event.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+});
+
+// Form submission
+document.getElementById('cardForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const photoFile = document.getElementById('photoInput').files[0];
+    let photoBase64 = '';
+    
+    if (photoFile) {
+        if (photoFile.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            return;
+        }
+        
+        try {
+            photoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(photoFile);
+            });
+        } catch (error) {
+            showAlert('فشل قراءة الصورة', 'error');
+            return;
+        }
+    }
+    
+    const data = Object.fromEntries(formData);
+    delete data.photo;
+    if (photoBase64) {
+        data.photo = photoBase64;
+    }
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('resultCard').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/create', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+
+        if (result.success) {
+            currentUrl = result.url;
+            currentUsername = result.username;
+            
+            document.getElementById('resultContent').innerHTML = `
+                <p style="margin: 15px 0;"><strong>الرابط:</strong></p>
+                <a href="${result.url}" target="_blank" style="color: var(--black); word-break: break-all;">
+                    ${result.url}
+                </a>
+            `;
+            
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('cardForm').reset();
+            document.getElementById('photoPreview').style.display = 'none';
+            
+            showAlert('تم إنشاء البطاقة بنجاح!', 'success');
+            
+            window.scrollTo({ top: document.getElementById('resultCard').offsetTop - 20, behavior: 'smooth' });
+        } else {
+            showAlert(result.error || 'حدث خطأ غير معروف', 'error');
+        }
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+        showAlert('خطأ في الاتصال بالخادم', 'error');
+    }
+});
+
+async function writeToNFC() {
+    if (!currentUrl) return;
+    
+    showAlert('جاري الكتابة... ضع البطاقة على القارئ', 'success');
+    
+    try {
+        const response = await fetch('/api/nfc/write', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: currentUrl, username: currentUsername})
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showAlert('✅ تمت الكتابة بنجاح!', 'success');
+        } else {
+            showAlert('❌ فشلت الكتابة: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showAlert('خطأ في الاتصال بالقارئ', 'error');
+    }
+}
+
+function resetForm() {
+    document.getElementById('cardForm').reset();
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('photoPreview').style.display = 'none';
+    currentUrl = '';
+    currentUsername = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}

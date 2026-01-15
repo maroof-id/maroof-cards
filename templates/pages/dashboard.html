@@ -1,0 +1,259 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Maroof - لوحة التحكم{% endblock %}
+
+{% block body %}
+<div class="nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-btn">
+            <i class="fas fa-plus-circle"></i> إنشاء بطاقة
+        </a>
+        <a href="/dashboard" class="nav-btn active">
+            <i class="fas fa-th-large"></i> لوحة التحكم
+            <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
+        </a>
+        <a href="/settings" class="nav-btn">
+            <i class="fas fa-cog"></i> الإعدادات
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>📊 لوحة التحكم</h1>
+
+    <div class="stats" id="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="pendingCount">0</div>
+            <div class="stat-label">⏳ قيد الانتظار</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="printedCount">0</div>
+            <div class="stat-label">✅ مطبوعة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="modifiedCount">0</div>
+            <div class="stat-label">📝 معدّلة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-label">📇 الإجمالي</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h2>📋 البطاقات</h2>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="searchInput" placeholder="🔍 بحث بالاسم أو الجوال" 
+                       style="width: 250px;" onkeyup="filterCards()">
+                <select id="statusFilter" onchange="filterCards()" style="width: 150px;">
+                    <option value="all">كل الحالات</option>
+                    <option value="pending">⏳ قيد الانتظار</option>
+                    <option value="printed">✅ مطبوعة</option>
+                    <option value="modified">📝 معدّلة</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: block;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">جاري التحميل...</p>
+        </div>
+
+        <div id="tableContainer" style="display: none; overflow-x: auto;">
+            <table id="cardsTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الجوال</th>
+                        <th>الحالة</th>
+                        <th>المصدر</th>
+                        <th>عدد الطباعة</th>
+                        <th>التاريخ</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="cardsBody"></tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" style="display: none; text-align: center; padding: 40px; color: var(--dark-gray);">
+            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+            <p>لا توجد بطاقات</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allCards = [];
+
+async function loadCards() {
+    try {
+        const response = await fetch('/api/cards');
+        const data = await response.json();
+        
+        if (data.success) {
+            allCards = data.cards;
+            updateStats(data.stats);
+            renderCards(allCards);
+            document.getElementById('loading').style.display = 'none';
+            
+            if (allCards.length > 0) {
+                document.getElementById('tableContainer').style.display = 'block';
+                document.getElementById('emptyState').style.display = 'none';
+            } else {
+                document.getElementById('tableContainer').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load cards:', error);
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+function updateStats(stats) {
+    document.getElementById('pendingCount').textContent = stats.pending;
+    document.getElementById('printedCount').textContent = stats.printed;
+    document.getElementById('modifiedCount').textContent = stats.modified;
+    document.getElementById('totalCount').textContent = stats.total;
+    
+    const badge = document.getElementById('pendingBadge');
+    if (stats.pending > 0) {
+        badge.textContent = stats.pending;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderCards(cards) {
+    const tbody = document.getElementById('cardsBody');
+    tbody.innerHTML = '';
+    
+    cards.forEach(card => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        if (card.status === 'pending') {
+            statusBadge = '<span class="status-indicator status-pending">⏳ قيد الانتظار</span>';
+        } else if (card.status === 'printed') {
+            statusBadge = '<span class="status-indicator status-success">✅ مطبوعة</span>';
+        } else if (card.status === 'modified') {
+            statusBadge = '<span class="status-indicator status-warning">📝 معدّلة</span>';
+        }
+        
+        const source = card.source === 'client' ? '👤 عميل' : '⚙️ إدارة';
+        const date = card.created_at ? new Date(card.created_at).toLocaleDateString('ar-SA') : '-';
+        
+        tr.innerHTML = `
+            <td><strong>${card.name}</strong></td>
+            <td>${card.phone || '-'}</td>
+            <td>${statusBadge}</td>
+            <td>${source}</td>
+            <td>${card.print_count}x</td>
+            <td>${date}</td>
+            <td>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" 
+                            onclick="viewCard('${card.url}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" 
+                            onclick="editCard('${card.username}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-success" style="padding: 6px 12px; font-size: 13px;" 
+                            onclick="printCard('${card.username}', '${card.url}')">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <button class="btn btn-error" style="padding: 6px 12px; font-size: 13px;" 
+                            onclick="deleteCard('${card.username}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function filterCards() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    
+    let filtered = allCards;
+    
+    if (status !== 'all') {
+        filtered = filtered.filter(card => card.status === status);
+    }
+    
+    if (search) {
+        filtered = filtered.filter(card => 
+            card.name.toLowerCase().includes(search) || 
+            (card.phone && card.phone.includes(search))
+        );
+    }
+    
+    renderCards(filtered);
+}
+
+function viewCard(url) {
+    window.open(url, '_blank');
+}
+
+function editCard(username) {
+    window.location.href = `/edit/${username}`;
+}
+
+async function printCard(username, url) {
+    if (!confirm('هل تريد كتابة هذه البطاقة على NFC؟')) return;
+    
+    try {
+        const response = await fetch('/api/nfc/write', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: url, username: username})
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('✅ تمت الكتابة بنجاح!');
+            loadCards();
+        } else {
+            alert('❌ فشلت الكتابة: ' + result.message);
+        }
+    } catch (error) {
+        alert('خطأ في الاتصال بالقارئ');
+    }
+}
+
+async function deleteCard(username) {
+    if (!confirm('هل أنت متأكد من حذف هذه البطاقة؟')) return;
+    
+    try {
+        const response = await fetch(`/api/cards/${username}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('✅ تم الحذف بنجاح');
+            loadCards();
+        } else {
+            alert('❌ فشل الحذف');
+        }
+    } catch (error) {
+        alert('خطأ في الحذف');
+    }
+}
+
+setInterval(loadCards, 30000);
+loadCards();
+</script>
+{% endblock %}

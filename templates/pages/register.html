@@ -1,0 +1,153 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Maroof - تسجيل بطاقة{% endblock %}
+
+{% block body %}
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 0;">
+    <div class="container" style="max-width: 600px;">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
+            <h1 style="margin-bottom: 10px;">مرحباً بك!</h1>
+            <p style="color: var(--dark-gray); margin-bottom: 30px;">سجل بياناتك للحصول على بطاقتك الرقمية</p>
+
+            <div id="alert" class="alert"></div>
+
+            <form id="registerForm" style="text-align: right;">
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" name="name" required placeholder="أدخل اسمك الكامل">
+                </div>
+
+                <div class="form-group">
+                    <label>الصورة الشخصية</label>
+                    <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
+                        اختياري - JPG, PNG (الحد الأقصى 5MB)
+                    </small>
+                    <div class="photo-preview" id="photoPreview" style="display: none;">
+                        <img id="previewImage" src="" alt="معاينة">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم الجوال *</label>
+                    <input type="tel" name="phone" required placeholder="05xxxxxxxx">
+                </div>
+
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" name="email" placeholder="example@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label>نبذة تعريفية</label>
+                    <textarea name="bio" placeholder="اكتب نبذة مختصرة عنك" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn" style="width: 100%; margin-top: 10px;">
+                    <i class="fas fa-paper-plane"></i> إرسال البيانات
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">جاري الإرسال...</p>
+            </div>
+        </div>
+
+        <div class="card" id="successCard" style="display: none; text-align: center; background: #e8f5e9;">
+            <div style="font-size: 64px; margin-bottom: 15px;">✅</div>
+            <h2 style="color: var(--success); margin-bottom: 10px;">تم إرسال بياناتك بنجاح!</h2>
+            <p style="color: var(--dark-gray);">سنتواصل معك قريباً لاستلام بطاقتك</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Photo preview
+document.getElementById('photoInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            e.target.value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('previewImage').src = event.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+});
+
+// Form submission
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const photoFile = document.getElementById('photoInput').files[0];
+    let photoBase64 = '';
+    
+    if (photoFile) {
+        if (photoFile.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            return;
+        }
+        
+        try {
+            photoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(photoFile);
+            });
+        } catch (error) {
+            showAlert('فشل قراءة الصورة', 'error');
+            return;
+        }
+    }
+    
+    const data = Object.fromEntries(formData);
+    delete data.photo;
+    if (photoBase64) {
+        data.photo = photoBase64;
+    }
+    data.source = 'client';
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+
+        if (result.success) {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('successCard').style.display = 'block';
+        } else {
+            showAlert(result.error || 'حدث خطأ غير معروف', 'error');
+        }
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('submitBtn').disabled = false;
+        showAlert('خطأ في الاتصال بالخادم', 'error');
+    }
+});
+</script>
+{% endblock %}

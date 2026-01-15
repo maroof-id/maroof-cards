@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Maroof Web App - Enhanced System
+Maroof Web App - Clean Version with Separated Templates
 """
 
-from flask import Flask, request, jsonify, render_template_string, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 import os
 import sys
 from pathlib import Path
@@ -16,13 +16,15 @@ sys.path.append(str(current_dir))
 from create_card import CardGenerator
 from nfc_writer import NFCWriter
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='../templates/pages',
+            static_folder='../static')
 app.config['JSON_AS_ASCII'] = False
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 
 generator = CardGenerator()
 
-# Notification counter (in-memory, resets on restart)
+# Notification counter
 pending_count = 0
 
 def get_pending_count():
@@ -38,685 +40,15 @@ def update_pending_count():
 # Cache-busting version
 CACHE_VERSION = datetime.now().strftime('%Y%m%d%H%M%S')
 
-# HTML Templates with modern design
-BASE_STYLE = f"""
-<style>
-    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-    
-    :root {{
-        --white: #FFFFFF;
-        --light-gray: #F5F5F5;
-        --gray: #E0E0E0;
-        --dark-gray: #757575;
-        --black: #212121;
-        --success: #4CAF50;
-        --warning: #FF9800;
-        --error: #F44336;
-        --pending: #2196F3;
-    }}
-    
-    body {{
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Display', sans-serif;
-        background: var(--light-gray);
-        min-height: 100vh;
-        color: var(--black);
-        line-height: 1.6;
-    }}
-    
-    .container {{
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }}
-    
-    .nav {{
-        background: var(--white);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }}
-    
-    .nav-inner {{
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        padding: 15px 20px;
-        gap: 15px;
-    }}
-    
-    .nav-btn {{
-        padding: 10px 20px;
-        background: var(--white);
-        color: var(--black);
-        border: 2px solid var(--gray);
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }}
-    
-    .nav-btn:hover {{
-        background: var(--light-gray);
-        border-color: var(--dark-gray);
-        transform: translateY(-1px);
-    }}
-    
-    .nav-btn.active {{
-        background: var(--black);
-        color: var(--white);
-        border-color: var(--black);
-    }}
-    
-    .notification-badge {{
-        background: var(--error);
-        color: white;
-        border-radius: 12px;
-        padding: 2px 8px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-left: 5px;
-    }}
-    
-    .card {{
-        background: var(--white);
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
-    }}
-    
-    h1 {{
-        font-size: 28px;
-        font-weight: 600;
-        margin-bottom: 25px;
-        color: var(--black);
-    }}
-    
-    h2 {{
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: var(--black);
-    }}
-    
-    .form-group {{
-        margin-bottom: 20px;
-    }}
-    
-    label {{
-        display: block;
-        margin-bottom: 8px;
-        color: var(--black);
-        font-weight: 500;
-        font-size: 14px;
-    }}
-    
-    input, textarea, select {{
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid var(--gray);
-        border-radius: 8px;
-        font-size: 15px;
-        font-family: inherit;
-        transition: border-color 0.2s;
-        background: var(--white);
-    }}
-    
-    input:focus, textarea:focus, select:focus {{
-        outline: none;
-        border-color: var(--black);
-    }}
-    
-    textarea {{
-        resize: vertical;
-        min-height: 100px;
-    }}
-    
-    input[type="file"] {{
-        padding: 10px;
-        border: 2px dashed var(--gray);
-        background: var(--light-gray);
-        cursor: pointer;
-    }}
-    
-    input[type="file"]:hover {{
-        border-color: var(--dark-gray);
-    }}
-    
-    .btn {{
-        padding: 12px 24px;
-        background: var(--black);
-        color: var(--white);
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }}
-    
-    .btn:hover {{
-        background: #000;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }}
-    
-    .btn:disabled {{
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }}
-    
-    .btn-success {{ background: var(--success); }}
-    .btn-warning {{ background: var(--warning); }}
-    .btn-error {{ background: var(--error); }}
-    .btn-secondary {{ background: var(--dark-gray); }}
-    
-    .btn-outline {{
-        background: var(--white);
-        color: var(--black);
-        border: 2px solid var(--gray);
-    }}
-    
-    .btn-outline:hover {{
-        background: var(--light-gray);
-        border-color: var(--black);
-    }}
-    
-    .status-indicator {{
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 500;
-    }}
-    
-    .status-success {{
-        background: #e8f5e9;
-        color: var(--success);
-    }}
-    
-    .status-warning {{
-        background: #fff3e0;
-        color: var(--warning);
-    }}
-    
-    .status-error {{
-        background: #ffebee;
-        color: var(--error);
-    }}
-    
-    .status-pending {{
-        background: #e3f2fd;
-        color: var(--pending);
-    }}
-    
-    .stats {{
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 30px;
-    }}
-    
-    .stat-card {{
-        background: var(--white);
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }}
-    
-    .stat-value {{
-        font-size: 32px;
-        font-weight: 700;
-        color: var(--black);
-        margin-bottom: 5px;
-    }}
-    
-    .stat-label {{
-        font-size: 14px;
-        color: var(--dark-gray);
-        font-weight: 500;
-    }}
-    
-    table {{
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }}
-    
-    th {{
-        background: var(--light-gray);
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-        font-size: 13px;
-        color: var(--black);
-        border-bottom: 2px solid var(--gray);
-    }}
-    
-    td {{
-        padding: 15px 12px;
-        border-bottom: 1px solid var(--gray);
-        font-size: 14px;
-    }}
-    
-    tr:hover {{
-        background: var(--light-gray);
-    }}
-    
-    .photo-preview {{
-        margin-top: 15px;
-        text-align: center;
-    }}
-    
-    .photo-preview img {{
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid var(--gray);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }}
-    
-    .alert {{
-        padding: 15px 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: none;
-    }}
-    
-    .alert.show {{ display: block; }}
-    
-    .alert-success {{
-        background: #e8f5e9;
-        color: var(--success);
-        border-left: 4px solid var(--success);
-    }}
-    
-    .alert-error {{
-        background: #ffebee;
-        color: var(--error);
-        border-left: 4px solid var(--error);
-    }}
-    
-    .loading {{
-        display: none;
-        text-align: center;
-        padding: 20px;
-    }}
-    
-    .spinner {{
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        border: 3px solid var(--gray);
-        border-top: 3px solid var(--black);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }}
-    
-    @keyframes spin {{
-        0% {{ transform: rotate(0deg); }}
-        100% {{ transform: rotate(360deg); }}
-    }}
-    
-    .reader-status {{
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 500;
-    }}
-    
-    .reader-status.online {{
-        background: #e8f5e9;
-        color: var(--success);
-    }}
-    
-    .reader-status.offline {{
-        background: #ffebee;
-        color: var(--error);
-    }}
-    
-    .status-dot {{
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        animation: pulse 2s ease-in-out infinite;
-    }}
-    
-    .status-dot.green {{ background: var(--success); }}
-    .status-dot.red {{ background: var(--error); }}
-    
-    @keyframes pulse {{
-        0%, 100% {{ opacity: 1; }}
-        50% {{ opacity: 0.5; }}
-    }}
-    
-    @media (max-width: 768px) {{
-        .container {{ padding: 10px; }}
-        .nav-inner {{ flex-wrap: wrap; }}
-        .stats {{ grid-template-columns: 1fr; }}
-        table {{ font-size: 12px; }}
-        th, td {{ padding: 8px; }}
-    }}
-</style>
-"""
+# =====================================================
+# PAGE ROUTES
+# =====================================================
 
-HOME_PAGE = f"""
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maroof - إنشاء بطاقة</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {BASE_STYLE}
-</head>
-<body>
-    <div class="nav">
-        <div class="nav-inner">
-            <a href="/" class="nav-btn active">
-                <i class="fas fa-plus-circle"></i> إنشاء بطاقة
-            </a>
-            <a href="/dashboard" class="nav-btn" id="dashboardBtn">
-                <i class="fas fa-th-large"></i> لوحة التحكم
-                <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
-            </a>
-            <a href="/settings" class="nav-btn">
-                <i class="fas fa-cog"></i> الإعدادات
-            </a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <h1>إنشاء بطاقة جديدة</h1>
-
-            <div id="alert" class="alert"></div>
-
-            <form id="cardForm">
-                <div class="form-group">
-                    <label>الاسم الكامل *</label>
-                    <input type="text" name="name" required placeholder="أدخل الاسم الكامل">
-                </div>
-
-                <div class="form-group">
-                    <label>الصورة الشخصية</label>
-                    <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
-                    <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
-                        اختياري - JPG, PNG, GIF (الحد الأقصى 5MB)
-                    </small>
-                    <div class="photo-preview" id="photoPreview" style="display: none;">
-                        <img id="previewImage" src="" alt="معاينة">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>رقم الجوال</label>
-                    <input type="tel" name="phone" placeholder="05xxxxxxxx">
-                </div>
-
-                <div class="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" name="email" placeholder="example@email.com">
-                </div>
-
-                <div class="form-group">
-                    <label>Instagram</label>
-                    <input type="text" name="instagram" placeholder="username">
-                </div>
-
-                <div class="form-group">
-                    <label>LinkedIn</label>
-                    <input type="text" name="linkedin" placeholder="username">
-                </div>
-
-                <div class="form-group">
-                    <label>Twitter/X</label>
-                    <input type="text" name="twitter" placeholder="username">
-                </div>
-
-                <div class="form-group">
-                    <label>نبذة تعريفية</label>
-                    <textarea name="bio" placeholder="اكتب نبذة تعريفية قصيرة عنك"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>التصميم</label>
-                    <select name="template">
-                        <option value="professional">Professional (موصى به)</option>
-                        <option value="luxury">Luxury</option>
-                        <option value="friendly">Friendly</option>
-                        <option value="modern">Modern</option>
-                        <option value="classic">Classic</option>
-                        <option value="minimal">Minimal</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn" id="submitBtn">
-                    <i class="fas fa-check-circle"></i> إنشاء البطاقة
-                </button>
-            </form>
-
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p style="margin-top: 10px;">جاري الإنشاء...</p>
-            </div>
-        </div>
-
-        <div class="card" id="resultCard" style="display: none;">
-            <h2>✅ تم إنشاء البطاقة بنجاح!</h2>
-            <div id="resultContent"></div>
-            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-success" onclick="writeToNFC()">
-                    <i class="fas fa-wifi"></i> كتابة على NFC
-                </button>
-                <button class="btn btn-outline" onclick="resetForm()">
-                    <i class="fas fa-plus"></i> إنشاء بطاقة جديدة
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentUrl = '';
-        let currentUsername = '';
-
-        // Photo preview
-        document.getElementById('photoInput').addEventListener('change', function(e) {{
-            const file = e.target.files[0];
-            if (file) {{
-                if (file.size > 5 * 1024 * 1024) {{
-                    showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
-                    e.target.value = '';
-                    document.getElementById('photoPreview').style.display = 'none';
-                    return;
-                }}
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {{
-                    document.getElementById('previewImage').src = event.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
-                }};
-                reader.readAsDataURL(file);
-            }} else {{
-                document.getElementById('photoPreview').style.display = 'none';
-            }}
-        }});
-
-        // Form submission
-        document.getElementById('cardForm').addEventListener('submit', async (e) => {{
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const photoFile = document.getElementById('photoInput').files[0];
-            let photoBase64 = '';
-            
-            if (photoFile) {{
-                if (photoFile.size > 5 * 1024 * 1024) {{
-                    showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
-                    return;
-                }}
-                
-                try {{
-                    photoBase64 = await new Promise((resolve, reject) => {{
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(photoFile);
-                    }});
-                }} catch (error) {{
-                    showAlert('فشل قراءة الصورة', 'error');
-                    return;
-                }}
-            }}
-            
-            const data = Object.fromEntries(formData);
-            delete data.photo;
-            if (photoBase64) {{
-                data.photo = photoBase64;
-            }}
-            
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('resultCard').style.display = 'none';
-
-            try {{
-                const response = await fetch('/api/create', {{
-                    method: 'POST',
-                    headers: {{'Content-Type': 'application/json'}},
-                    body: JSON.stringify(data)
-                }});
-
-                const result = await response.json();
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('submitBtn').disabled = false;
-
-                if (result.success) {{
-                    currentUrl = result.url;
-                    currentUsername = result.username;
-                    
-                    document.getElementById('resultContent').innerHTML = `
-                        <p style="margin: 15px 0;"><strong>الرابط:</strong></p>
-                        <a href="${{result.url}}" target="_blank" style="color: var(--black); word-break: break-all;">
-                            ${{result.url}}
-                        </a>
-                    `;
-                    
-                    document.getElementById('resultCard').style.display = 'block';
-                    document.getElementById('cardForm').reset();
-                    document.getElementById('photoPreview').style.display = 'none';
-                    
-                    showAlert('تم إنشاء البطاقة بنجاح!', 'success');
-                    
-                    window.scrollTo({{ top: document.getElementById('resultCard').offsetTop - 20, behavior: 'smooth' }});
-                }} else {{
-                    showAlert(result.error || 'حدث خطأ غير معروف', 'error');
-                }}
-            }} catch (error) {{
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('submitBtn').disabled = false;
-                showAlert('خطأ في الاتصال بالخادم', 'error');
-            }}
-        }});
-
-        async function writeToNFC() {{
-            if (!currentUrl) return;
-            
-            showAlert('جاري الكتابة... ضع البطاقة على القارئ', 'success');
-            
-            try {{
-                const response = await fetch('/api/nfc/write', {{
-                    method: 'POST',
-                    headers: {{'Content-Type': 'application/json'}},
-                    body: JSON.stringify({{url: currentUrl, username: currentUsername}})
-                }});
-
-                const result = await response.json();
-
-                if (result.success) {{
-                    showAlert('✅ تمت الكتابة بنجاح!', 'success');
-                }} else {{
-                    showAlert('❌ فشلت الكتابة: ' + result.message, 'error');
-                }}
-            }} catch (error) {{
-                showAlert('خطأ في الاتصال بالقارئ', 'error');
-            }}
-        }}
-
-        function resetForm() {{
-            document.getElementById('cardForm').reset();
-            document.getElementById('resultCard').style.display = 'none';
-            document.getElementById('photoPreview').style.display = 'none';
-            currentUrl = '';
-            currentUsername = '';
-            window.scrollTo({{ top: 0, behavior: 'smooth' }});
-        }}
-
-        function showAlert(message, type) {{
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert alert-${{type}} show`;
-            setTimeout(() => {{
-                alert.classList.remove('show');
-            }}, 5000);
-        }}
-
-        // Update pending count
-        async function updatePendingCount() {{
-            try {{
-                const response = await fetch('/api/pending-count');
-                const data = await response.json();
-                const badge = document.getElementById('pendingBadge');
-                if (data.count > 0) {{
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                }} else {{
-                    badge.style.display = 'none';
-                }}
-            }} catch (error) {{
-                console.error('Failed to update pending count');
-            }}
-        }}
-
-        // Update every 10 seconds
-        setInterval(updatePendingCount, 10000);
-        updatePendingCount();
-    </script>
-</body>
-</html>
-"""
-# (تابع بعد HOME_PAGE...)
-
-DASHBOARD_PAGE = """نفس المحتوى اللي عندك - ما تغير"""
-
-SETTINGS_PAGE = """نفس المحتوى اللي عندك - ما تغير"""
-
-REGISTER_PAGE = """نفس المحتوى اللي عندك - ما تغير"""
-
-EDIT_PAGE = """نفس المحتوى اللي عندك - ما تغير"""
-
-# Routes
 @app.route('/')
 def index():
+    """Main page - Create card (Admin)"""
     response = app.response_class(
-        response=HOME_PAGE,
+        response=render_template('home.html'),
         mimetype='text/html'
     )
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -726,8 +58,9 @@ def index():
 
 @app.route('/dashboard')
 def dashboard():
+    """Dashboard - Manage cards (Admin)"""
     response = app.response_class(
-        response=DASHBOARD_PAGE,
+        response=render_template('dashboard.html'),
         mimetype='text/html'
     )
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -735,8 +68,9 @@ def dashboard():
 
 @app.route('/settings')
 def settings():
+    """Settings - NFC reader (Admin)"""
     response = app.response_class(
-        response=SETTINGS_PAGE,
+        response=render_template('settings.html'),
         mimetype='text/html'
     )
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -744,8 +78,9 @@ def settings():
 
 @app.route('/register')
 def register():
+    """Register page - Client registration"""
     response = app.response_class(
-        response=REGISTER_PAGE,
+        response=render_template('register.html'),
         mimetype='text/html'
     )
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -753,16 +88,21 @@ def register():
 
 @app.route('/edit/<username>')
 def edit(username):
+    """Edit page - Edit existing card"""
     response = app.response_class(
-        response=EDIT_PAGE,
+        response=render_template('edit.html'),
         mimetype='text/html'
     )
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
-# API Routes
+# =====================================================
+# API ROUTES
+# =====================================================
+
 @app.route('/api/create', methods=['POST'])
 def create_card():
+    """Create new card (Admin)"""
     try:
         data = request.get_json() or {}
         name = (data.get('name') or '').strip()
@@ -797,6 +137,7 @@ def create_card():
 
 @app.route('/api/register', methods=['POST'])
 def register_card():
+    """Register card (Client)"""
     try:
         data = request.get_json() or {}
         name = (data.get('name') or '').strip()
@@ -828,6 +169,7 @@ def register_card():
 
 @app.route('/api/cards', methods=['GET'])
 def list_cards():
+    """List all cards with stats"""
     try:
         cards = generator.list_cards()
         
@@ -844,6 +186,7 @@ def list_cards():
 
 @app.route('/api/cards/<username>', methods=['GET'])
 def get_card(username):
+    """Get card data"""
     try:
         data = generator.get_card_data(username)
         if data:
@@ -854,6 +197,7 @@ def get_card(username):
 
 @app.route('/api/cards/<username>', methods=['PUT'])
 def update_card(username):
+    """Update existing card"""
     try:
         data = request.get_json() or {}
         
@@ -878,6 +222,7 @@ def update_card(username):
 
 @app.route('/api/cards/<username>', methods=['DELETE'])
 def delete_card(username):
+    """Delete card"""
     try:
         if generator.delete_card(username):
             generator.git_push_background(f"Delete card: {username}")
@@ -886,8 +231,13 @@ def delete_card(username):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# =====================================================
+# NFC API ROUTES
+# =====================================================
+
 @app.route('/api/nfc/test', methods=['GET'])
 def nfc_test():
+    """Test NFC reader connection"""
     try:
         writer = NFCWriter()
         if writer.connect():
@@ -899,6 +249,7 @@ def nfc_test():
 
 @app.route('/api/nfc/write', methods=['POST'])
 def nfc_write():
+    """Write URL to NFC card"""
     try:
         data = request.get_json() or {}
         url = data.get('url', '')
@@ -921,6 +272,7 @@ def nfc_write():
 
 @app.route('/api/nfc/read', methods=['GET'])
 def nfc_read():
+    """Read NFC card"""
     try:
         writer = NFCWriter()
         data, msg = writer.read_card(timeout=15)
@@ -934,11 +286,16 @@ def nfc_read():
 
 @app.route('/api/pending-count', methods=['GET'])
 def get_pending_count_api():
+    """Get pending cards count"""
     try:
         count = len(generator.list_cards(status_filter='pending'))
         return jsonify({'count': count})
     except:
         return jsonify({'count': 0})
+
+# =====================================================
+# SERVER START
+# =====================================================
 
 if __name__ == '__main__':
     print("=" * 50)
