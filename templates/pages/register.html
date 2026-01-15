@@ -4,7 +4,7 @@
 
 {% block body %}
 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 0;">
-    <div class="container" style="max-width: 600px;">
+    <div class="container" style="max-width: 700px;">
         <div class="card" style="text-align: center;">
             <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
             <h1 style="margin-bottom: 10px;">مرحباً بك!</h1>
@@ -22,7 +22,7 @@
                     <label>الصورة الشخصية</label>
                     <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
                     <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
-                        اختياري - JPG, PNG (الحد الأقصى 5MB)
+                        اختياري - JPG, PNG, GIF (الحد الأقصى 5MB)
                     </small>
                     <div class="photo-preview" id="photoPreview" style="display: none;">
                         <img id="previewImage" src="" alt="معاينة">
@@ -30,8 +30,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>رقم الجوال *</label>
-                    <input type="tel" name="phone" required placeholder="05xxxxxxxx">
+                    <label>رقم الجوال</label>
+                    <input type="tel" name="phone" placeholder="05xxxxxxxx">
                 </div>
 
                 <div class="form-group">
@@ -40,8 +40,35 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Instagram</label>
+                    <input type="text" name="instagram" placeholder="username">
+                </div>
+
+                <div class="form-group">
+                    <label>LinkedIn</label>
+                    <input type="text" name="linkedin" placeholder="username">
+                </div>
+
+                <div class="form-group">
+                    <label>Twitter/X</label>
+                    <input type="text" name="twitter" placeholder="username">
+                </div>
+
+                <div class="form-group">
                     <label>نبذة تعريفية</label>
                     <textarea name="bio" placeholder="اكتب نبذة مختصرة عنك" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>التصميم</label>
+                    <select name="template">
+                        <option value="professional">Professional (موصى به)</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="friendly">Friendly</option>
+                        <option value="modern">Modern</option>
+                        <option value="classic">Classic</option>
+                        <option value="minimal">Minimal</option>
+                    </select>
                 </div>
 
                 <button type="submit" class="btn" id="submitBtn" style="width: 100%; margin-top: 10px;">
@@ -66,7 +93,6 @@
 
 {% block extra_js %}
 <script>
-// Photo preview
 document.getElementById('photoInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -88,7 +114,6 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
     }
 });
 
-// Form submission
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -120,7 +145,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     if (photoBase64) {
         data.photo = photoBase64;
     }
-    data.source = 'client';
     
     document.getElementById('loading').style.display = 'block';
     document.getElementById('submitBtn').disabled = true;
