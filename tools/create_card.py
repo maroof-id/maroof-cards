@@ -11,6 +11,7 @@ import subprocess
 import base64
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+from datetime import datetime
 
 class CardGenerator:
     """Generates digital business cards"""
@@ -84,6 +85,41 @@ class CardGenerator:
         else:
             return '966' + phone
 
+    def compress_image(self, image_bytes: bytes, image_format: str) -> bytes:
+        """Compress image to reduce size"""
+        try:
+            from PIL import Image
+            from io import BytesIO
+            
+            # Open image
+            img = Image.open(BytesIO(image_bytes))
+            
+            # Convert RGBA to RGB if needed
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            
+            # Resize if too large
+            max_size = (800, 800)
+            if img.width > max_size[0] or img.height > max_size[1]:
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Save compressed
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=85, optimize=True)
+            return output.getvalue()
+            
+        except ImportError:
+            # Pillow not installed, return original
+            print("⚠️ Pillow not installed - image not compressed")
+            return image_bytes
+        except Exception as e:
+            print(f"⚠️ Image compression failed: {e}")
+            return image_bytes
+
     def load_template(self, template_name: str) -> str:
         """Load HTML template"""
         template_file = self.templates_path / f"{template_name}.html"
@@ -142,9 +178,10 @@ class CardGenerator:
         linkedin: str = '',
         twitter: str = '',
         bio: str = '',
-        template: str = 'modern',
+        template: str = 'professional',
         username: Optional[str] = None,
-        photo: str = ''
+        photo: str = '',
+        source: str = 'admin'
     ) -> Dict[str, str]:
         """Create new business card"""
 
@@ -165,26 +202,31 @@ class CardGenerator:
         photo_path = ''
         if photo and photo.startswith('data:image'):
             try:
-                # Parse data URL: data:image/jpeg;base64,/9j/4AAQ...
+                # Parse data URL
                 match = re.match(r'data:image/(\w+);base64,(.+)', photo)
                 if match:
-                    image_format = match.group(1).lower()  # jpg, png, gif, etc
+                    image_format = match.group(1).lower()
                     image_data = match.group(2)
                     
                     # Decode base64
                     image_bytes = base64.b64decode(image_data)
                     
-                    # Save to file
-                    photo_filename = f'photo.{image_format}'
+                    # Compress image
+                    compressed_bytes = self.compress_image(image_bytes, image_format)
+                    
+                    # Save to file (always as .jpg after compression)
+                    photo_filename = 'photo.jpg'
                     photo_file_path = client_dir / photo_filename
                     
                     with open(photo_file_path, 'wb') as f:
-                        f.write(image_bytes)
+                        f.write(compressed_bytes)
                     
-                    # Set relative path for HTML
                     photo_path = f'./{photo_filename}'
                     
-                    print(f"✅ Photo saved: {photo_file_path}")
+                    # Calculate sizes
+                    original_size = len(image_bytes) / 1024  # KB
+                    compressed_size = len(compressed_bytes) / 1024  # KB
+                    print(f"✅ Photo saved: {original_size:.1f}KB → {compressed_size:.1f}KB")
             except Exception as e:
                 print(f"⚠️ Warning: Could not save photo - {e}")
                 photo_path = ''
@@ -198,10 +240,15 @@ class CardGenerator:
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
             'BIO': bio or f'{name}',
-            'PHOTO': photo_path  # Use local path instead of base64
+            'PHOTO': photo_path,
+            'created_at': datetime.now().isoformat(),
+            'source': source,  # 'admin' or 'client'
+            'status': 'pending',  # 'pending', 'printed', 'modified'
+            'print_count': 0,
+            'print_history': []
         }
 
-        # Add international phone format and persist it
+        # Add international phone format
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
 
@@ -226,8 +273,121 @@ class CardGenerator:
             'username': username,
             'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
             'path': str(output_file),
-            'template': template
+            'template': template,
+            'source': source
         }
+
+    def update_card(
+        self,
+        username: str,
+        name: str = None,
+        phone: str = None,
+        email: str = None,
+        instagram: str = None,
+        linkedin: str = None,
+        twitter: str = None,
+        bio: str = None,
+        template: str = None,
+        photo: str = None
+    ) -> Dict[str, str]:
+        """Update existing card"""
+        
+        # Load existing data
+        data_file = self.clients_path / username / 'data.json'
+        if not data_file.exists():
+            raise ValueError(f'Card not found: {username}')
+        
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Update fields
+        if name: data['NAME'] = name
+        if phone: data['PHONE'] = phone
+        if email: data['EMAIL'] = email
+        if instagram: data['INSTAGRAM'] = instagram.lstrip('@')
+        if linkedin: data['LINKEDIN'] = linkedin
+        if twitter: data['TWITTER'] = twitter.lstrip('@')
+        if bio: data['BIO'] = bio
+        
+        # Update photo if provided
+        if photo and photo.startswith('data:image'):
+            client_dir = self.clients_path / username
+            try:
+                match = re.match(r'data:image/(\w+);base64,(.+)', photo)
+                if match:
+                    image_data = match.group(2)
+                    image_bytes = base64.b64decode(image_data)
+                    compressed_bytes = self.compress_image(image_bytes, 'jpg')
+                    
+                    photo_filename = 'photo.jpg'
+                    photo_file_path = client_dir / photo_filename
+                    
+                    with open(photo_file_path, 'wb') as f:
+                        f.write(compressed_bytes)
+                    
+                    data['PHOTO'] = f'./{photo_filename}'
+            except Exception as e:
+                print(f"⚠️ Photo update failed: {e}")
+        
+        # Mark as modified after print
+        if data.get('print_count', 0) > 0:
+            data['status'] = 'modified'
+        
+        # Update international phone
+        if data.get('PHONE'):
+            data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
+        
+        # Get template name
+        template_name = template if template else data.get('template', 'professional')
+        
+        # Load and process template
+        html = self.load_template(template_name)
+        html = self.replace_variables(html, data)
+        
+        # Save HTML
+        output_file = self.clients_path / username / 'index.html'
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(html)
+        
+        # Save updated data
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        # Update vCard
+        self._create_vcard(data, username, self.clients_path / username)
+        
+        return {
+            'username': username,
+            'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
+            'status': data.get('status')
+        }
+
+    def mark_as_printed(self, username: str) -> bool:
+        """Mark card as printed"""
+        data_file = self.clients_path / username / 'data.json'
+        if not data_file.exists():
+            return False
+        
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Update print info
+        data['print_count'] = data.get('print_count', 0) + 1
+        data['status'] = 'printed'
+        
+        if 'print_history' not in data:
+            data['print_history'] = []
+        
+        data['print_history'].append({
+            'date': datetime.now().isoformat(),
+            'count': data['print_count']
+        })
+        
+        # Save
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        return True
 
     def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
         """Create vCard file for contact saving"""
@@ -249,7 +409,6 @@ FN:{data.get('NAME', '')}
         if data.get('BIO'):
             vcard += f"NOTE:{data['BIO']}\n"
 
-        # Add photo URL if exists
         if data.get('PHOTO') and data['PHOTO'].startswith('./'):
             photo_url = f"https://maroof-id.github.io/maroof-cards/clients/{username}/{data['PHOTO'][2:]}"
             vcard += f"PHOTO;VALUE=URL:{photo_url}\n"
@@ -274,179 +433,74 @@ FN:{data.get('NAME', '')}
         return vcard_path
 
     def git_push(self, message: str = 'Update cards', timeout: int = 30) -> Tuple[bool, str]:
-        """Push changes to GitHub with proper error handling.
-
-        Returns:
-            Tuple of (success: bool, message: str)
-        """
+        """Push changes to GitHub"""
         try:
-            # Stage changes
-            try:
-                subprocess.run(
-                    ['git', 'add', '.'],
-                    cwd=self.repo_path,
-                    check=True,
-                    timeout=timeout,
-                    capture_output=True
-                )
-            except subprocess.TimeoutExpired:
-                error_msg = "Timeout: git add took too long"
-                print(error_msg)
-                return False, error_msg
-            except subprocess.CalledProcessError as e:
-                error_msg = f"Error: git add failed - {e.stderr.decode() if e.stderr else str(e)}"
-                print(error_msg)
-                return False, error_msg
-
-            # Check if there is anything to commit
-            try:
-                status = subprocess.run(
-                    ['git', 'status', '--porcelain'],
-                    cwd=self.repo_path,
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                    timeout=timeout
-                )
-            except subprocess.TimeoutExpired:
-                error_msg = "Timeout: git status took too long"
-                print(error_msg)
-                return False, error_msg
-            except subprocess.CalledProcessError as e:
-                error_msg = f"Error: git status failed"
-                print(error_msg)
-                return False, error_msg
-
+            subprocess.run(['git', 'add', '.'], cwd=self.repo_path, check=True, timeout=timeout, capture_output=True)
+            
+            status = subprocess.run(['git', 'status', '--porcelain'], cwd=self.repo_path, capture_output=True, text=True, check=True, timeout=timeout)
+            
             if not status.stdout.strip():
-                print("No changes to commit")
-                # Try to push anyway in case remote changed
-                try:
-                    subprocess.run(
-                        ['git', 'push'],
-                        cwd=self.repo_path,
-                        check=True,
-                        timeout=timeout,
-                        capture_output=True
-                    )
-                    print("Successfully pushed to GitHub")
-                    return True, "Successfully pushed to GitHub"
-                except subprocess.TimeoutExpired:
-                    error_msg = "Timeout: git push took too long"
-                    print(error_msg)
-                    return False, error_msg
-                except subprocess.CalledProcessError as e:
-                    error_msg = f"Error: git push failed - GitHub may be offline"
-                    print(error_msg)
-                    return False, error_msg
-
-            # Commit changes
-            try:
-                commit = subprocess.run(
-                    ['git', 'commit', '-m', message],
-                    cwd=self.repo_path,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout
-                )
-                if commit.returncode != 0:
-                    combined = (commit.stdout or '') + (commit.stderr or '')
-                    if 'nothing to commit' in combined.lower():
-                        print("No changes to commit")
-                    else:
-                        error_msg = f"Git commit failed: {combined}"
-                        print(error_msg)
-                        return False, error_msg
-            except subprocess.TimeoutExpired:
-                error_msg = "Timeout: git commit took too long"
-                print(error_msg)
-                return False, error_msg
-
-            # Push
-            try:
-                subprocess.run(
-                    ['git', 'push'],
-                    cwd=self.repo_path,
-                    check=True,
-                    timeout=timeout,
-                    capture_output=True
-                )
-                success_msg = "Successfully pushed to GitHub"
-                print(success_msg)
-                return True, success_msg
-
-            except subprocess.TimeoutExpired:
-                error_msg = "Timeout: git push took too long"
-                print(error_msg)
-                return False, error_msg
-            except subprocess.CalledProcessError as e:
-                error_msg = "Error: git push failed - Check credentials or network"
-                print(error_msg)
-                return False, error_msg
-
-        except Exception as e:
-            error_msg = f"Unexpected error: {str(e)}"
-            print(error_msg)
-            return False, error_msg
+                return True, "No changes"
+            
+            subprocess.run(['git', 'commit', '-m', message], cwd=self.repo_path, capture_output=True, text=True, timeout=timeout)
+            subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout, capture_output=True)
+            
+            return True, "Successfully pushed"
+        except:
+            return False, "Push failed"
 
     def git_push_background(self, message: str = 'Update cards', callback=None):
-        """Run git_push in a background thread with proper error handling.
-
-        Args:
-            message: Commit message
-            callback: Optional callback function that receives (success: bool, message: str)
-
-        Returns:
-            Thread object
-        """
-        def background_task():
+        """Push in background"""
+        from threading import Thread
+        def task():
             success, msg = self.git_push(message)
             if callback:
                 try:
                     callback(success, msg)
-                except Exception as e:
-                    print(f"Callback error: {e}")
-
-        from threading import Thread
-        t = Thread(target=background_task, daemon=True)
-        t.start()
-        return t
+                except:
+                    pass
+        Thread(target=task, daemon=True).start()
 
     def get_card_data(self, username: str) -> Optional[Dict]:
-        """Load card data from username"""
+        """Load card data"""
         data_file = self.clients_path / username / 'data.json'
-
         if not data_file.exists():
             return None
-
         with open(data_file, 'r', encoding='utf-8') as f:
             return json.load(f)
 
-    def delete_card(self, username: str) -> bool:
-        """Delete a card"""
-        import shutil
-
-        client_dir = self.clients_path / username
-
-        if not client_dir.exists():
-            return False
-
-        shutil.rmtree(client_dir)
-        return True
-
-    def list_cards(self) -> list:
-        """List all existing cards"""
+    def list_cards(self, status_filter: str = None) -> list:
+        """List all cards with optional status filter"""
         cards = []
-
         for client_dir in self.clients_path.iterdir():
             if client_dir.is_dir():
                 data_file = client_dir / 'data.json'
                 if data_file.exists():
                     with open(data_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                        cards.append({
-                            'username': client_dir.name,
-                            'name': data.get('NAME', ''),
-                            'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'
-                        })
-
+                        card_status = data.get('status', 'pending')
+                        
+                        if status_filter is None or card_status == status_filter:
+                            cards.append({
+                                'username': client_dir.name,
+                                'name': data.get('NAME', ''),
+                                'phone': data.get('PHONE', ''),
+                                'status': card_status,
+                                'source': data.get('source', 'admin'),
+                                'print_count': data.get('print_count', 0),
+                                'created_at': data.get('created_at', ''),
+                                'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'
+                            })
+        
+        # Sort by creation date (newest first)
+        cards.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         return cards
+
+    def delete_card(self, username: str) -> bool:
+        """Delete a card"""
+        import shutil
+        client_dir = self.clients_path / username
+        if not client_dir.exists():
+            return False
+        shutil.rmtree(client_dir)
+        return True

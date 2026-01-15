@@ -14,12 +14,11 @@ class NFCWriter:
         if self.clf:
             return True
             
-        # Try different connection methods
         connection_methods = [
-            'tty:USB0:pn532',  # Serial PN532
+            'tty:USB0:pn532',
             'tty:USB1:pn532',
-            'usb',             # USB direct
-            'tty:AMA0:pn532',  # GPIO serial
+            'usb',
+            'tty:AMA0:pn532',
         ]
         
         for method in connection_methods:
@@ -28,7 +27,7 @@ class NFCWriter:
                 self.device_path = method
                 print(f"✅ Connected via: {method}")
                 return True
-            except Exception as e:
+            except:
                 continue
         
         print("❌ Failed to connect to NFC reader")
@@ -47,7 +46,6 @@ class NFCWriter:
     def write_url(self, url: str, timeout: int = 15) -> Tuple[bool, str]:
         """Write URL to NFC card"""
         try:
-            # Connect fresh
             self.close()
             if not self.connect():
                 return False, "Cannot connect to NFC reader"
@@ -62,24 +60,21 @@ class NFCWriter:
             start = time.time()
             tag = None
             
-            # Try to detect card
             while time.time() - start < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
                     if tag:
                         print("✅ Card detected!")
                         break
-                except Exception as e:
+                except:
                     time.sleep(0.2)
             
             if not tag:
                 return False, "No card detected - timeout"
             
-            # Check NDEF support
             if not tag.ndef:
                 return False, "Card doesn't support NDEF"
             
-            # Write to card
             try:
                 tag.ndef.records = [record]
                 print("✅ Write successful!")
@@ -95,7 +90,6 @@ class NFCWriter:
     def read_card(self, timeout: int = 15) -> Tuple[Optional[Dict], str]:
         """Read NFC card"""
         try:
-            # Connect fresh
             self.close()
             if not self.connect():
                 return None, "Cannot connect to NFC reader"
@@ -107,7 +101,6 @@ class NFCWriter:
             start = time.time()
             tag = None
             
-            # Try to detect card
             while time.time() - start < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
@@ -125,7 +118,6 @@ class NFCWriter:
                 'type': str(tag.type) if hasattr(tag, 'type') else 'Unknown'
             }
             
-            # Read NDEF data
             if tag.ndef:
                 result['ndef'] = True
                 for record in tag.ndef.records:
