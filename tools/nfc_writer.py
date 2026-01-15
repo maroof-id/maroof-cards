@@ -2,26 +2,68 @@
 import nfc
 import time
 import sys
+import subprocess
+import threading
 from typing import Tuple, Optional, Dict
 
 class NFCWriter:
-    def __init__(self):
-        self.clf = None
-        self.device_path = None
-        
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance.clf = None
+                    cls._instance.device_path = None
+                    cls._instance.last_connected = 0
+        return cls._instance
+    
+    def reset_usb(self):
+        """Reset USB port"""
+        try:
+            subprocess.run(['sudo', '/usr/local/bin/reset_usb_nfc.sh'], 
+                         timeout=3, capture_output=True)
+            time.sleep(1)
+            return True
+        except:
+            return False
+    
     def connect(self) -> bool:
-        """Connect to NFC reader with auto-detection"""
+        """Connect to NFC reader (compatibility wrapper)"""
+        return self.ensure_connected()
+    
+    def ensure_connected(self) -> bool:
+        """Ensure connection is alive"""
+        # Recently connected? Assume OK
+        if self.clf and (time.time() - self.last_connected) < 2:
+            return True
+        
+        # Try connect
+        if self._try_connect():
+            self.last_connected = time.time()
+            return True
+        
+        # Failed - reset and retry
+        print("⚠️ Resetting USB...")
+        self.close()
+        self.reset_usb()
+        
+        if self._try_connect():
+            self.last_connected = time.time()
+            return True
+        
+        return False
+    
+    def _try_connect(self) -> bool:
+        """Internal connection"""
         if self.clf:
             return True
-            
-        connection_methods = [
-            'tty:USB0:pn532',
-            'tty:USB1:pn532',
-            'usb',
-            'tty:AMA0:pn532',
-        ]
         
-        for method in connection_methods:
+        methods = ['tty:USB0:pn532', 'tty:USB1:pn532', 'usb', 'tty:AMA0:pn532']
+        
+        for method in methods:
             try:
                 self.clf = nfc.ContactlessFrontend(method)
                 self.device_path = method
@@ -30,152 +72,126 @@ class NFCWriter:
             except:
                 continue
         
-        print("❌ Failed to connect to NFC reader")
         return False
     
     def close(self):
-        """Close and free the reader"""
+        """Close connection"""
         if self.clf:
             try:
                 self.clf.close()
             except:
                 pass
-            finally:
-                self.clf = None
+            self.clf = None
     
     def write_url(self, url: str, timeout: int = 15) -> Tuple[bool, str]:
         """Write URL to NFC card"""
         try:
-            self.close()
-            if not self.connect():
+            if not self.ensure_connected():
                 return False, "Cannot connect to NFC reader"
             
             print(f"📝 Writing: {url}")
-            print(f"📟 Using: {self.device_path}")
             
             import ndef
             record = ndef.UriRecord(url)
             
             print("⏳ Place card on reader...")
             start = time.time()
-            tag = None
             
             while time.time() - start < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
                     if tag:
                         print("✅ Card detected!")
-                        break
+                        if tag.ndef:
+                            tag.ndef.records = [record]
+                            print("✅ Write successful!")
+                            return True, "Successfully written"
+                        return False, "Card doesn't support NDEF"
                 except:
                     time.sleep(0.2)
             
-            if not tag:
-                return False, "No card detected - timeout"
-            
-            if not tag.ndef:
-                return False, "Card doesn't support NDEF"
-            
-            try:
-                tag.ndef.records = [record]
-                print("✅ Write successful!")
-                return True, f"Successfully written: {url}"
-            except Exception as e:
-                return False, f"Write failed: {str(e)}"
+            return False, "No card detected - timeout"
                 
         except Exception as e:
             return False, f"Error: {str(e)}"
-        finally:
-            self.close()
     
     def read_card(self, timeout: int = 15) -> Tuple[Optional[Dict], str]:
         """Read NFC card"""
         try:
-            self.close()
-            if not self.connect():
+            if not self.ensure_connected():
                 return None, "Cannot connect to NFC reader"
             
-            print(f"📖 Reading card...")
-            print(f"📟 Using: {self.device_path}")
+            print(f"📖 Reading...")
             print("⏳ Place card on reader...")
             
             start = time.time()
-            tag = None
             
             while time.time() - start < timeout:
                 try:
                     tag = self.clf.connect(rdwr={'on-connect': lambda t: False})
                     if tag:
                         print("✅ Card detected!")
-                        break
+                        result = {
+                            'uid': tag.identifier.hex(),
+                            'type': str(tag.type) if hasattr(tag, 'type') else 'Unknown'
+                        }
+                        
+                        if tag.ndef:
+                            result['ndef'] = True
+                            for record in tag.ndef.records:
+                                if hasattr(record, 'uri'):
+                                    result['url'] = record.uri
+                                    print(f"📌 URL: {result['url']}")
+                                if hasattr(record, 'text'):
+                                    result['text'] = record.text
+                            return result, "Read successfully"
+                        else:
+                            result['ndef'] = False
+                            return result, "No NDEF"
                 except:
                     time.sleep(0.2)
             
-            if not tag:
-                return None, "No card detected - timeout"
-            
-            result = {
-                'uid': tag.identifier.hex(),
-                'type': str(tag.type) if hasattr(tag, 'type') else 'Unknown'
-            }
-            
-            if tag.ndef:
-                result['ndef'] = True
-                for record in tag.ndef.records:
-                    if hasattr(record, 'uri'):
-                        result['url'] = record.uri
-                    if hasattr(record, 'text'):
-                        result['text'] = record.text
-                
-                if 'url' in result:
-                    print(f"📌 URL found: {result['url']}")
-                    return result, "Read successfully"
-                return result, "Card has NDEF but no URL"
-            else:
-                result['ndef'] = False
-                return result, "Card doesn't support NDEF"
+            return None, "No card detected - timeout"
                 
         except Exception as e:
             return None, f"Error: {str(e)}"
-        finally:
-            self.close()
 
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Maroof NFC Writer')
     parser.add_argument('--url', '-u', help='URL to write')
     parser.add_argument('--read', '-r', action='store_true', help='Read card')
-    parser.add_argument('--test', '-t', action='store_true', help='Test reader')
-    parser.add_argument('--timeout', type=int, default=15, help='Timeout in seconds')
+    parser.add_argument('--test', '-t', action='store_true', help='Test')
+    parser.add_argument('--timeout', type=int, default=15)
     
     args = parser.parse_args()
     writer = NFCWriter()
     
     try:
         if args.test:
-            print("🔍 Testing NFC reader...")
+            print("🔍 Testing...")
             if writer.connect():
-                print(f"✅ Reader connected: {writer.device_path}")
-                writer.close()
+                print(f"✅ Connected: {writer.device_path}")
             else:
-                print("❌ Reader not found")
+                print("❌ Failed")
                 sys.exit(1)
                 
         elif args.read:
             data, msg = writer.read_card(args.timeout)
-            print(f"\n📋 Result: {msg}")
+            print(f"\n📋 {msg}")
             if data:
-                print(f"📊 Data: {data}")
+                print(f"📊 {data}")
                 
         elif args.url:
             ok, msg = writer.write_url(args.url, args.timeout)
-            print(f"\n📋 Result: {msg}")
+            print(f"\n📋 {msg}")
             if not ok:
                 sys.exit(1)
         else:
             parser.print_help()
             
     except KeyboardInterrupt:
-        print("\n⚠️ Stopped by user")
+        print("\n⚠️ Stopped")
     except Exception as e:
         print(f"\n❌ Error: {e}")
         sys.exit(1)
