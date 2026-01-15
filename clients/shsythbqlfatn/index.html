@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>شسيثبقلفاتن - معروف</title>
     
-    <!-- Google Fonts: DM Sans (English) + Noto Kufi Arabic (Arabic) -->
+    <!-- Google Fonts: Inter (English) + Noto Kufi Arabic (Arabic) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,78 +21,56 @@
         }
         
         :root {
-            --gold: #C5A47E;
-            --gold-dark: #B08968;
-            --green-deep: #2D5A3D;
-            --bg-light: #FFFFFF;
-            --text-dark: #1a1a1a;
-            --text-light: #666666;
-            --border-gold: rgba(197, 164, 126, 0.2);
+            --bg-warm: #FDFBF7;
+            --text-dark: #2D3436;
+            --text-light: #636e72;
+            --accent-coral: #E07A5F;
+            --accent-hover: #d4685a;
+            --card-bg: #FFFFFF;
+            --border-light: #e9ecef;
         }
         
         body {
-            font-family: 'Noto Kufi Arabic', 'DM Sans', sans-serif;
-            background: linear-gradient(135deg, var(--green-deep) 0%, #1a3a2a 100%);
+            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif;
+            background: var(--bg-warm);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             color: var(--text-dark);
+            line-height: 1.6;
         }
         
         .container {
-            background: var(--bg-light);
-            border-radius: 32px;
+            background: var(--card-bg);
+            border-radius: 24px;
             max-width: 480px;
             width: 100%;
-            padding: 48px 36px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-gold);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Glassmorphism accent at top */
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 120px;
-            background: linear-gradient(180deg, rgba(197, 164, 126, 0.1) 0%, transparent 100%);
-            pointer-events: none;
+            padding: 40px 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
         
         /* Profile Section */
         .profile-section {
             text-align: center;
-            margin-bottom: 36px;
-            position: relative;
-        }
-        
-        .profile-photo-wrapper {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            margin: 0 auto 24px;
+            margin-bottom: 24px;
         }
         
         .profile-photo {
-            width: 140px;
-            height: 140px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--accent-coral) 0%, #f4a261 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 56px;
+            font-size: 48px;
             font-weight: 700;
             overflow: hidden;
-            box-shadow: 0 12px 32px rgba(197, 164, 126, 0.3);
-            border: 4px solid white;
+            box-shadow: 0 8px 24px rgba(224, 122, 95, 0.25);
         }
         
         .profile-photo img {
@@ -101,81 +79,141 @@
             object-fit: cover;
         }
         
-        /* Gold ring around photo */
-        .profile-photo-wrapper::after {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: -6px;
-            right: -6px;
-            bottom: -6px;
-            border-radius: 50%;
-            border: 2px solid var(--border-gold);
-        }
-        
         .name {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--text-dark);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             letter-spacing: -0.5px;
         }
         
         .bio {
             font-size: 16px;
             color: var(--text-light);
-            line-height: 1.7;
+            line-height: 1.6;
             max-width: 90%;
-            margin: 0 auto;
+            margin: 0 auto 20px;
+        }
+        
+        /* Save Contact Button - PROMINENT AT TOP */
+        .save-contact-section {
+            margin-bottom: 32px;
+        }
+        
+        .save-contact {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px 24px;
+            background: var(--accent-coral);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated gradient background */
+        .save-contact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .save-contact:hover::before {
+            left: 100%;
+        }
+        
+        .save-contact:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(224, 122, 95, 0.45);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .save-contact:active {
+            transform: translateY(-1px) scale(1);
+        }
+        
+        .save-contact i {
+            font-size: 20px;
+        }
+        
+        .save-contact-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.3;
+        }
+        
+        .save-contact-main {
+            font-size: 17px;
+            font-weight: 700;
+        }
+        
+        .save-contact-sub {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 500;
         }
         
         /* English text styling */
         .name[lang="en"], .bio[lang="en"] {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
-        /* Contact Buttons - Glassmorphic style */
+        /* Contact Buttons */
         .contact-section {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-bottom: 36px;
+            gap: 12px;
+            margin-bottom: 32px;
         }
         
         .contact-btn {
             display: flex;
             align-items: center;
-            padding: 18px 22px;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(197, 164, 126, 0.2);
-            border-radius: 18px;
+            padding: 16px 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-light);
+            border-radius: 16px;
             text-decoration: none;
             color: var(--text-dark);
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             gap: 16px;
         }
         
         .contact-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(197, 164, 126, 0.2);
-            border-color: var(--gold);
-            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            border-color: var(--accent-coral);
+        }
+        
+        .contact-btn:active {
+            transform: translateY(0);
         }
         
         .contact-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 20px;
             flex-shrink: 0;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(197, 164, 126, 0.25);
         }
         
         .contact-info {
@@ -184,32 +222,34 @@
         }
         
         .contact-label {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-light);
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             font-weight: 500;
         }
         
         .contact-value {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-dark);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
-        /* WhatsApp Premium Style */
+        /* WhatsApp Special Style */
         .whatsapp-btn {
-            background: linear-gradient(135deg, var(--green-deep) 0%, #1a3a2a 100%);
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             border: none;
             color: white;
         }
         
         .whatsapp-btn:hover {
-            background: linear-gradient(135deg, #1a3a2a 0%, var(--green-deep) 100%);
+            background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
+            border: none;
         }
         
         .whatsapp-btn .contact-icon {
             background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
         
         .whatsapp-btn .contact-label,
@@ -217,136 +257,134 @@
             color: white;
         }
         
-        /* Social Links - Elegant style */
+        /* Phone Icon */
+        .phone-icon {
+            background: rgba(224, 122, 95, 0.1);
+            color: var(--accent-coral);
+        }
+        
+        /* Email Icon */
+        .email-icon {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        /* Social Links */
         .social-section {
             display: flex;
             justify-content: center;
-            gap: 14px;
-            margin-bottom: 28px;
+            gap: 12px;
             flex-wrap: wrap;
         }
         
         .social-btn {
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            font-size: 24px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-gold);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            color: white;
+            font-size: 22px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .social-btn:hover {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 8px 24px rgba(197, 164, 126, 0.3);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
         
-        .instagram-btn {
-            color: #E1306C;
+        .social-btn:active {
+            transform: translateY(-1px) scale(1);
         }
         
-        .instagram-btn:hover {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            color: white;
+        .instagram-btn { 
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
         }
         
-        .linkedin-btn {
-            color: #0077b5;
+        .linkedin-btn { 
+            background: #0077b5; 
         }
         
-        .linkedin-btn:hover {
-            background: #0077b5;
-            color: white;
+        .twitter-btn { 
+            background: #1DA1F2; 
         }
         
-        .twitter-btn {
-            color: #1DA1F2;
-        }
-        
-        .twitter-btn:hover {
-            background: #1DA1F2;
-            color: white;
-        }
-        
-        /* Save Contact Button - Luxury Gold */
-        .save-contact {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 18px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(197, 164, 126, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .save-contact:hover {
-            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(197, 164, 126, 0.45);
-        }
-        
-        /* Elegant Divider */
+        /* Divider */
         .divider {
             height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--border-gold) 50%, transparent 100%);
-            margin: 28px 0;
+            background: var(--border-light);
+            margin: 24px 0;
         }
         
         /* Responsive */
         @media (max-width: 480px) {
             .container {
-                padding: 40px 28px;
-                border-radius: 28px;
+                padding: 32px 24px;
             }
             
             .name {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .bio {
-                font-size: 15px;
+                font-size: 14px;
             }
             
-            .profile-photo-wrapper,
-            .profile-photo {
-                width: 120px;
-                height: 120px;
+            .contact-btn {
+                padding: 14px 16px;
             }
             
             .profile-photo {
-                font-size: 48px;
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            
+            .save-contact {
+                padding: 16px 20px;
+                font-size: 16px;
+            }
+            
+            .save-contact-main {
+                font-size: 16px;
+            }
+            
+            .save-contact-sub {
+                font-size: 12px;
             }
         }
         
         /* Animations */
-        @keyframes fadeInLuxury {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(20px) scale(0.95);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateY(0);
             }
         }
         
         .container {
-            animation: fadeInLuxury 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Pulse animation for save button */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
+            }
+            50% {
+                box-shadow: 0 8px 24px rgba(224, 122, 95, 0.5);
+            }
+        }
+        
+        .save-contact {
+            animation: pulse 2s ease-in-out infinite;
         }
         
         /* Accessibility */
@@ -365,13 +403,11 @@
     <div class="container">
         <!-- Profile Section -->
         <div class="profile-section">
-            <div class="profile-photo-wrapper">
-                <div class="profile-photo">
-                    
-                    <img src="./photo.jpg" alt="شسيثبقلفاتن">
-                    
-                    
-                </div>
+            <div class="profile-photo">
+                
+                <img src="./photo.jpg" alt="شسيثبقلفاتن">
+                
+                
             </div>
             
             <h1 class="name">شسيثبقلفاتن</h1>
@@ -379,6 +415,17 @@
             
             <p class="bio">شسيثبقلفاتن</p>
             
+        </div>
+        
+        <!-- Save Contact Button - MOVED TO TOP -->
+        <div class="save-contact-section">
+            <a href="./contact.vcf" download class="save-contact">
+                <i class="fas fa-address-card"></i>
+                <div class="save-contact-text">
+                    <span class="save-contact-main">إضافة لجهات الاتصال</span>
+                    <span class="save-contact-sub">Add to Contacts</span>
+                </div>
+            </a>
         </div>
         
         <!-- Contact Buttons -->
@@ -397,7 +444,7 @@
             
             <!-- Phone Button -->
             <a href="tel:+9663456780" class="contact-btn">
-                <div class="contact-icon">
+                <div class="contact-icon phone-icon">
                     <i class="fas fa-phone"></i>
                 </div>
                 <div class="contact-info">
@@ -420,12 +467,6 @@
             
             
         </div>
-        
-        <!-- Save Contact Button -->
-        <a href="./contact.vcf" download class="save-contact">
-            <i class="fas fa-user-plus"></i>
-            <span>إضافة لجهات الاتصال / Add to Contacts</span>
-        </a>
     </div>
 </body>
 </html>
