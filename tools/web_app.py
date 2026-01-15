@@ -1401,7 +1401,7 @@ def create_card():
         }}), 201
 
     except Exception as e:
-        return jsonify({{'success': False, 'error': f'Error: {{str(e)}}'}})500
+        return jsonify({{'success': False, 'error': f'Error: {{str(e)}}'}}) , 500
 
 @app.route('/api/register', methods=['POST'])
 def register_card():
