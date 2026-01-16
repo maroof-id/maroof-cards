@@ -239,7 +239,7 @@ class CardGenerator:
             'INSTAGRAM': instagram.lstrip('@'),
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
-            'BIO': bio or f'',
+            'BIO': bio or '',
             'PHOTO': photo_path,
             'created_at': datetime.now().isoformat(),
             'source': source,  # 'admin' or 'client'
@@ -307,7 +307,7 @@ class CardGenerator:
         if instagram: data['INSTAGRAM'] = instagram.lstrip('@')
         if linkedin: data['LINKEDIN'] = linkedin
         if twitter: data['TWITTER'] = twitter.lstrip('@')
-        if bio: data['BIO'] = bio
+        if bio is not None: data['BIO'] = bio
         
         # Update photo if provided
         if photo and photo.startswith('data:image'):
@@ -390,46 +390,60 @@ class CardGenerator:
         return True
 
     def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
-        """Create vCard file for contact saving"""
-        vcard = f"""BEGIN:VCARD
-VERSION:3.0
-FN:{data.get('NAME', '')}
-"""
-
-        if data.get('PHONE_INTL'):
-            vcard += f"TEL;TYPE=CELL:+{data['PHONE_INTL']}\n"
-        elif data.get('PHONE'):
-            vcard += f"TEL;TYPE=CELL:{data['PHONE']}\n"
-
-        if data.get('EMAIL'):
-            vcard += f"EMAIL:{data['EMAIL']}\n"
-
-        vcard += f"URL:https://maroof-id.github.io/maroof-cards/clients/{username}/\n"
-
-        if data.get('BIO'):
-            vcard += f"NOTE:{data['BIO']}\n"
-
+        """Create vCard file for contact saving with photo"""
+        vcard_lines = [
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            f'FN:{data.get("NAME", "")}',
+            f'N:{data.get("NAME", "")};;;;',
+        ]
+        
+        # Add photo as base64
         if data.get('PHOTO') and data['PHOTO'].startswith('./'):
-            photo_url = f"https://maroof-id.github.io/maroof-cards/clients/{username}/{data['PHOTO'][2:]}"
-            vcard += f"PHOTO;VALUE=URL:{photo_url}\n"
-
-        social = []
+            try:
+                photo_path = client_dir / data['PHOTO'][2:]
+                if photo_path.exists():
+                    with open(photo_path, 'rb') as f:
+                        photo_bytes = f.read()
+                        photo_base64 = base64.b64encode(photo_bytes).decode('utf-8')
+                        vcard_lines.append(f'PHOTO;ENCODING=b;TYPE=JPEG:{photo_base64}')
+            except Exception as e:
+                print(f"⚠️ Could not add photo to vCard: {e}")
+        
+        # Add phone
+        if data.get('PHONE_INTL'):
+            vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
+        elif data.get('PHONE'):
+            vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
+        
+        # Add email
+        if data.get('EMAIL'):
+            vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
+        
+        # Add social URLs
         if data.get('INSTAGRAM'):
-            social.append(f"Instagram: @{data['INSTAGRAM']}")
+            vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
+        
         if data.get('LINKEDIN'):
-            social.append(f"LinkedIn: {data['LINKEDIN']}")
+            vcard_lines.append(f'URL;TYPE=LinkedIn:https://linkedin.com/in/{data["LINKEDIN"]}')
+        
         if data.get('TWITTER'):
-            social.append(f"Twitter: @{data['TWITTER']}")
-
-        if social:
-            vcard += f"X-SOCIALPROFILE:{' | '.join(social)}\n"
-
-        vcard += "END:VCARD"
-
+            vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
+        
+        # Add profile URL
+        vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
+        
+        # Add bio as note
+        if data.get('BIO'):
+            vcard_lines.append(f'NOTE:{data["BIO"]}')
+        
+        vcard_lines.append('END:VCARD')
+        
+        # Write VCF file
         vcard_path = client_dir / 'contact.vcf'
         with open(vcard_path, 'w', encoding='utf-8') as f:
-            f.write(vcard)
-
+            f.write('\n'.join(vcard_lines))
+        
         return vcard_path
 
     def git_push(self, message: str = 'Update cards', timeout: int = 30) -> Tuple[bool, str]:

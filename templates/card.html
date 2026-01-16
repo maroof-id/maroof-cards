@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ NAME }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .profile-photo {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 5px solid white;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            display: block;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-initial {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            font-size: 48px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .name {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .bio {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 15px;
+            line-height: 1.6;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .contact-info {
+            margin-bottom: 25px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .contact-item:hover {
+            background: #e9ecef;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .icon-phone { background: #dcfce7; color: #16a34a; }
+        .icon-email { background: #dbeafe; color: #2563eb; }
+        .icon-instagram { background: #fce7f3; color: #db2777; }
+        .icon-linkedin { background: #dbeafe; color: #0a66c2; }
+        .icon-twitter { background: #e0e7ff; color: #1d9bf0; }
+
+        .contact-text {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 3px;
+        }
+
+        .contact-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            word-break: break-all;
+        }
+
+        .social-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .social-btn {
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .social-btn i {
+            font-size: 24px;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-instagram {
+            background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af);
+            color: white;
+        }
+
+        .btn-linkedin {
+            background: #0a66c2;
+            color: white;
+        }
+
+        .btn-twitter {
+            background: #1d9bf0;
+            color: white;
+        }
+
+        .save-contact {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .save-contact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-contact i {
+            font-size: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(0, 0, 0, 0.4);
+            font-size: 13px;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                border-radius: 20px;
+            }
+
+            .card-header {
+                padding: 30px 20px;
+            }
+
+            .profile-photo, .profile-initial {
+                width: 110px;
+                height: 110px;
+            }
+
+            .name {
+                font-size: 24px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .social-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            {% if PHOTO %}
+                <img src="{{ PHOTO }}" alt="{{ NAME }}" class="profile-photo">
+            {% else %}
+                <div class="profile-initial">{{ NAME_INITIAL }}</div>
+            {% endif %}
+            <h1 class="name">{{ NAME }}</h1>
+            {% if BIO %}
+                <p class="bio">{{ BIO }}</p>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            <div class="contact-info">
+                {% if PHONE %}
+                <a href="tel:{{ PHONE }}" class="contact-item">
+                    <div class="contact-icon icon-phone">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-text">
+                        <div class="contact-label">الهاتف</div>
+                        <div class="contact-value">{{ PHONE }}</div>
+                    </div>
+                </a>
+                {% endif %}
+
+                {% if EMAIL %}
+                <a href="mailto:{{ EMAIL }}" class="contact-item">
+                    <div class="contact-icon icon-email">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-text">
+                        <div class="contact-label">البريد الإلكتروني</div>
+                        <div class="contact-value">{{ EMAIL }}</div>
+                    </div>
+                </a>
+                {% endif %}
+            </div>
+
+            {% if INSTAGRAM or LINKEDIN or TWITTER %}
+            <div class="social-links">
+                {% if INSTAGRAM %}
+                <a href="https://instagram.com/{{ INSTAGRAM }}" target="_blank" class="social-btn btn-instagram">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+                {% endif %}
+
+                {% if LINKEDIN %}
+                <a href="https://linkedin.com/in/{{ LINKEDIN }}" target="_blank" class="social-btn btn-linkedin">
+                    <i class="fab fa-linkedin"></i>
+                    <span>LinkedIn</span>
+                </a>
+                {% endif %}
+
+                {% if TWITTER %}
+                <a href="https://twitter.com/{{ TWITTER }}" target="_blank" class="social-btn btn-twitter">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <button class="save-contact" onclick="window.location.href='contact.vcf'">
+                <i class="fas fa-user-plus"></i>
+                <span>إضافة لجهات الاتصال</span>
+            </button>
+        </div>
+
+        <div class="footer">
+            Powered by Maroof NFC
+        </div>
+    </div>
+</body>
+</html>
