@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="البطاقة التعريفية الرقمية لـ {{NAME}}">
+    <title>{{NAME}} - معروف</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --retro-orange: #E36414;
+            --retro-yellow: #F4A259;
+            --retro-brown: #8B4513;
+            --retro-cream: #FFF4E6;
+            --retro-darkbrown: #3D2817;
+            --retro-mustard: #D4A373;
+            --retro-red: #C1440E;
+        }
+        
+        body {
+            font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+            background: linear-gradient(135deg, var(--retro-mustard) 0%, var(--retro-cream) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* Retro Circles Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(227, 100, 20, 0.15) 0%, transparent 15%),
+                radial-gradient(circle at 85% 75%, rgba(193, 68, 14, 0.15) 0%, transparent 15%),
+                radial-gradient(circle at 50% 50%, rgba(244, 162, 89, 0.1) 0%, transparent 20%);
+            z-index: 0;
+        }
+        
+        /* Film Grain */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 560px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Main Card - Retro Japanese Style */
+        .retro-card {
+            background: var(--retro-cream);
+            padding: 0;
+            position: relative;
+            box-shadow: 
+                12px 12px 0 var(--retro-brown),
+                12px 12px 0 2px var(--retro-darkbrown);
+        }
+        
+        /* Thick Border Stripes */
+        .border-top,
+        .border-bottom {
+            height: 16px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--retro-orange),
+                var(--retro-orange) 20px,
+                var(--retro-yellow) 20px,
+                var(--retro-yellow) 40px,
+                var(--retro-red) 40px,
+                var(--retro-red) 60px
+            );
+        }
+        
+        .border-top {
+            border-bottom: 4px solid var(--retro-darkbrown);
+        }
+        
+        .border-bottom {
+            border-top: 4px solid var(--retro-darkbrown);
+        }
+        
+        /* Content Area */
+        .content-area {
+            padding: 36px 32px;
+            position: relative;
+        }
+        
+        /* Decorative Corners */
+        .content-area::before,
+        .content-area::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: var(--retro-orange);
+            border: 4px solid var(--retro-darkbrown);
+        }
+        
+        .content-area::before {
+            top: 20px;
+            right: 20px;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+        }
+        
+        .content-area::after {
+            bottom: 20px;
+            left: 20px;
+            clip-path: polygon(0 0, 0 100%, 100% 100%);
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 24px;
+            border: 6px solid var(--retro-orange);
+            box-shadow: 
+                6px 6px 0 var(--retro-brown),
+                6px 6px 0 2px var(--retro-darkbrown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--retro-yellow) 0%, var(--retro-mustard) 100%);
+            position: relative;
+            clip-path: polygon(
+                10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%
+            );
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: sepia(0.3) contrast(1.15) brightness(1.05) saturate(1.2);
+        }
+        
+        .profile-photo i {
+            font-size: 64px;
+            color: var(--retro-brown);
+        }
+        
+        .name {
+            font-family: 'Archivo Black', 'Impact', sans-serif;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--retro-darkbrown);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 
+                4px 4px 0 var(--retro-orange),
+                8px 8px 0 var(--retro-yellow);
+            line-height: 1.1;
+            position: relative;
+        }
+        
+        .bio {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            color: var(--retro-brown);
+            line-height: 1.4;
+            letter-spacing: 1px;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+        
+        /* Retro Divider */
+        .retro-divider {
+            height: 8px;
+            background: var(--retro-orange);
+            margin: 28px 0;
+            box-shadow: 
+                0 4px 0 var(--retro-brown),
+                0 4px 0 2px var(--retro-darkbrown);
+            position: relative;
+        }
+        
+        .retro-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: var(--retro-red);
+            border: 4px solid var(--retro-darkbrown);
+            rotate: 45deg;
+        }
+        
+        /* Save Button - Bold Retro */
+        .save-section {
+            margin-bottom: 24px;
+        }
+        
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px 28px;
+            background: var(--retro-orange);
+            border: 5px solid var(--retro-darkbrown);
+            color: var(--retro-cream);
+            text-decoration: none;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 
+                6px 6px 0 var(--retro-brown),
+                6px 6px 0 2px var(--retro-darkbrown);
+            position: relative;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0 var(--retro-darkbrown);
+        }
+        
+        .save-btn:hover {
+            background: var(--retro-red);
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                8px 8px 0 var(--retro-brown),
+                8px 8px 0 2px var(--retro-darkbrown);
+        }
+        
+        .save-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 
+                3px 3px 0 var(--retro-brown),
+                3px 3px 0 2px var(--retro-darkbrown);
+        }
+        
+        .save-icon {
+            font-size: 26px;
+        }
+        
+        /* Split Button - Retro Style */
+        .contact-section {
+            margin-bottom: 24px;
+        }
+        
+        .split-btn {
+            display: flex;
+            height: 80px;
+            border: 5px solid var(--retro-darkbrown);
+            box-shadow: 
+                6px 6px 0 var(--retro-brown),
+                6px 6px 0 2px var(--retro-darkbrown);
+            overflow: hidden;
+        }
+        
+        .split-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+            position: relative;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+        
+        .call-side {
+            background: linear-gradient(135deg, #6B8E23 0%, #556B2F 100%);
+            border-left: 3px solid var(--retro-darkbrown);
+        }
+        
+        .call-side:hover {
+            background: linear-gradient(135deg, #556B2F 0%, #3D5018 100%);
+        }
+        
+        .whatsapp-side {
+            background: linear-gradient(135deg, #8FBC8F 0%, #6B8E6B 100%);
+        }
+        
+        .whatsapp-side:hover {
+            background: linear-gradient(135deg, #6B8E6B 0%, #556B55 100%);
+        }
+        
+        .split-icon {
+            font-size: 32px;
+            color: var(--retro-cream);
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .split-text {
+            color: var(--retro-cream);
+            text-align: center;
+        }
+        
+        .split-label {
+            font-size: 18px;
+            font-weight: 700;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .split-number {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Info Cards - Bold Blocks */
+        .info-grid {
+            display: grid;
+            gap: 14px;
+        }
+        
+        .info-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--retro-yellow);
+            border: 4px solid var(--retro-darkbrown);
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 
+                4px 4px 0 var(--retro-brown),
+                4px 4px 0 2px var(--retro-darkbrown);
+            position: relative;
+        }
+        
+        .info-card:hover {
+            background: var(--retro-mustard);
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                6px 6px 0 var(--retro-brown),
+                6px 6px 0 2px var(--retro-darkbrown);
+        }
+        
+        .info-card:active {
+            transform: translate(2px, 2px);
+            box-shadow: 
+                2px 2px 0 var(--retro-brown),
+                2px 2px 0 2px var(--retro-darkbrown);
+        }
+        
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: var(--retro-orange);
+            border: 3px solid var(--retro-darkbrown);
+            flex-shrink: 0;
+            color: var(--retro-cream);
+            box-shadow: 3px 3px 0 var(--retro-brown);
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: var(--retro-brown);
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-value {
+            font-size: 20px;
+            color: var(--retro-darkbrown);
+            font-weight: 700;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .content-area {
+                padding: 28px 24px;
+            }
+            
+            .profile-photo {
+                width: 130px;
+                height: 130px;
+            }
+            
+            .profile-photo i {
+                font-size: 56px;
+            }
+            
+            .name {
+                font-size: 34px;
+                text-shadow: 
+                    3px 3px 0 var(--retro-orange),
+                    6px 6px 0 var(--retro-yellow);
+            }
+            
+            .bio {
+                font-size: 20px;
+            }
+            
+            .save-btn {
+                padding: 16px 24px;
+                font-size: 20px;
+            }
+            
+            .split-btn {
+                height: 72px;
+            }
+            
+            .split-icon {
+                font-size: 28px;
+            }
+            
+            .split-label {
+                font-size: 16px;
+            }
+            
+            .split-number {
+                font-size: 13px;
+            }
+            
+            .info-icon {
+                width: 46px;
+                height: 46px;
+                font-size: 22px;
+            }
+            
+            .info-label {
+                font-size: 13px;
+            }
+            
+            .info-value {
+                font-size: 18px;
+            }
+            
+            .border-top,
+            .border-bottom {
+                height: 12px;
+            }
+        }
+        
+        /* Pop In Animation */
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotate(-2deg);
+            }
+            60% {
+                transform: scale(1.05) rotate(1deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        .container {
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* Focus states */
+        .split-half:focus,
+        .info-card:focus,
+        .save-btn:focus {
+            outline: 4px solid var(--retro-darkbrown);
+            outline-offset: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="retro-card">
+            
+            <!-- Top Border Stripe -->
+            <div class="border-top"></div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                
+                <!-- Profile Section -->
+                <div class="profile-section">
+                    <div class="profile-photo">
+                        {{#if PHOTO}}
+                        <img src="{{PHOTO}}" alt="{{NAME}}">
+                        {{/if}}
+                        {{#if !PHOTO}}
+                        <i class="fas fa-user"></i>
+                        {{/if}}
+                    </div>
+                    
+                    <h1 class="name">{{NAME}}</h1>
+                    {{#if BIO}}
+                    <p class="bio">{{BIO}}</p>
+                    {{/if}}
+                </div>
+                
+                <div class="retro-divider"></div>
+                
+                <!-- 1️⃣ Save Contact Button -->
+                <div class="save-section">
+                    <a href="./contact.vcf" download class="save-btn">
+                        <i class="fas fa-download save-icon"></i>
+                        <span>حفظ</span>
+                    </a>
+                </div>
+                
+                <!-- 2️⃣ Split Button -->
+                {{#if PHONE}}
+                <div class="contact-section">
+                    <div class="split-btn">
+                        <a href="tel:{{PHONE_INTL}}" class="split-half call-side">
+                            <i class="fas fa-phone split-icon"></i>
+                            <div class="split-text">
+                                <div class="split-label">اتصال</div>
+                                <div class="split-number" dir="ltr">{{PHONE}}</div>
+                            </div>
+                        </a>
+                        
+                        <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-side" target="_blank">
+                            <i class="fab fa-whatsapp split-icon"></i>
+                            <div class="split-text">
+                                <div class="split-label">واتساب</div>
+                                <div class="split-number">WhatsApp</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {{/if}}
+                
+                <!-- Divider -->
+                {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}{{#if EMAIL}}
+                <div class="retro-divider"></div>
+                {{/if}}{{/if}}{{/if}}{{/if}}
+                
+                <!-- 3️⃣ Social Links & 4️⃣ Email -->
+                <div class="info-grid">
+                    
+                    {{#if INSTAGRAM}}
+                    <a href="https://instagram.com/{{INSTAGRAM}}" class="info-card" target="_blank">
+                        <div class="info-icon">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Instagram</div>
+                            <div class="info-value">@{{INSTAGRAM}}</div>
+                        </div>
+                    </a>
+                    {{/if}}
+                    
+                    {{#if LINKEDIN}}
+                    <a href="https://linkedin.com/in/{{LINKEDIN}}" class="info-card" target="_blank">
+                        <div class="info-icon">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">LinkedIn</div>
+                            <div class="info-value">{{LINKEDIN}}</div>
+                        </div>
+                    </a>
+                    {{/if}}
+                    
+                    {{#if TWITTER}}
+                    <a href="https://x.com/{{TWITTER}}" class="info-card" target="_blank">
+                        <div class="info-icon">
+                            <i class="fab fa-x-twitter"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">X / Twitter</div>
+                            <div class="info-value">@{{TWITTER}}</div>
+                        </div>
+                    </a>
+                    {{/if}}
+                    
+                    {{#if EMAIL}}
+                    <a href="mailto:{{EMAIL}}" class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">البريد الإلكتروني</div>
+                            <div class="info-value">{{EMAIL}}</div>
+                        </div>
+                    </a>
+                    {{/if}}
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Bottom Border Stripe -->
+            <div class="border-bottom"></div>
+            
+        </div>
+    </div>
+    
+</body>
+</html>
