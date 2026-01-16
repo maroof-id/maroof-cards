@@ -33,7 +33,6 @@ class CardGenerator:
         """Convert Arabic/English name to safe username"""
         name = name.strip()
 
-        # Arabic to English transliteration
         arabic_map = {
             'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'a',
             'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j',
@@ -62,7 +61,7 @@ class CardGenerator:
         return username or 'user'
 
     def get_unique_username(self, base_username: str) -> str:
-        """Ensure username is unique by adding sequential number if needed"""
+        """Ensure username is unique"""
         username = base_username
         counter = 1
 
@@ -73,7 +72,7 @@ class CardGenerator:
         return username
 
     def format_phone_international(self, phone: str) -> str:
-        """Convert phone to international format (966XXXXXXXXX)"""
+        """Convert phone to international format"""
         phone = re.sub(r'\D', '', phone)
 
         if phone.startswith('00966'):
@@ -91,10 +90,8 @@ class CardGenerator:
             from PIL import Image
             from io import BytesIO
             
-            # Open image
             img = Image.open(BytesIO(image_bytes))
             
-            # Convert RGBA to RGB if needed
             if img.mode in ('RGBA', 'LA', 'P'):
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 if img.mode == 'P':
@@ -102,22 +99,19 @@ class CardGenerator:
                 background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
                 img = background
             
-            # Resize if too large
             max_size = (800, 800)
             if img.width > max_size[0] or img.height > max_size[1]:
                 img.thumbnail(max_size, Image.Resampling.LANCZOS)
             
-            # Save compressed
             output = BytesIO()
             img.save(output, format='JPEG', quality=85, optimize=True)
             return output.getvalue()
             
         except ImportError:
-            # Pillow not installed, return original
-            print("⚠️ Pillow not installed - image not compressed")
+            print("⚠️ Pillow not installed")
             return image_bytes
         except Exception as e:
-            print(f"⚠️ Image compression failed: {e}")
+            print(f"⚠️ Compression failed: {e}")
             return image_bytes
 
     def load_template(self, template_name: str) -> str:
@@ -133,20 +127,16 @@ class CardGenerator:
     def replace_variables(self, html: str, data: Dict[str, str]) -> str:
         """Replace variables in HTML template"""
 
-        # Add international phone format
         if 'PHONE' in data and data['PHONE']:
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
 
-        # Add name initial for avatar
         if 'NAME' in data and data['NAME']:
             data['NAME_INITIAL'] = data['NAME'][0].upper()
 
-        # Replace simple variables
         for key, value in data.items():
             if value:
                 html = html.replace(f'{{{{{key}}}}}', str(value))
 
-        # Handle conditional blocks {{#if VAR}}...{{/if}}
         for key, value in data.items():
             if value:
                 pattern = f'{{{{#if {key}}}}}(.*?){{{{/if}}}}'
@@ -155,7 +145,6 @@ class CardGenerator:
                 pattern = f'{{{{#if {key}}}}}.*?{{{{/if}}}}'
                 html = re.sub(pattern, '', html, flags=re.DOTALL)
 
-        # Handle negation {{#if !VAR}}...{{/if}}
         for key, value in data.items():
             if not value:
                 pattern = f'{{{{#if !{key}}}}}(.*?){{{{/if}}}}'
@@ -164,7 +153,6 @@ class CardGenerator:
                 pattern = f'{{{{#if !{key}}}}}.*?{{{{/if}}}}'
                 html = re.sub(pattern, '', html, flags=re.DOTALL)
 
-        # Clean remaining variables
         html = re.sub(r'\{\{[^}]+\}\}', '', html)
 
         return html
@@ -185,36 +173,27 @@ class CardGenerator:
     ) -> Dict[str, str]:
         """Create new business card"""
 
-        # Validate required fields
         if not name or not name.strip():
             raise ValueError('Name is required')
 
-        # Generate username
         if not username:
             base_username = self.sanitize_username(name)
             username = self.get_unique_username(base_username)
 
-        # Create client directory
         client_dir = self.clients_path / username
         client_dir.mkdir(exist_ok=True)
 
-        # Save photo if provided (Base64 format)
         photo_path = ''
         if photo and photo.startswith('data:image'):
             try:
-                # Parse data URL
                 match = re.match(r'data:image/(\w+);base64,(.+)', photo)
                 if match:
                     image_format = match.group(1).lower()
                     image_data = match.group(2)
                     
-                    # Decode base64
                     image_bytes = base64.b64decode(image_data)
-                    
-                    # Compress image
                     compressed_bytes = self.compress_image(image_bytes, image_format)
                     
-                    # Save to file (always as .jpg after compression)
                     photo_filename = 'photo.jpg'
                     photo_file_path = client_dir / photo_filename
                     
@@ -223,15 +202,13 @@ class CardGenerator:
                     
                     photo_path = f'./{photo_filename}'
                     
-                    # Calculate sizes
-                    original_size = len(image_bytes) / 1024  # KB
-                    compressed_size = len(compressed_bytes) / 1024  # KB
-                    print(f"✅ Photo saved: {original_size:.1f}KB → {compressed_size:.1f}KB")
+                    original_size = len(image_bytes) / 1024
+                    compressed_size = len(compressed_bytes) / 1024
+                    print(f"✅ Photo: {original_size:.1f}KB → {compressed_size:.1f}KB")
             except Exception as e:
-                print(f"⚠️ Warning: Could not save photo - {e}")
+                print(f"⚠️ Photo failed: {e}")
                 photo_path = ''
 
-        # Prepare data
         data = {
             'NAME': name,
             'PHONE': phone,
@@ -242,31 +219,26 @@ class CardGenerator:
             'BIO': bio or '',
             'PHOTO': photo_path,
             'created_at': datetime.now().isoformat(),
-            'source': source,  # 'admin' or 'client'
-            'status': 'pending',  # 'pending', 'printed', 'modified'
+            'source': source,
+            'status': 'pending',
             'print_count': 0,
             'print_history': []
         }
 
-        # Add international phone format
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
 
-        # Load and process template
         html = self.load_template(template)
         html = self.replace_variables(html, data)
 
-        # Save HTML
         output_file = client_dir / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
 
-        # Save data.json
         data_file = client_dir / 'data.json'
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        # Create vCard
         self._create_vcard(data, username, client_dir)
 
         return {
@@ -292,7 +264,6 @@ class CardGenerator:
     ) -> Dict[str, str]:
         """Update existing card"""
         
-        # Load existing data
         data_file = self.clients_path / username / 'data.json'
         if not data_file.exists():
             raise ValueError(f'Card not found: {username}')
@@ -300,7 +271,6 @@ class CardGenerator:
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Update fields
         if name: data['NAME'] = name
         if phone: data['PHONE'] = phone
         if email: data['EMAIL'] = email
@@ -309,7 +279,6 @@ class CardGenerator:
         if twitter: data['TWITTER'] = twitter.lstrip('@')
         if bio is not None: data['BIO'] = bio
         
-        # Update photo if provided
         if photo and photo.startswith('data:image'):
             client_dir = self.clients_path / username
             try:
@@ -329,31 +298,24 @@ class CardGenerator:
             except Exception as e:
                 print(f"⚠️ Photo update failed: {e}")
         
-        # Mark as modified after print
         if data.get('print_count', 0) > 0:
             data['status'] = 'modified'
         
-        # Update international phone
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
         
-        # Get template name
         template_name = template if template else data.get('template', 'professional')
         
-        # Load and process template
         html = self.load_template(template_name)
         html = self.replace_variables(html, data)
         
-        # Save HTML
         output_file = self.clients_path / username / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
         
-        # Save updated data
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         
-        # Update vCard
         self._create_vcard(data, username, self.clients_path / username)
         
         return {
@@ -371,7 +333,6 @@ class CardGenerator:
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Update print info
         data['print_count'] = data.get('print_count', 0) + 1
         data['status'] = 'printed'
         
@@ -383,64 +344,56 @@ class CardGenerator:
             'count': data['print_count']
         })
         
-        # Save
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         
         return True
 
     def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
-    """Create vCard file for contact saving"""
-    vcard_lines = [
-        'BEGIN:VCARD',
-        'VERSION:3.0',
-        f'FN:{data.get("NAME", "")}',
-        f'N:{data.get("NAME", "")};;;;',
-    ]
-    
-    # Add photo URL (not base64 - smaller file)
-    if data.get('PHOTO') and data['PHOTO'].startswith('./'):
-        photo_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["PHOTO"][2:]}'
-        vcard_lines.append(f'PHOTO;VALUE=URL;TYPE=JPEG:{photo_url}')
-    
-    # Add phone
-    if data.get('PHONE_INTL'):
-        vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
-    elif data.get('PHONE'):
-        vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
-    
-    # Add email
-    if data.get('EMAIL'):
-        vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
-    
-    # Add social URLs
-    if data.get('INSTAGRAM'):
-        vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
-    
-    if data.get('LINKEDIN'):
-        vcard_lines.append(f'URL;TYPE=LinkedIn:https://linkedin.com/in/{data["LINKEDIN"]}')
-    
-    if data.get('TWITTER'):
-        vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
-    
-    # Add profile URL
-    vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
-    
-    # Add bio as note
-    if data.get('BIO'):
-        vcard_lines.append(f'NOTE:{data["BIO"]}')
-    
-    vcard_lines.append('END:VCARD')
-    
-    # Write VCF file
-    vcard_path = client_dir / 'contact.vcf'
-    with open(vcard_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(vcard_lines))
-    
-    return vcard_path
-    
+        """Create vCard file"""
+        vcard_lines = [
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            f'FN:{data.get("NAME", "")}',
+            f'N:{data.get("NAME", "")};;;;',
+        ]
+        
+        if data.get('PHOTO') and data['PHOTO'].startswith('./'):
+            photo_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["PHOTO"][2:]}'
+            vcard_lines.append(f'PHOTO;VALUE=URL;TYPE=JPEG:{photo_url}')
+        
+        if data.get('PHONE_INTL'):
+            vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
+        elif data.get('PHONE'):
+            vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
+        
+        if data.get('EMAIL'):
+            vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
+        
+        if data.get('INSTAGRAM'):
+            vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
+        
+        if data.get('LINKEDIN'):
+            vcard_lines.append(f'URL;TYPE=LinkedIn:https://linkedin.com/in/{data["LINKEDIN"]}')
+        
+        if data.get('TWITTER'):
+            vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
+        
+        vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
+        
+        if data.get('BIO'):
+            vcard_lines.append(f'NOTE:{data["BIO"]}')
+        
+        vcard_lines.append('END:VCARD')
+        
+        vcard_path = client_dir / 'contact.vcf'
+        with open(vcard_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(vcard_lines))
+        
+        return vcard_path
+
     def git_push(self, message: str = 'Update cards', timeout: int = 30) -> Tuple[bool, str]:
-        """Push changes to GitHub"""
+        """Push to GitHub"""
         try:
             subprocess.run(['git', 'add', '.'], cwd=self.repo_path, check=True, timeout=timeout, capture_output=True)
             
@@ -452,9 +405,9 @@ class CardGenerator:
             subprocess.run(['git', 'commit', '-m', message], cwd=self.repo_path, capture_output=True, text=True, timeout=timeout)
             subprocess.run(['git', 'push'], cwd=self.repo_path, check=True, timeout=timeout, capture_output=True)
             
-            return True, "Successfully pushed"
+            return True, "Success"
         except:
-            return False, "Push failed"
+            return False, "Failed"
 
     def git_push_background(self, message: str = 'Update cards', callback=None):
         """Push in background"""
@@ -477,7 +430,7 @@ class CardGenerator:
             return json.load(f)
 
     def list_cards(self, status_filter: str = None) -> list:
-        """List all cards with optional status filter"""
+        """List all cards"""
         cards = []
         for client_dir in self.clients_path.iterdir():
             if client_dir.is_dir():
@@ -499,12 +452,11 @@ class CardGenerator:
                                 'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'
                             })
         
-        # Sort by creation date (newest first)
         cards.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         return cards
 
     def delete_card(self, username: str) -> bool:
-        """Delete a card"""
+        """Delete card"""
         import shutil
         client_dir = self.clients_path / username
         if not client_dir.exists():
