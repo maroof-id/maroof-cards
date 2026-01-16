@@ -20,11 +20,12 @@
 <div class="container">
     <h1>📊 لوحة التحكم</h1>
 
-    <!-- Search Bar -->
+    <!-- Search -->
     <div class="card" style="margin-bottom: 20px;">
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="searchInput" placeholder="🔍 ابحث بالاسم أو الرقم..." style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 16px;">
-            <button onclick="scanCard()" class="btn" style="background: var(--primary); white-space: nowrap;">
+            <input type="text" id="searchInput" placeholder="🔍 ابحث بالاسم أو الرقم..." 
+                style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 16px;">
+            <button onclick="scanCard()" class="btn" id="scanBtn" style="white-space: nowrap;">
                 <i class="fas fa-wifi"></i> مسح بطاقة
             </button>
         </div>
@@ -35,43 +36,26 @@
     </div>
 
     <!-- Stats -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #fff3cd;">📋</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statTotal">-</span>
-                <span class="stat-label">إجمالي البطاقات</span>
-            </div>
+    <div class="stats">
+        <div class="stat-box">
+            <span class="stat-number" id="totalCount">0</span>
+            <span class="stat-label">إجمالي</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #d1ecf1;">⏳</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statPending">-</span>
-                <span class="stat-label">قيد الانتظار</span>
-            </div>
+        <div class="stat-box pending">
+            <span class="stat-number" id="pendingCount">0</span>
+            <span class="stat-label">قيد الانتظار</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #d4edda;">✅</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statPrinted">-</span>
-                <span class="stat-label">تمت الطباعة</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: #f8d7da;">✏️</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statModified">-</span>
-                <span class="stat-label">معدّلة</span>
-            </div>
+        <div class="stat-box printed">
+            <span class="stat-number" id="printedCount">0</span>
+            <span class="stat-label">مطبوعة</span>
         </div>
     </div>
 
-    <!-- Filter Tabs -->
+    <!-- Filter -->
     <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterCards('all')">الكل</button>
-        <button class="filter-tab" onclick="filterCards('pending')">قيد الانتظار</button>
-        <button class="filter-tab" onclick="filterCards('printed')">مطبوعة</button>
-        <button class="filter-tab" onclick="filterCards('modified')">معدّلة</button>
+        <button class="filter-btn active" onclick="filterStatus('all')">الكل</button>
+        <button class="filter-btn" onclick="filterStatus('pending')">قيد الانتظار</button>
+        <button class="filter-btn" onclick="filterStatus('printed')">مطبوعة</button>
     </div>
 
     <div class="loading" id="loading">
@@ -79,55 +63,59 @@
         <p>جاري التحميل...</p>
     </div>
 
-    <div id="cardsContainer"></div>
+    <!-- Table -->
+    <div class="table-container">
+        <table id="cardsTable">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>الهاتف</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
     <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--dark-gray);">
-        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+        <i class="fas fa-search" style="font-size: 48px; opacity: 0.3;"></i>
         <p>لا توجد نتائج</p>
     </div>
 </div>
 
 <style>
-.stats-grid {
+.stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
-.stat-card {
+.stat-box {
     background: white;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.stat-icon {
-    width: 50px;
-    height: 50px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.stat-info {
-    display: flex;
-    flex-direction: column;
-}
+.stat-box.pending { border-left: 4px solid #ffc107; }
+.stat-box.printed { border-left: 4px solid #28a745; }
 
-.stat-value {
-    font-size: 24px;
+.stat-number {
+    display: block;
+    font-size: 32px;
     font-weight: bold;
     color: var(--primary);
 }
 
 .stat-label {
-    font-size: 13px;
+    display: block;
+    font-size: 14px;
     color: var(--dark-gray);
+    margin-top: 5px;
 }
 
 .filter-tabs {
@@ -135,56 +123,56 @@
     gap: 10px;
     margin-bottom: 20px;
     overflow-x: auto;
-    padding-bottom: 5px;
 }
 
-.filter-tab {
+.filter-btn {
     padding: 10px 20px;
     border: 2px solid var(--light-gray);
     background: white;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: 500;
     white-space: nowrap;
-    transition: all 0.3s;
+    font-weight: 500;
 }
 
-.filter-tab.active {
+.filter-btn.active {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
 }
 
-.card-item {
+.table-container {
     background: white;
-    padding: 20px;
-    border-radius: 12px;
+    border-radius: 10px;
+    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    margin-bottom: 15px;
-    transition: transform 0.2s;
 }
 
-.card-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-    gap: 10px;
+th {
+    background: var(--primary);
+    color: white;
+    padding: 15px;
+    text-align: right;
+    font-weight: 600;
 }
 
-.card-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--primary);
+td {
+    padding: 15px;
+    border-bottom: 1px solid var(--light-gray);
+    text-align: right;
 }
 
-.card-status {
+tr:hover {
+    background: #f8f9fa;
+}
+
+.status-badge {
+    display: inline-block;
     padding: 5px 12px;
     border-radius: 20px;
     font-size: 13px;
@@ -192,8 +180,8 @@
 }
 
 .status-pending {
-    background: #d1ecf1;
-    color: #0c5460;
+    background: #fff3cd;
+    color: #856404;
 }
 
 .status-printed {
@@ -201,78 +189,57 @@
     color: #155724;
 }
 
-.status-modified {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.card-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-    padding: 15px;
-    background: var(--light-gray);
-    border-radius: 8px;
-}
-
-.card-actions {
+.action-btns {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
 }
 
-.card-actions button {
-    flex: 1;
-    min-width: 100px;
-    padding: 10px;
+.action-btns button {
+    padding: 8px 12px;
     font-size: 14px;
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
     }
     
-    .stat-card {
-        padding: 15px;
-        gap: 10px;
+    .stat-box {
+        padding: 15px 10px;
     }
     
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .stat-value {
-        font-size: 20px;
+    .stat-number {
+        font-size: 24px;
     }
     
     .stat-label {
-        font-size: 11px;
+        font-size: 12px;
     }
     
-    .card-item {
-        padding: 15px;
-    }
-    
-    .card-title {
-        font-size: 18px;
-    }
-    
-    .card-info {
-        grid-template-columns: 1fr;
-        gap: 8px;
+    table {
         font-size: 14px;
     }
     
-    .card-actions {
+    th, td {
+        padding: 10px 8px;
+    }
+    
+    th:nth-child(2) {
+        display: none;
+    }
+    
+    td:nth-child(2) {
+        display: none;
+    }
+    
+    .action-btns {
         flex-direction: column;
     }
     
-    .card-actions button {
+    .action-btns button {
         width: 100%;
     }
 }
@@ -298,99 +265,86 @@ async function loadCards() {
             displayCards(allCards);
         }
     } catch (error) {
-        console.error('Error loading cards:', error);
+        console.error('Error:', error);
     }
     
     document.getElementById('loading').style.display = 'none';
 }
 
 function updateStats(stats) {
-    document.getElementById('statTotal').textContent = stats.total;
-    document.getElementById('statPending').textContent = stats.pending;
-    document.getElementById('statPrinted').textContent = stats.printed;
-    document.getElementById('statModified').textContent = stats.modified;
+    document.getElementById('totalCount').textContent = stats.total;
+    document.getElementById('pendingCount').textContent = stats.pending;
+    document.getElementById('printedCount').textContent = stats.printed;
 }
 
 function displayCards(cards) {
-    const container = document.getElementById('cardsContainer');
+    const tbody = document.getElementById('tableBody');
     const noResults = document.getElementById('noResults');
+    const table = document.querySelector('.table-container');
     
     if (cards.length === 0) {
-        container.innerHTML = '';
+        table.style.display = 'none';
         noResults.style.display = 'block';
         return;
     }
     
+    table.style.display = 'block';
     noResults.style.display = 'none';
     
-    container.innerHTML = cards.map(card => `
-        <div class="card-item">
-            <div class="card-header">
-                <div class="card-title">${card.name}</div>
-                <span class="card-status status-${card.status}">
-                    ${card.status === 'pending' ? '⏳ قيد الانتظار' : 
-                      card.status === 'printed' ? '✅ مطبوعة' : '✏️ معدّلة'}
+    tbody.innerHTML = cards.map(card => `
+        <tr>
+            <td><strong>${card.name}</strong></td>
+            <td>${card.phone || '-'}</td>
+            <td>
+                <span class="status-badge status-${card.status}">
+                    ${card.status === 'pending' ? '⏳ قيد الانتظار' : '✅ مطبوعة'}
                 </span>
-            </div>
-            
-            <div class="card-info">
-                ${card.phone ? `<div>📞 ${card.phone}</div>` : ''}
-                ${card.email ? `<div>📧 ${card.email}</div>` : ''}
-                <div>📅 ${new Date(card.created_at).toLocaleDateString('ar-SA')}</div>
-                <div>🖨️ ${card.print_count || 0} مرات</div>
-            </div>
-            
-            <div class="card-actions">
-                <button class="btn btn-outline" onclick="window.open('${card.url}', '_blank')">
-                    <i class="fas fa-eye"></i> عرض
-                </button>
-                <button class="btn btn-outline" onclick="window.location.href='/edit/${card.username}'">
-                    <i class="fas fa-edit"></i> تعديل
-                </button>
-                <button class="btn btn-warning" onclick="printCard('${card.url}', '${card.username}')">
-                    <i class="fas fa-print"></i> طباعة
-                </button>
-                <button class="btn btn-danger" onclick="deleteCard('${card.username}')">
-                    <i class="fas fa-trash"></i> حذف
-                </button>
-            </div>
-        </div>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn btn-outline" onclick="window.open('${card.url}', '_blank')">
+                        <i class="fas fa-eye"></i> عرض
+                    </button>
+                    <button class="btn btn-outline" onclick="window.location.href='/edit/${card.username}'">
+                        <i class="fas fa-edit"></i> تعديل
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteCard('${card.username}')">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+            </td>
+        </tr>
     `).join('');
 }
 
-function filterCards(status) {
+function filterStatus(status) {
     currentFilter = status;
     
-    // Update active tab
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     
-    // Filter and display
-    const filtered = status === 'all' ? allCards : allCards.filter(c => c.status === status);
-    displayCards(filtered);
+    applyFilters();
 }
 
-// Search functionality
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
+function applyFilters() {
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
     
     let filtered = currentFilter === 'all' ? allCards : allCards.filter(c => c.status === currentFilter);
     
-    if (query) {
+    if (searchQuery) {
         filtered = filtered.filter(card => 
-            card.name.toLowerCase().includes(query) ||
-            (card.phone && card.phone.includes(query)) ||
-            (card.email && card.email.toLowerCase().includes(query))
+            card.name.toLowerCase().includes(searchQuery) ||
+            (card.phone && card.phone.includes(searchQuery))
         );
     }
     
     displayCards(filtered);
-});
+}
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
 
 async function scanCard() {
-    const scanBtn = event.target;
+    const scanBtn = document.getElementById('scanBtn');
     scanBtn.disabled = true;
     document.getElementById('scanLoading').style.display = 'block';
     
@@ -402,22 +356,19 @@ async function scanCard() {
         scanBtn.disabled = false;
         
         if (result.success && result.data && result.data.url) {
-            // Extract username from URL
             const match = result.data.url.match(/clients\/([^\/]+)\/?$/);
             if (match) {
                 const username = match[1];
-                document.getElementById('searchInput').value = username;
-                
-                // Trigger search
-                const filtered = allCards.filter(card => card.username === username);
-                if (filtered.length > 0) {
-                    displayCards(filtered);
+                const card = allCards.find(c => c.username === username);
+                if (card) {
+                    document.getElementById('searchInput').value = card.name;
+                    applyFilters();
                 } else {
-                    alert('البطاقة غير موجودة في النظام');
+                    alert('البطاقة غير موجودة');
                 }
             }
         } else {
-            alert('فشل قراءة البطاقة: ' + (result.message || 'خطأ غير معروف'));
+            alert('فشل قراءة البطاقة');
         }
     } catch (error) {
         document.getElementById('scanLoading').style.display = 'none';
@@ -426,51 +377,25 @@ async function scanCard() {
     }
 }
 
-async function printCard(url, username) {
-    if (!confirm('طباعة هذه البطاقة؟')) return;
-    
-    try {
-        const response = await fetch('/api/nfc/write', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ url, username })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✅ تمت الطباعة بنجاح!');
-            loadCards();
-        } else {
-            alert('❌ ' + result.message);
-        }
-    } catch (error) {
-        alert('خطأ في الاتصال');
-    }
-}
-
 async function deleteCard(username) {
-    if (!confirm('هل أنت متأكد من حذف هذه البطاقة؟')) return;
+    if (!confirm('هل أنت متأكد من الحذف؟')) return;
     
     try {
-        const response = await fetch(`/api/cards/${username}`, {
-            method: 'DELETE'
-        });
-        
+        const response = await fetch(`/api/cards/${username}`, { method: 'DELETE' });
         const result = await response.json();
         
         if (result.success) {
-            alert('✅ تم الحذف بنجاح');
+            alert('✅ تم الحذف');
             loadCards();
         } else {
             alert('❌ فشل الحذف');
         }
     } catch (error) {
-        alert('خطأ في الاتصال');
+        alert('خطأ');
     }
 }
 
 loadCards();
-setInterval(loadCards, 30000); // Refresh every 30 seconds
+setInterval(loadCards, 30000);
 </script>
 {% endblock %}

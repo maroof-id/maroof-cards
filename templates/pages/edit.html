@@ -18,19 +18,12 @@
 </div>
 
 <div class="container">
+    <h1>✏️ تعديل البطاقة</h1>
+
+    <div id="alert" class="alert"></div>
+
     <div class="card">
-        <h1>✏️ تعديل البطاقة</h1>
-
-        <div id="alert" class="alert"></div>
-
-        <div id="loading" class="loading" style="display: block;">
-            <div class="spinner"></div>
-            <p style="margin-top: 10px;">جاري التحميل...</p>
-        </div>
-
-        <form id="editForm" style="display: none;">
-            <input type="hidden" id="username" value="">
-            
+        <form id="editForm">
             <div class="form-group">
                 <label>الاسم الكامل *</label>
                 <input type="text" name="name" id="name" required>
@@ -38,16 +31,8 @@
 
             <div class="form-group">
                 <label>الصورة الشخصية</label>
-                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
-                <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
-                    اختياري - اترك فارغاً للإبقاء على الصورة الحالية
-                </small>
-                <div class="photo-preview" id="currentPhoto" style="display: none; margin-top: 10px;">
-                    <p style="font-size: 13px; color: var(--dark-gray); margin-bottom: 5px;">الصورة الحالية:</p>
-                    <img id="currentPhotoImg" src="" alt="الصورة الحالية">
-                </div>
+                <input type="file" name="photo" id="photoInput" accept="image/*">
                 <div class="photo-preview" id="photoPreview" style="display: none;">
-                    <p style="font-size: 13px; color: var(--dark-gray); margin-bottom: 5px;">الصورة الجديدة:</p>
                     <img id="previewImage" src="" alt="معاينة">
                 </div>
             </div>
@@ -79,46 +64,114 @@
 
             <div class="form-group">
                 <label>نبذة تعريفية</label>
-                <textarea name="bio" id="bio"></textarea>
+                <textarea name="bio" id="bio" rows="3"></textarea>
             </div>
 
-            <div class="form-group">
-                <label>التصميم</label>
-                <select name="template" id="template">
-                    <option value="professional">Professional</option>
-                    <option value="luxury">Luxury</option>
-                    <option value="friendly">Friendly</option>
-                    <option value="modern">Modern</option>
-                    <option value="classic">Classic</option>
-                    <option value="minimal">Minimal</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn" id="submitBtn">
-                    <i class="fas fa-save"></i> حفظ التعديلات
-                </button>
-                <a href="/dashboard" class="btn btn-outline">
-                    <i class="fas fa-times"></i> إلغاء
-                </a>
-            </div>
+            <button type="submit" class="btn" id="saveBtn">
+                <i class="fas fa-save"></i> حفظ التعديلات
+            </button>
         </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>جاري الحفظ...</p>
+        </div>
+    </div>
+
+    <!-- Success Card -->
+    <div class="card" id="successCard" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">✅</div>
+            <h2 style="color: white; font-size: 28px; margin: 0;">تم حفظ التعديلات بنجاح!</h2>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.25); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <p style="margin: 0 0 12px 0; color: white; font-size: 16px; opacity: 0.9;">الرابط:</p>
+            <a id="cardUrl" href="#" target="_blank" style="color: white; font-weight: bold; word-break: break-all; text-decoration: underline; font-size: 15px; display: block;"></a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <button onclick="writeToNFC()" id="nfcBtn" style="background: #4CAF50; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-wifi"></i>
+                <span>طباعة NFC</span>
+            </button>
+            <button onclick="window.location.href='/dashboard'" style="background: #2196F3; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-list"></i>
+                <span>لوحة التحكم</span>
+            </button>
+        </div>
+
+        <div id="nfcLoading" style="display: none; margin-top: 25px; text-align: center;">
+            <div class="spinner" style="margin: 0 auto 15px;"></div>
+            <p style="color: white; font-size: 16px; margin: 0;">ضع البطاقة على القارئ...</p>
+        </div>
+
+        <div id="nfcResult" style="display: none; margin-top: 20px; padding: 18px; background: rgba(255,255,255,0.25); border-radius: 10px; text-align: center;">
+            <p id="nfcMessage" style="color: white; margin: 0; font-size: 16px; font-weight: 500;"></p>
+        </div>
     </div>
 </div>
+
+<style>
+.alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;
+    max-width: 90%;
+}
+
+.alert.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 768px) {
+    #successCard button {
+        font-size: 16px !important;
+        padding: 15px !important;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
+<script src="/static/js/main.js"></script>
 <script>
 const username = window.location.pathname.split('/').pop();
+let currentCardData = null;
 
 async function loadCard() {
     try {
         const response = await fetch(`/api/cards/${username}`);
         const result = await response.json();
-
+        
         if (result.success) {
             const data = result.data;
-            document.getElementById('username').value = username;
             document.getElementById('name').value = data.NAME || '';
             document.getElementById('phone').value = data.PHONE || '';
             document.getElementById('email').value = data.EMAIL || '';
@@ -128,41 +181,19 @@ async function loadCard() {
             document.getElementById('bio').value = data.BIO || '';
             
             if (data.PHOTO) {
-                const photoUrl = `https://maroof-id.github.io/maroof-cards/clients/${username}/${data.PHOTO.replace('./', '')}`;
-                document.getElementById('currentPhotoImg').src = photoUrl;
-                document.getElementById('currentPhoto').style.display = 'block';
+                document.getElementById('previewImage').src = data.PHOTO;
+                document.getElementById('photoPreview').style.display = 'block';
             }
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('editForm').style.display = 'block';
         } else {
-            showAlert('فشل تحميل البيانات', 'error');
+            alert('البطاقة غير موجودة');
+            window.location.href = '/dashboard';
         }
     } catch (error) {
-        showAlert('خطأ في الاتصال', 'error');
+        alert('خطأ في التحميل');
     }
 }
 
-document.getElementById('photoInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
-            e.target.value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            document.getElementById('previewImage').src = event.target.result;
-            document.getElementById('photoPreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        document.getElementById('photoPreview').style.display = 'none';
-    }
-});
+document.getElementById('photoInput').addEventListener('change', handlePhotoPreview);
 
 document.getElementById('editForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -172,13 +203,13 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
     let photoBase64 = '';
     
     if (photoFile) {
+        if (photoFile.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً!', 'error');
+            return;
+        }
+        
         try {
-            photoBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(photoFile);
-            });
+            photoBase64 = await fileToBase64(photoFile);
         } catch (error) {
             showAlert('فشل قراءة الصورة', 'error');
             return;
@@ -191,7 +222,8 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
         data.photo = photoBase64;
     }
     
-    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('saveBtn').disabled = true;
 
     try {
         const response = await fetch(`/api/cards/${username}`, {
@@ -202,21 +234,65 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
 
         const result = await response.json();
         
-        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('saveBtn').disabled = false;
 
         if (result.success) {
-            showAlert('✅ تم حفظ التعديلات بنجاح! سيتم تحديث البطاقة على GitHub...', 'success');
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 2000);
+            currentCardData = {
+                url: `https://maroof-id.github.io/maroof-cards/clients/${username}/`,
+                username: username
+            };
+            
+            document.getElementById('cardUrl').href = currentCardData.url;
+            document.getElementById('cardUrl').textContent = currentCardData.url;
+            document.getElementById('successCard').style.display = 'block';
+            document.getElementById('successCard').scrollIntoView({ behavior: 'smooth' });
         } else {
-            showAlert(result.error || 'حدث خطأ', 'error');
+            showAlert(result.error || 'فشل الحفظ', 'error');
         }
     } catch (error) {
-        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('saveBtn').disabled = false;
         showAlert('خطأ في الاتصال', 'error');
     }
 });
+
+async function writeToNFC() {
+    if (!currentCardData) return;
+    
+    const nfcBtn = document.getElementById('nfcBtn');
+    nfcBtn.disabled = true;
+    document.getElementById('nfcLoading').style.display = 'block';
+    document.getElementById('nfcResult').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/nfc/write', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                url: currentCardData.url,
+                username: currentCardData.username
+            })
+        });
+
+        const result = await response.json();
+        
+        document.getElementById('nfcLoading').style.display = 'none';
+        document.getElementById('nfcResult').style.display = 'block';
+        nfcBtn.disabled = false;
+
+        if (result.success) {
+            document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-check-circle"></i> ✅ تمت الكتابة بنجاح!';
+        } else {
+            document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ ' + result.message;
+        }
+    } catch (error) {
+        document.getElementById('nfcLoading').style.display = 'none';
+        document.getElementById('nfcResult').style.display = 'block';
+        document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ خطأ';
+        nfcBtn.disabled = false;
+    }
+}
 
 loadCard();
 </script>
