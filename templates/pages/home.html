@@ -247,7 +247,6 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
             currentCardData = result;
             document.getElementById('cardUrl').href = result.url;
             document.getElementById('cardUrl').textContent = result.url;
-            document.getElementById('createForm').style.display = 'none';
             document.getElementById('successCard').style.display = 'block';
             
             // Scroll to success card
