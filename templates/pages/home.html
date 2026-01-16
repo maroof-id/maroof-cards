@@ -90,35 +90,36 @@
         </div>
     </div>
 
-    <!-- Success Card with NFC Options -->
-    <div class="card" id="successCard" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 64px; margin-bottom: 15px;">✅</div>
-            <h2 style="color: white;">تم إنشاء البطاقة بنجاح!</h2>
+    <!-- Success Card -->
+    <div class="card" id="successCard" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 72px; margin-bottom: 20px;">✅</div>
+            <h2 style="color: white; font-size: 28px; margin: 0;">تم إنشاء البطاقة بنجاح!</h2>
         </div>
 
-        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <p style="margin: 0 0 10px 0; color: white; opacity: 0.9;">الرابط:</p>
-            <a id="cardUrl" href="#" target="_blank" style="color: white; font-weight: bold; word-break: break-all; text-decoration: underline;">
-            </a>
+        <div style="background: rgba(255,255,255,0.25); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <p style="margin: 0 0 12px 0; color: white; font-size: 16px; opacity: 0.9;">الرابط:</p>
+            <a id="cardUrl" href="#" target="_blank" style="color: white; font-weight: bold; word-break: break-all; text-decoration: underline; font-size: 15px; display: block;"></a>
         </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn" onclick="writeToNFC()" id="nfcBtn" style="flex: 1; background: white; color: var(--primary); min-width: 150px;">
-                <i class="fas fa-wifi"></i> كتابة على NFC
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <button onclick="writeToNFC()" id="nfcBtn" style="background: #4CAF50; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-wifi"></i>
+                <span>طباعة NFC</span>
             </button>
-            <button class="btn btn-outline" onclick="location.reload()" style="flex: 1; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; min-width: 150px;">
-                <i class="fas fa-plus"></i> بطاقة جديدة
+            <button onclick="location.reload()" style="background: #2196F3; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-plus"></i>
+                <span>بطاقة جديدة</span>
             </button>
         </div>
 
-        <div id="nfcLoading" class="loading" style="display: none; margin-top: 20px;">
-            <div class="spinner"></div>
-            <p style="color: white; margin-top: 10px;">ضع البطاقة على القارئ...</p>
+        <div id="nfcLoading" style="display: none; margin-top: 25px; text-align: center;">
+            <div class="spinner" style="margin: 0 auto 15px;"></div>
+            <p style="color: white; font-size: 16px; margin: 0;">ضع البطاقة على القارئ...</p>
         </div>
 
-        <div id="nfcResult" style="display: none; margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 8px;">
-            <p id="nfcMessage" style="color: white; margin: 0;"></p>
+        <div id="nfcResult" style="display: none; margin-top: 20px; padding: 18px; background: rgba(255,255,255,0.25); border-radius: 10px; text-align: center;">
+            <p id="nfcMessage" style="color: white; margin: 0; font-size: 16px; font-weight: 500;"></p>
         </div>
     </div>
 </div>
@@ -177,6 +178,19 @@
     
     .alert.show {
         animation: slideDownMobile 0.3s ease;
+    }
+    
+    #successCard button {
+        font-size: 16px !important;
+        padding: 15px !important;
+    }
+    
+    #successCard > div:first-child > div {
+        font-size: 56px !important;
+    }
+    
+    #successCard > div:first-child > h2 {
+        font-size: 22px !important;
     }
 }
 
@@ -287,9 +301,6 @@ async function writeToNFC() {
 
         if (result.success) {
             document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-check-circle"></i> ✅ تمت الكتابة بنجاح!';
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
         } else {
             document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ ' + result.message;
         }
@@ -301,4 +312,4 @@ async function writeToNFC() {
     }
 }
 </script>
-{% endblock %}    
+{% endblock %}
