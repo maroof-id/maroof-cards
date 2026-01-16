@@ -10,7 +10,6 @@
         </a>
         <a href="/dashboard" class="nav-btn active">
             <i class="fas fa-th-large"></i> لوحة التحكم
-            <span class="notification-badge" id="pendingBadge" style="display:none;">0</span>
         </a>
         <a href="/settings" class="nav-btn">
             <i class="fas fa-cog"></i> الإعدادات
@@ -21,214 +20,432 @@
 <div class="container">
     <h1>📊 لوحة التحكم</h1>
 
-    <div class="stats" id="stats">
-        <div class="stat-card">
-            <div class="stat-value" id="pendingCount">0</div>
-            <div class="stat-label">⏳ قيد الانتظار</div>
+    <!-- Search Bar -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="searchInput" placeholder="🔍 ابحث بالاسم أو الرقم..." style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 16px;">
+            <button onclick="scanCard()" class="btn" style="background: var(--primary); white-space: nowrap;">
+                <i class="fas fa-wifi"></i> مسح بطاقة
+            </button>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="printedCount">0</div>
-            <div class="stat-label">✅ مطبوعة</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="modifiedCount">0</div>
-            <div class="stat-label">📝 معدّلة</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="totalCount">0</div>
-            <div class="stat-label">📇 الإجمالي</div>
+        <div id="scanLoading" style="display: none; margin-top: 15px; text-align: center;">
+            <div class="spinner" style="margin: 0 auto 10px;"></div>
+            <p style="color: var(--primary);">ضع البطاقة على القارئ...</p>
         </div>
     </div>
 
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <h2>📋 البطاقات</h2>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="searchInput" placeholder="🔍 بحث بالاسم أو الجوال" 
-                       style="width: 250px;" onkeyup="filterCards()">
-                <select id="statusFilter" onchange="filterCards()" style="width: 150px;">
-                    <option value="all">كل الحالات</option>
-                    <option value="pending">⏳ قيد الانتظار</option>
-                    <option value="printed">✅ مطبوعة</option>
-                    <option value="modified">📝 معدّلة</option>
-                </select>
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #fff3cd;">📋</div>
+            <div class="stat-info">
+                <span class="stat-value" id="statTotal">-</span>
+                <span class="stat-label">إجمالي البطاقات</span>
             </div>
         </div>
-
-        <div id="loading" class="loading" style="display: block;">
-            <div class="spinner"></div>
-            <p style="margin-top: 10px;">جاري التحميل...</p>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #d1ecf1;">⏳</div>
+            <div class="stat-info">
+                <span class="stat-value" id="statPending">-</span>
+                <span class="stat-label">قيد الانتظار</span>
+            </div>
         </div>
-
-        <div id="tableContainer" style="display: none; overflow-x: auto;">
-            <table id="cardsTable">
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>الجوال</th>
-                        <th>الحالة</th>
-                        <th>المصدر</th>
-                        <th>عدد الطباعة</th>
-                        <th>التاريخ</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody id="cardsBody"></tbody>
-            </table>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #d4edda;">✅</div>
+            <div class="stat-info">
+                <span class="stat-value" id="statPrinted">-</span>
+                <span class="stat-label">تمت الطباعة</span>
+            </div>
         </div>
-
-        <div id="emptyState" style="display: none; text-align: center; padding: 40px; color: var(--dark-gray);">
-            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
-            <p>لا توجد بطاقات</p>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #f8d7da;">✏️</div>
+            <div class="stat-info">
+                <span class="stat-value" id="statModified">-</span>
+                <span class="stat-label">معدّلة</span>
+            </div>
         </div>
     </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterCards('all')">الكل</button>
+        <button class="filter-tab" onclick="filterCards('pending')">قيد الانتظار</button>
+        <button class="filter-tab" onclick="filterCards('printed')">مطبوعة</button>
+        <button class="filter-tab" onclick="filterCards('modified')">معدّلة</button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <div id="cardsContainer"></div>
+    <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--dark-gray);">
+        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+        <p>لا توجد نتائج</p>
+    </div>
 </div>
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--dark-gray);
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.filter-tab {
+    padding: 10px 20px;
+    border: 2px solid var(--light-gray);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.filter-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.card-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+}
+
+.card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.card-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-printed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-modified {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.card-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: var(--light-gray);
+    border-radius: 8px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card-actions button {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+        gap: 10px;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+    }
+    
+    .card-item {
+        padding: 15px;
+    }
+    
+    .card-title {
+        font-size: 18px;
+    }
+    
+    .card-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        font-size: 14px;
+    }
+    
+    .card-actions {
+        flex-direction: column;
+    }
+    
+    .card-actions button {
+        width: 100%;
+    }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
 let allCards = [];
+let currentFilter = 'all';
 
 async function loadCards() {
+    document.getElementById('loading').style.display = 'block';
+    
     try {
         const response = await fetch('/api/cards');
-        const data = await response.json();
+        const result = await response.json();
         
-        if (data.success) {
-            allCards = data.cards;
-            updateStats(data.stats);
-            renderCards(allCards);
-            document.getElementById('loading').style.display = 'none';
-            
-            if (allCards.length > 0) {
-                document.getElementById('tableContainer').style.display = 'block';
-                document.getElementById('emptyState').style.display = 'none';
-            } else {
-                document.getElementById('tableContainer').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-            }
+        if (result.success) {
+            allCards = result.cards;
+            updateStats(result.stats);
+            displayCards(allCards);
         }
     } catch (error) {
-        console.error('Failed to load cards:', error);
-        document.getElementById('loading').style.display = 'none';
+        console.error('Error loading cards:', error);
     }
+    
+    document.getElementById('loading').style.display = 'none';
 }
 
 function updateStats(stats) {
-    document.getElementById('pendingCount').textContent = stats.pending;
-    document.getElementById('printedCount').textContent = stats.printed;
-    document.getElementById('modifiedCount').textContent = stats.modified;
-    document.getElementById('totalCount').textContent = stats.total;
-    
-    const badge = document.getElementById('pendingBadge');
-    if (stats.pending > 0) {
-        badge.textContent = stats.pending;
-        badge.style.display = 'inline-block';
-    } else {
-        badge.style.display = 'none';
-    }
+    document.getElementById('statTotal').textContent = stats.total;
+    document.getElementById('statPending').textContent = stats.pending;
+    document.getElementById('statPrinted').textContent = stats.printed;
+    document.getElementById('statModified').textContent = stats.modified;
 }
 
-function renderCards(cards) {
-    const tbody = document.getElementById('cardsBody');
-    tbody.innerHTML = '';
+function displayCards(cards) {
+    const container = document.getElementById('cardsContainer');
+    const noResults = document.getElementById('noResults');
     
-    cards.forEach(card => {
-        const tr = document.createElement('tr');
-        
-        let statusBadge = '';
-        if (card.status === 'pending') {
-            statusBadge = '<span class="status-indicator status-pending">⏳ قيد الانتظار</span>';
-        } else if (card.status === 'printed') {
-            statusBadge = '<span class="status-indicator status-success">✅ مطبوعة</span>';
-        } else if (card.status === 'modified') {
-            statusBadge = '<span class="status-indicator status-warning">📝 معدّلة</span>';
-        }
-        
-        const source = card.source === 'client' ? '👤 عميل' : '⚙️ إدارة';
-        const date = card.created_at ? new Date(card.created_at).toLocaleDateString('ar-SA') : '-';
-        
-        tr.innerHTML = `
-            <td><strong>${card.name}</strong></td>
-            <td>${card.phone || '-'}</td>
-            <td>${statusBadge}</td>
-            <td>${source}</td>
-            <td>${card.print_count}x</td>
-            <td>${date}</td>
-            <td>
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" 
-                            onclick="viewCard('${card.url}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" 
-                            onclick="editCard('${card.username}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-success" style="padding: 6px 12px; font-size: 13px;" 
-                            onclick="printCard('${card.username}', '${card.url}')">
-                        <i class="fas fa-print"></i>
-                    </button>
-                    <button class="btn btn-error" style="padding: 6px 12px; font-size: 13px;" 
-                            onclick="deleteCard('${card.username}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
+    if (cards.length === 0) {
+        container.innerHTML = '';
+        noResults.style.display = 'block';
+        return;
+    }
+    
+    noResults.style.display = 'none';
+    
+    container.innerHTML = cards.map(card => `
+        <div class="card-item">
+            <div class="card-header">
+                <div class="card-title">${card.name}</div>
+                <span class="card-status status-${card.status}">
+                    ${card.status === 'pending' ? '⏳ قيد الانتظار' : 
+                      card.status === 'printed' ? '✅ مطبوعة' : '✏️ معدّلة'}
+                </span>
+            </div>
+            
+            <div class="card-info">
+                ${card.phone ? `<div>📞 ${card.phone}</div>` : ''}
+                ${card.email ? `<div>📧 ${card.email}</div>` : ''}
+                <div>📅 ${new Date(card.created_at).toLocaleDateString('ar-SA')}</div>
+                <div>🖨️ ${card.print_count || 0} مرات</div>
+            </div>
+            
+            <div class="card-actions">
+                <button class="btn btn-outline" onclick="window.open('${card.url}', '_blank')">
+                    <i class="fas fa-eye"></i> عرض
+                </button>
+                <button class="btn btn-outline" onclick="window.location.href='/edit/${card.username}'">
+                    <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="btn btn-warning" onclick="printCard('${card.url}', '${card.username}')">
+                    <i class="fas fa-print"></i> طباعة
+                </button>
+                <button class="btn btn-danger" onclick="deleteCard('${card.username}')">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterCards(status) {
+    currentFilter = status;
+    
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
     });
+    event.target.classList.add('active');
+    
+    // Filter and display
+    const filtered = status === 'all' ? allCards : allCards.filter(c => c.status === status);
+    displayCards(filtered);
 }
 
-function filterCards() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const status = document.getElementById('statusFilter').value;
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
     
-    let filtered = allCards;
+    let filtered = currentFilter === 'all' ? allCards : allCards.filter(c => c.status === currentFilter);
     
-    if (status !== 'all') {
-        filtered = filtered.filter(card => card.status === status);
-    }
-    
-    if (search) {
+    if (query) {
         filtered = filtered.filter(card => 
-            card.name.toLowerCase().includes(search) || 
-            (card.phone && card.phone.includes(search))
+            card.name.toLowerCase().includes(query) ||
+            (card.phone && card.phone.includes(query)) ||
+            (card.email && card.email.toLowerCase().includes(query))
         );
     }
     
-    renderCards(filtered);
+    displayCards(filtered);
+});
+
+async function scanCard() {
+    const scanBtn = event.target;
+    scanBtn.disabled = true;
+    document.getElementById('scanLoading').style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/nfc/read');
+        const result = await response.json();
+        
+        document.getElementById('scanLoading').style.display = 'none';
+        scanBtn.disabled = false;
+        
+        if (result.success && result.data && result.data.url) {
+            // Extract username from URL
+            const match = result.data.url.match(/clients\/([^\/]+)\/?$/);
+            if (match) {
+                const username = match[1];
+                document.getElementById('searchInput').value = username;
+                
+                // Trigger search
+                const filtered = allCards.filter(card => card.username === username);
+                if (filtered.length > 0) {
+                    displayCards(filtered);
+                } else {
+                    alert('البطاقة غير موجودة في النظام');
+                }
+            }
+        } else {
+            alert('فشل قراءة البطاقة: ' + (result.message || 'خطأ غير معروف'));
+        }
+    } catch (error) {
+        document.getElementById('scanLoading').style.display = 'none';
+        scanBtn.disabled = false;
+        alert('خطأ في الاتصال');
+    }
 }
 
-function viewCard(url) {
-    window.open(url, '_blank');
-}
-
-function editCard(username) {
-    window.location.href = `/edit/${username}`;
-}
-
-async function printCard(username, url) {
-    if (!confirm('هل تريد كتابة هذه البطاقة على NFC؟')) return;
+async function printCard(url, username) {
+    if (!confirm('طباعة هذه البطاقة؟')) return;
     
     try {
         const response = await fetch('/api/nfc/write', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({url: url, username: username})
+            body: JSON.stringify({ url, username })
         });
-
+        
         const result = await response.json();
-
+        
         if (result.success) {
-            alert('✅ تمت الكتابة بنجاح!');
+            alert('✅ تمت الطباعة بنجاح!');
             loadCards();
         } else {
-            alert('❌ فشلت الكتابة: ' + result.message);
+            alert('❌ ' + result.message);
         }
     } catch (error) {
-        alert('خطأ في الاتصال بالقارئ');
+        alert('خطأ في الاتصال');
     }
 }
 
@@ -239,9 +456,9 @@ async function deleteCard(username) {
         const response = await fetch(`/api/cards/${username}`, {
             method: 'DELETE'
         });
-
+        
         const result = await response.json();
-
+        
         if (result.success) {
             alert('✅ تم الحذف بنجاح');
             loadCards();
@@ -249,11 +466,11 @@ async function deleteCard(username) {
             alert('❌ فشل الحذف');
         }
     } catch (error) {
-        alert('خطأ في الحذف');
+        alert('خطأ في الاتصال');
     }
 }
 
-setInterval(loadCards, 30000);
 loadCards();
+setInterval(loadCards, 30000); // Refresh every 30 seconds
 </script>
 {% endblock %}
