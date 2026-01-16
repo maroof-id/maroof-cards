@@ -239,7 +239,7 @@ class CardGenerator:
             'INSTAGRAM': instagram.lstrip('@'),
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
-            'BIO': bio or f'{name}',
+            'BIO': bio or f'',
             'PHOTO': photo_path,
             'created_at': datetime.now().isoformat(),
             'source': source,  # 'admin' or 'client'
