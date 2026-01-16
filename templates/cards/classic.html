@@ -6,172 +6,646 @@
     <meta name="description" content="البطاقة التعريفية الرقمية لـ {{NAME}}">
     <title>{{NAME}} - معروف</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --glass-shadow: rgba(0, 0, 0, 0.1);
+            --text-dark: rgba(0, 0, 0, 0.9);
+            --text-light: rgba(0, 0, 0, 0.7);
+            --accent: rgba(139, 92, 246, 0.9);
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* خلفية متدرجة ملونة - أخضر وأزرق */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, 
+                #10b981 0%, 
+                #14b8a6 25%, 
+                #06b6d4 50%, 
+                #0ea5e9 75%, 
+                #3b82f6 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -2;
+        }
+        
+        /* تأثير الجسيمات */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 560px;
+            position: relative;
+        }
+        
+        /* البطاقة الزجاجية الرئيسية */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 2px solid var(--glass-border);
+            box-shadow: 
+                0 8px 32px 0 var(--glass-shadow),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            padding: 48px 40px 44px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* تأثير الضوء المتحرك */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 36px;
+            position: relative;
+        }
+        
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                inset 0 2px 0 rgba(255, 255, 255, 0.5),
+                0 0 0 12px rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .profile-photo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-photo i {
+            font-size: 64px;
+            color: rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .name {
+            font-size: 38px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .bio {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 3D SAVE BUTTON - زجاجي */
+        .save-section {
+            margin-bottom: 28px;
+        }
+        
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            padding: 24px 32px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .save-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .save-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.5s;
+        }
+        
+        .save-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.2),
+                inset 0 2px 0 rgba(255, 255, 255, 0.6);
+        }
+        
+        .save-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .save-btn:hover::after {
+            transform: scale(1);
+        }
+        
+        .save-btn:active {
+            transform: translateY(-2px) scale(1);
+        }
+        
+        .save-icon {
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        
+        /* SPLIT BUTTON - زجاجي */
+        .contact-section {
+            margin-bottom: 28px;
+        }
+        
+        .split-btn {
+            display: flex;
+            height: 82px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .split-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+        
+        .split-half::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .split-half:hover::before {
+            opacity: 1;
+        }
+        
+        .call-side {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(22, 163, 74, 0.3) 100%);
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .call-side:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.4) 0%, rgba(22, 163, 74, 0.4) 100%);
+            transform: translateX(-3px) scale(1.02);
+        }
+        
+        .whatsapp-side {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.3) 100%);
+        }
+        
+        .whatsapp-side:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.4) 100%);
+            transform: translateX(3px) scale(1.02);
+        }
+        
+        .split-icon {
+            font-size: 32px;
+            color: rgba(255, 255, 255, 0.95);
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+        }
+        
+        .split-text {
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+        }
+        
+        .split-label {
+            font-size: 16px;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .split-number {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        
+        /* Social & Email Cards - زجاجية */
+        .info-grid {
+            display: grid;
+            gap: 14px;
+        }
+        
+        .info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            border-radius: 16px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .info-card:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        .info-card:hover::before {
+            opacity: 1;
+        }
+        
+        .info-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.95);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-value {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Divider - زجاجي */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            margin: 28px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .glass-card {
+                padding: 40px 32px 36px;
+                border-radius: 28px;
+            }
+            
+            .profile-photo {
+                width: 130px;
+                height: 130px;
+            }
+            
+            .profile-photo i {
+                font-size: 56px;
+            }
+            
+            .name {
+                font-size: 32px;
+            }
+            
+            .bio {
+                font-size: 16px;
+            }
+            
+            .save-btn {
+                padding: 20px 28px;
+                font-size: 18px;
+            }
+            
+            .split-btn {
+                height: 74px;
+            }
+            
+            .split-icon {
+                font-size: 28px;
+            }
+            
+            .split-label {
+                font-size: 15px;
+            }
+            
+            .info-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .container {
+            animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Focus states */
+        .split-half:focus,
+        .info-card:focus,
+        .save-btn:focus {
+            outline: 3px solid rgba(255, 255, 255, 0.5);
+            outline-offset: 3px;
+        }
+        
+        /* تأثيرات إضافية للزجاج */
+        @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+            .glass-card {
+                background: rgba(255, 255, 255, 0.18);
+            }
+            
+            .save-btn {
+                background: rgba(255, 255, 255, 0.28);
+            }
+            
+            .info-card {
+                background: rgba(255, 255, 255, 0.22);
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    
-    <div class="w-full max-w-2xl bg-white shadow-xl rounded-lg overflow-hidden">
-        
-        <!-- Header رسمي -->
-        <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8 text-center border-b-4 border-amber-500">
-            <!-- صورة -->
-            <div class="w-40 h-40 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-2xl ring-8 ring-slate-700">
-                {{#if PHOTO}}
-                <img src="{{PHOTO}}" alt="{{NAME}}" class="w-full h-full rounded-full object-cover">
-                {{else}}
-                <i class="fas fa-user text-7xl text-slate-800"></i>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            
+            <!-- Profile Section -->
+            <div class="profile-section">
+                <div class="profile-photo">
+                    {{#if PHOTO}}
+                    <img src="{{PHOTO}}" alt="{{NAME}}">
+                    {{/if}}
+                    {{#if !PHOTO}}
+                    <i class="fas fa-user"></i>
+                    {{/if}}
+                </div>
+                
+                <h1 class="name">{{NAME}}</h1>
+                {{#if BIO}}
+                <p class="bio">{{BIO}}</p>
                 {{/if}}
             </div>
             
-            <h1 class="text-4xl font-black text-white mb-3">{{NAME}}</h1>
-            <div class="h-1 w-20 bg-amber-500 mx-auto mb-3"></div>
-            <p class="text-gray-300 text-xl">{{BIO}}</p>
-        </div>
-        
-        <!-- معلومات الاتصال - شبكة -->
-        <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <i class="fas fa-address-card text-amber-500"></i>
-                معلومات الاتصال
-            </h2>
+            <!-- 1️⃣ Save Contact Button -->
+            <div class="save-section">
+                <a href="./contact.vcf" download class="save-btn">
+                    <i class="fas fa-download save-icon"></i>
+                    <span>حفظ جهة الاتصال</span>
+                </a>
+            </div>
             
-            <div class="grid md:grid-cols-2 gap-4">
+            <!-- 2️⃣ Split Button - Call/WhatsApp -->
+            {{#if PHONE}}
+            <div class="contact-section">
+                <div class="split-btn">
+                    <a href="tel:{{PHONE_INTL}}" class="split-half call-side">
+                        <i class="fas fa-phone split-icon"></i>
+                        <div class="split-text">
+                            <div class="split-label">اتصال</div>
+                            <div class="split-number" dir="ltr">{{PHONE}}</div>
+                        </div>
+                    </a>
+                    
+                    <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-side" target="_blank">
+                        <i class="fab fa-whatsapp split-icon"></i>
+                        <div class="split-text">
+                            <div class="split-label">واتساب</div>
+                            <div class="split-number">راسلني</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {{/if}}
+            
+            <!-- Divider -->
+            {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}{{#if EMAIL}}
+            <div class="divider"></div>
+            {{/if}}{{/if}}{{/if}}{{/if}}
+            
+            <!-- 3️⃣ Social Links & 4️⃣ Email -->
+            <div class="info-grid">
                 
-                <!-- رقم الجوال -->
-                {{#if PHONE}}
-                <a href="tel:{{PHONE}}" 
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-green-500 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-phone text-white text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">الجوال</p>
-                        <p class="text-slate-800 font-bold" dir="ltr">{{PHONE}}</p>
-                    </div>
-                </a>
-                {{/if}}
-                
-                <!-- WhatsApp -->
-                {{#if PHONE}}
-                <a href="https://wa.me/{{PHONE_INTL}}" 
-                   target="_blank"
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-emerald-500 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <i class="fab fa-whatsapp text-white text-xl"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">واتساب</p>
-                        <p class="text-slate-800 font-bold">راسلني</p>
-                    </div>
-                </a>
-                {{/if}}
-                
-                <!-- البريد الإلكتروني -->
-                {{#if EMAIL}}
-                <a href="mailto:{{EMAIL}}" 
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-blue-500 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-envelope text-white text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">البريد</p>
-                        <p class="text-slate-800 font-semibold text-sm break-all">{{EMAIL}}</p>
-                    </div>
-                </a>
-                {{/if}}
-                
-                <!-- Instagram -->
                 {{#if INSTAGRAM}}
-                <a href="https://instagram.com/{{INSTAGRAM}}" 
-                   target="_blank"
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-pink-500 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <i class="fab fa-instagram text-white text-lg"></i>
+                <a href="https://instagram.com/{{INSTAGRAM}}" class="info-card" target="_blank">
+                    <div class="info-icon">
+                        <i class="fab fa-instagram"></i>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">Instagram</p>
-                        <p class="text-slate-800 font-bold">@{{INSTAGRAM}}</p>
+                    <div class="info-content">
+                        <div class="info-label">Instagram</div>
+                        <div class="info-value">@{{INSTAGRAM}}</div>
                     </div>
                 </a>
                 {{/if}}
                 
-                <!-- LinkedIn -->
                 {{#if LINKEDIN}}
-                <a href="https://linkedin.com/in/{{LINKEDIN}}" 
-                   target="_blank"
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-blue-700 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center">
-                        <i class="fab fa-linkedin text-white text-lg"></i>
+                <a href="https://linkedin.com/in/{{LINKEDIN}}" class="info-card" target="_blank">
+                    <div class="info-icon">
+                        <i class="fab fa-linkedin"></i>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">LinkedIn</p>
-                        <p class="text-slate-800 font-bold">{{LINKEDIN}}</p>
+                    <div class="info-content">
+                        <div class="info-label">LinkedIn</div>
+                        <div class="info-value">{{LINKEDIN}}</div>
                     </div>
                 </a>
                 {{/if}}
                 
-                <!-- Twitter/X -->
                 {{#if TWITTER}}
-                <a href="https://x.com/{{TWITTER}}" 
-                   target="_blank"
-                   class="flex items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border-r-4 border-gray-800 hover:shadow-md group">
-                    <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
-                        <i class="fab fa-x-twitter text-white text-lg"></i>
+                <a href="https://x.com/{{TWITTER}}" class="info-card" target="_blank">
+                    <div class="info-icon">
+                        <i class="fab fa-x-twitter"></i>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-gray-500 text-sm font-semibold">X (Twitter)</p>
-                        <p class="text-slate-800 font-bold">@{{TWITTER}}</p>
+                    <div class="info-content">
+                        <div class="info-label">X (Twitter)</div>
+                        <div class="info-value">@{{TWITTER}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if EMAIL}}
+                <a href="mailto:{{EMAIL}}" class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">البريد الإلكتروني</div>
+                        <div class="info-value">{{EMAIL}}</div>
                     </div>
                 </a>
                 {{/if}}
                 
             </div>
             
-            <!-- زر حفظ جهة الاتصال -->
-            <button onclick="saveContact()" 
-                    class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-4 rounded-lg hover:shadow-xl transition-all duration-300 mt-8 flex items-center justify-center gap-2">
-                <i class="fas fa-download"></i>
-                <span>حفظ جهة الاتصال</span>
-            </button>
-            
-        </div>
-        
-        <!-- Footer -->
-        <div class="bg-gray-50 p-6 text-center border-t">
-            <p class="text-gray-600 text-sm">مدعوم بواسطة <span class="font-bold text-amber-600">معروف</span></p>
         </div>
         
     </div>
-    
-    <script>
-        function saveContact() {
-            const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:{{NAME}}
-{{#if PHONE}}TEL;TYPE=CELL:{{PHONE}}{{/if}}
-{{#if EMAIL}}EMAIL:{{EMAIL}}{{/if}}
-{{#if INSTAGRAM}}URL:https://instagram.com/{{INSTAGRAM}}{{/if}}
-{{#if BIO}}NOTE:{{BIO}}{{/if}}
-END:VCARD`;
-            
-            const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = '{{NAME}}.vcf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-    </script>
-    
 </body>
 </html>

@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="البطاقة التعريفية الرقمية لـ {{NAME}}">
     <title>{{NAME}} - معروف</title>
     
-    <!-- Google Fonts: Inter (English) + Noto Kufi Arabic (Arabic) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -21,56 +18,75 @@
         }
         
         :root {
-            --bg-warm: #FDFBF7;
-            --text-dark: #2D3436;
-            --text-light: #636e72;
-            --accent-coral: #E07A5F;
-            --accent-hover: #d4685a;
-            --card-bg: #FFFFFF;
-            --border-light: #e9ecef;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --amber-500: #f59e0b;
+            --amber-600: #d97706;
+            --green-500: #22c55e;
+            --emerald-500: #10b981;
+            --blue-500: #3b82f6;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --white: #ffffff;
         }
         
         body {
-            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif;
-            background: var(--bg-warm);
+            font-family: 'Tajawal', sans-serif;
+            background: var(--gray-100);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            color: var(--text-dark);
-            line-height: 1.6;
+            color: var(--slate-800);
         }
         
         .container {
-            background: var(--card-bg);
-            border-radius: 24px;
-            max-width: 480px;
             width: 100%;
-            padding: 40px 32px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            max-width: 680px;
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
         
-        /* Profile Section */
-        .profile-section {
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+            padding: 48px 32px 40px;
             text-align: center;
-            margin-bottom: 24px;
+            border-bottom: 6px solid var(--amber-500);
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(245, 158, 11, 0.1) 100%);
+            pointer-events: none;
         }
         
         .profile-photo {
-            width: 120px;
-            height: 120px;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 24px;
+            background: var(--white);
             border-radius: 50%;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--accent-coral) 0%, #f4a261 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 48px;
-            font-weight: 700;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.4),
+                0 0 0 10px var(--slate-700),
+                0 0 0 12px rgba(245, 158, 11, 0.3);
+            position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(224, 122, 95, 0.25);
         }
         
         .profile-photo img {
@@ -79,281 +95,397 @@
             object-fit: cover;
         }
         
+        .profile-photo i {
+            font-size: 72px;
+            color: var(--slate-800);
+        }
+        
         .name {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+            position: relative;
+        }
+        
+        .name-divider {
+            height: 4px;
+            width: 80px;
+            background: var(--amber-500);
+            margin: 0 auto 16px;
+            border-radius: 2px;
         }
         
         .bio {
-            font-size: 16px;
-            color: var(--text-light);
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.9);
             line-height: 1.6;
-            max-width: 90%;
-            margin: 0 auto 20px;
+            position: relative;
         }
         
-        /* Save Contact Button - PROMINENT AT TOP */
-        .save-contact-section {
+        /* Content Section */
+        .content {
+            padding: 40px 32px;
+        }
+        
+        /* 3D SAVE BUTTON - الأول */
+        .save-section {
             margin-bottom: 32px;
         }
         
-        .save-contact {
+        .save-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             width: 100%;
-            padding: 18px 24px;
-            background: var(--accent-coral);
-            color: white;
+            padding: 24px 32px;
+            background: linear-gradient(135deg, var(--amber-500) 0%, var(--amber-600) 100%);
+            color: var(--white);
             text-decoration: none;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 17px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
-            border: 3px solid transparent;
+            border: none;
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 15px 35px rgba(245, 158, 11, 0.4),
+                0 5px 15px rgba(0, 0, 0, 0.1),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
             position: relative;
             overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.4);
         }
         
-        /* Animated gradient background */
-        .save-contact::before {
+        .save-btn::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
         }
         
-        .save-contact:hover::before {
-            left: 100%;
+        .save-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            transition: transform 0.6s;
         }
         
-        .save-contact:hover {
-            background: var(--accent-hover);
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 32px rgba(224, 122, 95, 0.45);
-            border-color: rgba(255, 255, 255, 0.3);
+        .save-btn:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 25px 50px rgba(245, 158, 11, 0.5),
+                0 10px 25px rgba(0, 0, 0, 0.15),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+                inset 0 3px 0 rgba(255, 255, 255, 0.4);
         }
         
-        .save-contact:active {
-            transform: translateY(-1px) scale(1);
+        .save-btn:hover::after {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
         }
         
-        .save-contact i {
-            font-size: 20px;
+        .save-btn:active {
+            transform: translateY(-2px) scale(1);
         }
         
-        .save-contact-text {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            line-height: 1.3;
+        .save-btn i {
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            animation: bounce 2s infinite;
         }
         
-        .save-contact-main {
-            font-size: 17px;
-            font-weight: 700;
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
         
-        .save-contact-sub {
-            font-size: 13px;
-            opacity: 0.9;
-            font-weight: 500;
-        }
-        
-        /* English text styling */
-        .name[lang="en"], .bio[lang="en"] {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        /* Contact Buttons */
+        /* SPLIT BUTTON - الاتصال/واتساب */
         .contact-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
             margin-bottom: 32px;
         }
         
-        .contact-btn {
+        .split-btn {
             display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            background: var(--card-bg);
-            border: 2px solid var(--border-light);
+            height: 85px;
             border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .split-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             text-decoration: none;
-            color: var(--text-dark);
-            transition: all 0.25s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .split-half::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .split-half:hover::before {
+            opacity: 1;
+        }
+        
+        .call-side {
+            background: linear-gradient(135deg, var(--green-500) 0%, #16a34a 100%);
+            border-left: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .call-side:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateX(-3px) scale(1.02);
+        }
+        
+        .whatsapp-side {
+            background: linear-gradient(135deg, var(--emerald-500) 0%, #059669 100%);
+        }
+        
+        .whatsapp-side:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateX(3px) scale(1.02);
+        }
+        
+        .split-icon {
+            font-size: 32px;
+            color: var(--white);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .split-text {
+            color: var(--white);
+            text-align: center;
+        }
+        
+        .split-label {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .split-number {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+        
+        /* Social & Email Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 16px;
         }
         
-        .contact-btn:hover {
+        .info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-right: 4px solid transparent;
+        }
+        
+        .info-card:hover {
+            background: var(--white);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            border-color: var(--accent-coral);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
         
-        .contact-btn:active {
-            transform: translateY(0);
-        }
-        
-        .contact-icon {
-            width: 44px;
-            height: 44px;
+        .info-icon {
+            width: 52px;
+            height: 52px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
+            color: var(--white);
             flex-shrink: 0;
         }
         
-        .contact-info {
+        .info-content {
             flex: 1;
-            text-align: right;
         }
         
-        .contact-label {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-bottom: 2px;
-            font-weight: 500;
-        }
-        
-        .contact-value {
-            font-size: 16px;
+        .info-label {
+            font-size: 13px;
+            color: var(--slate-600);
             font-weight: 600;
-            color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
+            margin-bottom: 4px;
         }
         
-        /* WhatsApp Special Style */
-        .whatsapp-btn {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            border: none;
-            color: white;
+        .info-value {
+            font-size: 17px;
+            color: var(--slate-800);
+            font-weight: 700;
         }
         
-        .whatsapp-btn:hover {
-            background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
-            border: none;
+        /* Specific colors */
+        .email-card {
+            border-right-color: var(--blue-500);
         }
         
-        .whatsapp-btn .contact-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+        .email-card:hover {
+            border-right-color: var(--blue-500);
         }
         
-        .whatsapp-btn .contact-label,
-        .whatsapp-btn .contact-value {
-            color: white;
-        }
-        
-        /* Phone Icon */
-        .phone-icon {
-            background: rgba(224, 122, 95, 0.1);
-            color: var(--accent-coral);
-        }
-        
-        /* Email Icon */
         .email-icon {
-            background: rgba(52, 152, 219, 0.1);
-            color: #3498db;
+            background: var(--blue-500);
         }
         
-        /* Social Links */
-        .social-section {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
+        .instagram-card {
+            border-right-color: #e1306c;
         }
         
-        .social-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: white;
-            font-size: 22px;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .instagram-card:hover {
+            border-right-color: #e1306c;
         }
         
-        .social-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        .instagram-icon {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
         }
         
-        .social-btn:active {
-            transform: translateY(-1px) scale(1);
+        .linkedin-card {
+            border-right-color: #0077b5;
         }
         
-        .instagram-btn { 
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+        .linkedin-card:hover {
+            border-right-color: #0077b5;
         }
         
-        .linkedin-btn { 
-            background: #0077b5; 
+        .linkedin-icon {
+            background: #0077b5;
         }
         
-        .twitter-btn { 
-            background: #1DA1F2; 
+        .twitter-card {
+            border-right-color: #000;
+        }
+        
+        .twitter-card:hover {
+            border-right-color: #000;
+        }
+        
+        .twitter-icon {
+            background: #000;
         }
         
         /* Divider */
         .divider {
-            height: 1px;
-            background: var(--border-light);
-            margin: 24px 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 32px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: var(--amber-500);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px var(--white), 0 0 0 6px #e5e7eb;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--gray-50);
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: var(--slate-600);
+            font-size: 14px;
+        }
+        
+        .footer-brand {
+            font-weight: 700;
+            color: var(--amber-600);
         }
         
         /* Responsive */
-        @media (max-width: 480px) {
-            .container {
-                padding: 32px 24px;
-            }
-            
-            .name {
-                font-size: 24px;
-            }
-            
-            .bio {
-                font-size: 14px;
-            }
-            
-            .contact-btn {
-                padding: 14px 16px;
+        @media (max-width: 640px) {
+            .header {
+                padding: 36px 24px 32px;
             }
             
             .profile-photo {
-                width: 100px;
-                height: 100px;
-                font-size: 40px;
+                width: 140px;
+                height: 140px;
             }
             
-            .save-contact {
-                padding: 16px 20px;
-                font-size: 16px;
+            .profile-photo i {
+                font-size: 64px;
             }
             
-            .save-contact-main {
-                font-size: 16px;
+            .name {
+                font-size: 34px;
             }
             
-            .save-contact-sub {
-                font-size: 12px;
+            .bio {
+                font-size: 18px;
+            }
+            
+            .content {
+                padding: 32px 24px;
+            }
+            
+            .save-btn {
+                padding: 20px 28px;
+                font-size: 18px;
+            }
+            
+            .split-btn {
+                height: 76px;
+            }
+            
+            .split-icon {
+                font-size: 28px;
+            }
+            
+            .split-label {
+                font-size: 15px;
+            }
+            
+            .split-number {
+                font-size: 13px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
             }
         }
         
@@ -361,7 +493,7 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -370,129 +502,135 @@
         }
         
         .container {
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Pulse animation for save button */
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
-            }
-            50% {
-                box-shadow: 0 8px 24px rgba(224, 122, 95, 0.5);
-            }
-        }
-        
-        .save-contact {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
+        /* Focus states */
+        .split-half:focus,
+        .info-card:focus,
+        .save-btn:focus {
+            outline: 3px solid var(--amber-500);
+            outline-offset: 3px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Profile Section -->
-        <div class="profile-section">
+        <!-- Header -->
+        <div class="header">
             <div class="profile-photo">
                 {{#if PHOTO}}
                 <img src="{{PHOTO}}" alt="{{NAME}}">
                 {{/if}}
                 {{#if !PHOTO}}
-                {{NAME_INITIAL}}
+                <i class="fas fa-user"></i>
                 {{/if}}
             </div>
             
             <h1 class="name">{{NAME}}</h1>
-            
+            <div class="name-divider"></div>
             {{#if BIO}}
             <p class="bio">{{BIO}}</p>
             {{/if}}
         </div>
         
-        <!-- Save Contact Button - MOVED TO TOP -->
-        <div class="save-contact-section">
-            <a href="./contact.vcf" download class="save-contact">
-                <i class="fas fa-address-card"></i>
-                <div class="save-contact-text">
-                    <span class="save-contact-main">إضافة لجهات الاتصال</span>
-                    <span class="save-contact-sub">Add to Contacts</span>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Contact Buttons -->
-        <div class="contact-section">
+        <!-- Content -->
+        <div class="content">
+            
+            <!-- 1️⃣ Save Contact Button -->
+            <div class="save-section">
+                <a href="./contact.vcf" download class="save-btn">
+                    <i class="fas fa-download"></i>
+                    <span>حفظ جهة الاتصال</span>
+                </a>
+            </div>
+            
+            <!-- 2️⃣ Split Button - Call/WhatsApp -->
             {{#if PHONE}}
-            <!-- WhatsApp Button -->
-            <a href="https://wa.me/{{PHONE_INTL}}" class="contact-btn whatsapp-btn" target="_blank">
-                <div class="contact-icon">
-                    <i class="fab fa-whatsapp"></i>
+            <div class="contact-section">
+                <div class="split-btn">
+                    <a href="tel:{{PHONE_INTL}}" class="split-half call-side">
+                        <i class="fas fa-phone split-icon"></i>
+                        <div class="split-text">
+                            <div class="split-label">اتصال</div>
+                            <div class="split-number" dir="ltr">{{PHONE}}</div>
+                        </div>
+                    </a>
+                    
+                    <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-side" target="_blank">
+                        <i class="fab fa-whatsapp split-icon"></i>
+                        <div class="split-text">
+                            <div class="split-label">واتساب</div>
+                            <div class="split-number">راسلني</div>
+                        </div>
+                    </a>
                 </div>
-                <div class="contact-info">
-                    <div class="contact-label">واتساب / WhatsApp</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
-                </div>
-            </a>
-            
-            <!-- Phone Button -->
-            <a href="tel:+{{PHONE_INTL}}" class="contact-btn">
-                <div class="contact-icon phone-icon">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">اتصال / Call</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
-                </div>
-            </a>
+            </div>
             {{/if}}
             
-            {{#if EMAIL}}
-            <!-- Email Button -->
-            <a href="mailto:{{EMAIL}}" class="contact-btn">
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">بريد إلكتروني / Email</div>
-                    <div class="contact-value">{{EMAIL}}</div>
-                </div>
-            </a>
-            {{/if}}
+            <!-- Divider -->
+            {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}{{#if EMAIL}}
+            <div class="divider"></div>
+            {{/if}}{{/if}}{{/if}}{{/if}}
+            
+            <!-- 3️⃣ Social Links & 4️⃣ Email -->
+            <div class="info-grid">
+                
+                {{#if INSTAGRAM}}
+                <a href="https://instagram.com/{{INSTAGRAM}}" class="info-card instagram-card" target="_blank">
+                    <div class="info-icon instagram-icon">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Instagram</div>
+                        <div class="info-value">@{{INSTAGRAM}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if LINKEDIN}}
+                <a href="https://linkedin.com/in/{{LINKEDIN}}" class="info-card linkedin-card" target="_blank">
+                    <div class="info-icon linkedin-icon">
+                        <i class="fab fa-linkedin"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">LinkedIn</div>
+                        <div class="info-value">{{LINKEDIN}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if TWITTER}}
+                <a href="https://x.com/{{TWITTER}}" class="info-card twitter-card" target="_blank">
+                    <div class="info-icon twitter-icon">
+                        <i class="fab fa-x-twitter"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">X (Twitter)</div>
+                        <div class="info-value">@{{TWITTER}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if EMAIL}}
+                <a href="mailto:{{EMAIL}}" class="info-card email-card">
+                    <div class="info-icon email-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">البريد الإلكتروني</div>
+                        <div class="info-value">{{EMAIL}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+            </div>
+            
         </div>
         
-        <!-- Social Links -->
-        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
-        <div class="divider"></div>
-        {{/if}}{{/if}}{{/if}}
-        
-        <div class="social-section">
-            {{#if INSTAGRAM}}
-            <a href="https://instagram.com/{{INSTAGRAM}}" class="social-btn instagram-btn" target="_blank" aria-label="Instagram">
-                <i class="fab fa-instagram"></i>
-            </a>
-            {{/if}}
-            
-            {{#if LINKEDIN}}
-            <a href="https://linkedin.com/in/{{LINKEDIN}}" class="social-btn linkedin-btn" target="_blank" aria-label="LinkedIn">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            {{/if}}
-            
-            {{#if TWITTER}}
-            <a href="https://twitter.com/{{TWITTER}}" class="social-btn twitter-btn" target="_blank" aria-label="Twitter">
-                <i class="fab fa-twitter"></i>
-            </a>
-            {{/if}}
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">مدعوم بواسطة <span class="footer-brand">معروف</span></p>
         </div>
     </div>
 </body>

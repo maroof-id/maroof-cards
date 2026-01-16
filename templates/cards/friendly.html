@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{NAME}} - معروف</title>
     
-    <!-- Google Fonts: Plus Jakarta Sans (English) + Noto Kufi Arabic (Arabic) -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,57 +21,89 @@
         }
         
         :root {
-            --teal: #4ECDC4;
-            --teal-dark: #3ab8af;
-            --teal-light: #7ee8e1;
-            --bg-soft: #F8F9FA;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-light: #f8f9fa;
+            --text-dark: #1a1a2e;
+            --text-light: #6c757d;
+            --accent-coral: #E07A5F;
+            --whatsapp-green: #25D366;
+            --call-blue: #4A90E2;
             --card-bg: #FFFFFF;
-            --text-dark: #2D3436;
-            --text-light: #636e72;
-            --border-soft: #e9ecef;
+            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         body {
-            font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-soft);
+            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif;
+            background: var(--bg-light);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             color: var(--text-dark);
+            position: relative;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(224, 122, 95, 0.1) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
         }
         
         .container {
             background: var(--card-bg);
-            border-radius: 28px;
-            max-width: 480px;
+            border-radius: 32px;
+            max-width: 520px;
             width: 100%;
-            padding: 40px 32px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--border-soft);
+            padding: 48px 40px 40px;
+            box-shadow: var(--shadow-medium);
+            position: relative;
+            z-index: 1;
         }
         
         /* Profile Section */
         .profile-section {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
         }
         
         .profile-photo {
-            width: 110px;
-            height: 110px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            margin: 0 auto 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 44px;
-            font-weight: 700;
+            font-size: 64px;
+            font-weight: 800;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(78, 205, 196, 0.25);
+            box-shadow: 
+                0 15px 40px rgba(102, 126, 234, 0.4),
+                0 0 0 8px rgba(255, 255, 255, 1),
+                0 0 0 12px rgba(102, 126, 234, 0.1);
+            position: relative;
+        }
+        
+        .profile-photo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.2) 100%);
         }
         
         .profile-photo img {
@@ -81,156 +113,323 @@
         }
         
         .name {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 10px;
-            letter-spacing: -0.3px;
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            line-height: 1.2;
         }
         
         .bio {
-            font-size: 15px;
+            font-size: 17px;
             color: var(--text-light);
-            line-height: 1.6;
+            line-height: 1.7;
             max-width: 90%;
-            margin: 0 auto;
+            margin: 0 auto 28px;
         }
         
-        /* English text styling */
-        .name[lang="en"], .bio[lang="en"] {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+        /* Save Contact Button Section - الأول الآن */
+        .save-contact-section {
+            margin-bottom: 24px;
+            position: relative;
         }
         
-        /* Contact Buttons - Friendly rounded style */
+        /* Contact Section - بعد زر الحفظ */
         .contact-section {
+            margin-bottom: 32px;
+        }
+        
+        /* Email Section - في النهاية */
+        .email-section {
+            margin-bottom: 0;
+        }
+        
+        /* SPLIT BUTTON - الاتصال والواتساب في زر واحد مقسوم */
+        .split-contact-btn {
+            display: flex;
+            height: 80px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 0;
+            position: relative;
+        }
+        
+        .split-half {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 28px;
-        }
-        
-        .contact-btn {
-            display: flex;
             align-items: center;
-            padding: 15px 18px;
-            background: var(--card-bg);
-            border: 2px solid var(--border-soft);
-            border-radius: 20px;
+            justify-content: center;
+            gap: 6px;
             text-decoration: none;
-            color: var(--text-dark);
-            transition: all 0.2s ease;
-            gap: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
         
-        .contact-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.15);
-            border-color: var(--teal);
-            background: rgba(78, 205, 196, 0.03);
+        .split-half::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
-        .contact-btn:active {
-            transform: translateY(0);
+        .split-half:hover::before {
+            opacity: 1;
         }
         
-        .contact-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
+        .split-half:active {
+            transform: scale(0.98);
+        }
+        
+        /* Left Side - Call */
+        .call-side {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border-right: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .call-side:hover {
+            background: linear-gradient(135deg, #357ABD 0%, #2868A8 100%);
+            transform: translateX(-3px) scale(1.02);
+        }
+        
+        /* Right Side - WhatsApp */
+        .whatsapp-side {
+            background: linear-gradient(135deg, var(--whatsapp-green) 0%, #128C7E 100%);
+        }
+        
+        .whatsapp-side:hover {
+            background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
+            transform: translateX(3px) scale(1.02);
+        }
+        
+        .split-icon {
+            font-size: 32px;
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .split-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            line-height: 1.2;
+        }
+        
+        .split-label {
+            font-size: 15px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .split-number {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.95;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Email Button */
+        .email-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 19px;
-            flex-shrink: 0;
-        }
-        
-        .contact-info {
-            flex: 1;
-            text-align: right;
-        }
-        
-        .contact-label {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-bottom: 2px;
-            font-weight: 500;
-        }
-        
-        .contact-value {
-            font-size: 15px;
-            font-weight: 600;
+            gap: 14px;
+            padding: 22px 28px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 18px;
+            text-decoration: none;
             color: var(--text-dark);
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-soft);
         }
         
-        /* WhatsApp Friendly Style */
-        .whatsapp-btn {
-            background: linear-gradient(135deg, #25D366 0%, #20c75a 100%);
-            border: none;
-            color: white;
+        .email-btn:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            border-color: #adb5bd;
         }
         
-        .whatsapp-btn:hover {
-            background: linear-gradient(135deg, #20c75a 0%, #1ba850 100%);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
-        }
-        
-        .whatsapp-btn .contact-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-        
-        .whatsapp-btn .contact-label,
-        .whatsapp-btn .contact-value {
-            color: white;
-        }
-        
-        /* Phone Icon */
-        .phone-icon {
-            background: rgba(78, 205, 196, 0.12);
-            color: var(--teal);
-        }
-        
-        /* Email Icon */
         .email-icon {
-            background: rgba(52, 152, 219, 0.12);
+            font-size: 26px;
             color: #3498db;
         }
         
-        /* Social Links - Fun style */
+        .email-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .email-label {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        
+        .email-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        /* 3D SAVE CONTACT BUTTON - زر مميز جداً */
+        .save-contact {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            width: 100%;
+            padding: 26px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 24px;
+            font-weight: 800;
+            font-size: 19px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 15px 35px rgba(102, 126, 234, 0.4),
+                0 5px 15px rgba(0, 0, 0, 0.1),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 3D Effect */
+        .save-contact::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
+            opacity: 1;
+        }
+        
+        /* Shine Effect */
+        .save-contact::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            transition: transform 0.6s;
+        }
+        
+        .save-contact:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 
+                0 25px 50px rgba(102, 126, 234, 0.5),
+                0 10px 25px rgba(0, 0, 0, 0.15),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+                inset 0 3px 0 rgba(255, 255, 255, 0.4);
+        }
+        
+        .save-contact:hover::after {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+        
+        .save-contact:active {
+            transform: translateY(-2px) scale(1);
+            box-shadow: 
+                0 10px 25px rgba(102, 126, 234, 0.4),
+                inset 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .save-icon {
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .save-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+        
+        .save-main {
+            font-size: 19px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .save-sub {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.95;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Social Links */
         .social-section {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 24px;
+            gap: 18px;
             flex-wrap: wrap;
+            margin-top: 8px;
+            margin-bottom: 0;
         }
         
         .social-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 16px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: white;
-            font-size: 21px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 26px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+        }
+        
+        .social-btn::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+            filter: blur(8px);
         }
         
         .social-btn:hover {
-            transform: translateY(-3px) rotate(3deg);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: var(--shadow-medium);
         }
         
-        .social-btn:active {
-            transform: translateY(-1px) rotate(0deg);
+        .social-btn:hover::before {
+            opacity: 0.6;
         }
         
         .instagram-btn { 
-            background: linear-gradient(45deg, #f09433 0%, #dc2743 50%, #bc1888 100%); 
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
         }
         
         .linkedin-btn { 
@@ -241,131 +440,102 @@
             background: #1DA1F2; 
         }
         
-        /* Save Contact Button - Friendly Teal */
-        .save-contact {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.3);
-        }
-        
-        .save-contact:hover {
-            background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.4);
-        }
-        
-        .save-contact:active {
-            transform: translateY(0);
-        }
-        
-        /* Fun Divider */
+        /* Divider */
         .divider {
             height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--border-soft) 30%, var(--teal) 50%, var(--border-soft) 70%, transparent 100%);
-            margin: 24px 0;
-            border-radius: 2px;
-        }
-        
-        /* Decorative circles in background */
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--teal-light), transparent);
-            opacity: 0.1;
-            pointer-events: none;
-        }
-        
-        .container::after {
-            content: '';
-            position: absolute;
-            bottom: -30px;
-            left: -30px;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--teal), transparent);
-            opacity: 0.1;
-            pointer-events: none;
-        }
-        
-        .container {
+            background: linear-gradient(90deg, transparent, #dee2e6, transparent);
+            margin: 36px 0;
             position: relative;
-            overflow: hidden;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px var(--card-bg), 0 0 0 6px #e9ecef;
         }
         
         /* Responsive */
         @media (max-width: 480px) {
             .container {
-                padding: 36px 26px;
-                border-radius: 24px;
+                padding: 40px 32px 36px;
+                border-radius: 28px;
             }
             
             .name {
-                font-size: 23px;
+                font-size: 30px;
             }
             
             .bio {
-                font-size: 14px;
+                font-size: 15px;
             }
             
             .profile-photo {
-                width: 100px;
-                height: 100px;
-                font-size: 40px;
+                width: 130px;
+                height: 130px;
+                font-size: 56px;
             }
             
-            .contact-btn {
-                padding: 14px 16px;
+            .split-contact-btn {
+                height: 72px;
+            }
+            
+            .split-icon {
+                font-size: 28px;
+            }
+            
+            .split-label {
+                font-size: 14px;
+            }
+            
+            .split-number {
+                font-size: 12px;
+            }
+            
+            .save-contact {
+                padding: 22px 28px;
+                font-size: 18px;
+            }
+            
+            .save-main {
+                font-size: 18px;
+            }
+            
+            .save-sub {
+                font-size: 13px;
+            }
+            
+            .social-btn {
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+            }
+            
+            .email-btn {
+                padding: 20px 24px;
             }
         }
         
         /* Animations */
-        @keyframes bounceIn {
-            0% {
+        @keyframes fadeInUp {
+            from {
                 opacity: 0;
-                transform: scale(0.9) translateY(20px);
+                transform: translateY(30px);
             }
-            60% {
+            to {
                 opacity: 1;
-                transform: scale(1.02) translateY(-5px);
-            }
-            100% {
-                transform: scale(1) translateY(0);
+                transform: translateY(0);
             }
         }
         
         .container {
-            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        /* Floating animation for profile photo */
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-        
-        .profile-photo {
-            animation: float 3s ease-in-out infinite;
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         /* Accessibility */
@@ -377,10 +547,14 @@
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
-            
-            .profile-photo {
-                animation: none;
-            }
+        }
+        
+        .split-half:focus,
+        .email-btn:focus,
+        .social-btn:focus,
+        .save-contact:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 3px;
         }
     </style>
 </head>
@@ -404,47 +578,44 @@
             {{/if}}
         </div>
         
-        <!-- Contact Buttons -->
-        <div class="contact-section">
-            {{#if PHONE}}
-            <!-- WhatsApp Button -->
-            <a href="https://wa.me/{{PHONE_INTL}}" class="contact-btn whatsapp-btn" target="_blank">
-                <div class="contact-icon">
-                    <i class="fab fa-whatsapp"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">واتساب / WhatsApp</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
+        <!-- 1️⃣ 3D SAVE CONTACT BUTTON - الأول والأهم -->
+        <div class="save-contact-section">
+            <a href="./contact.vcf" download class="save-contact">
+                <i class="fas fa-address-card save-icon"></i>
+                <div class="save-text">
+                    <span class="save-main">إضافة لجهات الاتصال</span>
+                    <span class="save-sub">Add to Contacts</span>
                 </div>
             </a>
-            
-            <!-- Phone Button -->
-            <a href="tel:+{{PHONE_INTL}}" class="contact-btn">
-                <div class="contact-icon phone-icon">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">اتصال / Call</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if EMAIL}}
-            <!-- Email Button -->
-            <a href="mailto:{{EMAIL}}" class="contact-btn">
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">بريد إلكتروني / Email</div>
-                    <div class="contact-value">{{EMAIL}}</div>
-                </div>
-            </a>
-            {{/if}}
         </div>
         
-        <!-- Social Links -->
+        <!-- 2️⃣ Contact Section - الاتصال والواتساب -->
+        {{#if PHONE}}
+        <div class="contact-section">
+            <!-- SPLIT BUTTON - الاتصال والواتساب معاً -->
+            <div class="split-contact-btn">
+                <!-- Left Side: Call -->
+                <a href="tel:+{{PHONE_INTL}}" class="split-half call-side">
+                    <i class="fas fa-phone split-icon"></i>
+                    <div class="split-text">
+                        <span class="split-label">اتصال</span>
+                        <span class="split-number" dir="ltr">{{PHONE}}</span>
+                    </div>
+                </a>
+                
+                <!-- Right Side: WhatsApp -->
+                <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-side" target="_blank">
+                    <i class="fab fa-whatsapp split-icon"></i>
+                    <div class="split-text">
+                        <span class="split-label">واتساب</span>
+                        <span class="split-number" dir="ltr">{{PHONE}}</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- 3️⃣ Social Links -->
         {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
         <div class="divider"></div>
         {{/if}}{{/if}}{{/if}}
@@ -469,11 +640,22 @@
             {{/if}}
         </div>
         
-        <!-- Save Contact Button -->
-        <a href="./contact.vcf" download class="save-contact">
-            <i class="fas fa-user-plus"></i>
-            <span>إضافة لجهات الاتصال / Add to Contacts</span>
-        </a>
+        <!-- 4️⃣ Email Button - في النهاية -->
+        {{#if EMAIL}}
+        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
+        <div class="divider"></div>
+        {{/if}}{{/if}}{{/if}}
+        
+        <div class="email-section">
+            <a href="mailto:{{EMAIL}}" class="email-btn">
+                <i class="fas fa-envelope email-icon"></i>
+                <div class="email-info">
+                    <span class="email-label">بريد إلكتروني / Email</span>
+                    <span class="email-value">{{EMAIL}}</span>
+                </div>
+            </a>
+        </div>
+        {{/if}}
     </div>
 </body>
 </html>
