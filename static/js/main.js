@@ -7,6 +7,10 @@ function showAlert(message, type) {
     
     alert.textContent = message;
     alert.className = `alert alert-${type} show`;
+    
+    // Scroll to alert
+    alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
     setTimeout(() => {
         alert.classList.remove('show');
     }, 5000);
@@ -29,6 +33,38 @@ async function updatePendingCount() {
     } catch (error) {
         console.error('Failed to update pending count');
     }
+}
+
+// Handle photo preview
+function handlePhotoPreview(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
+            e.target.value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('previewImage').src = event.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+}
+
+// Convert file to Base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 // Initialize
