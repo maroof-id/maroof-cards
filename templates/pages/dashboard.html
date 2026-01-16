@@ -132,13 +132,14 @@
     border-radius: 8px;
     cursor: pointer;
     white-space: nowrap;
-    font-weight: 500;
-    color: #333;
+    font-weight: 700;
+    color: #000;
     transition: all 0.3s;
 }
 
 .filter-btn:hover {
     background: #f8f9fa;
+    border-color: #999;
 }
 
 .filter-btn.active {
@@ -161,30 +162,42 @@ table {
 }
 
 thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f1f3f5;
+    border-bottom: 3px solid #dee2e6;
 }
 
 th {
-    color: white;
+    color: #000;
     padding: 15px 12px;
     text-align: right;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 tbody tr {
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 1px solid #e9ecef;
     transition: background 0.2s;
 }
 
-tbody tr:hover {
+tbody tr:nth-child(odd) {
+    background: #ffffff;
+}
+
+tbody tr:nth-child(even) {
     background: #f8f9fa;
+}
+
+tbody tr:hover {
+    background: #e3f2fd !important;
 }
 
 td {
     padding: 15px 12px;
     text-align: right;
-    color: #333;
+    color: #212529;
+    font-size: 14px;
 }
 
 td:first-child {
@@ -203,11 +216,13 @@ td:first-child {
 .status-pending {
     background: #fff3cd;
     color: #856404;
+    border: 1px solid #ffeaa7;
 }
 
 .status-printed {
     background: #d4edda;
     color: #155724;
+    border: 1px solid #c3e6cb;
 }
 
 .action-btns {
