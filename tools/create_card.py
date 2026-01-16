@@ -390,62 +390,55 @@ class CardGenerator:
         return True
 
     def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
-        """Create vCard file for contact saving with photo"""
-        vcard_lines = [
-            'BEGIN:VCARD',
-            'VERSION:3.0',
-            f'FN:{data.get("NAME", "")}',
-            f'N:{data.get("NAME", "")};;;;',
-        ]
-        
-        # Add photo as base64
-        if data.get('PHOTO') and data['PHOTO'].startswith('./'):
-            try:
-                photo_path = client_dir / data['PHOTO'][2:]
-                if photo_path.exists():
-                    with open(photo_path, 'rb') as f:
-                        photo_bytes = f.read()
-                        photo_base64 = base64.b64encode(photo_bytes).decode('utf-8')
-                        vcard_lines.append(f'PHOTO;ENCODING=b;TYPE=JPEG:{photo_base64}')
-            except Exception as e:
-                print(f"⚠️ Could not add photo to vCard: {e}")
-        
-        # Add phone
-        if data.get('PHONE_INTL'):
-            vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
-        elif data.get('PHONE'):
-            vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
-        
-        # Add email
-        if data.get('EMAIL'):
-            vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
-        
-        # Add social URLs
-        if data.get('INSTAGRAM'):
-            vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
-        
-        if data.get('LINKEDIN'):
-            vcard_lines.append(f'URL;TYPE=LinkedIn:https://linkedin.com/in/{data["LINKEDIN"]}')
-        
-        if data.get('TWITTER'):
-            vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
-        
-        # Add profile URL
-        vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
-        
-        # Add bio as note
-        if data.get('BIO'):
-            vcard_lines.append(f'NOTE:{data["BIO"]}')
-        
-        vcard_lines.append('END:VCARD')
-        
-        # Write VCF file
-        vcard_path = client_dir / 'contact.vcf'
-        with open(vcard_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(vcard_lines))
-        
-        return vcard_path
-
+    """Create vCard file for contact saving"""
+    vcard_lines = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        f'FN:{data.get("NAME", "")}',
+        f'N:{data.get("NAME", "")};;;;',
+    ]
+    
+    # Add photo URL (not base64 - smaller file)
+    if data.get('PHOTO') and data['PHOTO'].startswith('./'):
+        photo_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["PHOTO"][2:]}'
+        vcard_lines.append(f'PHOTO;VALUE=URL;TYPE=JPEG:{photo_url}')
+    
+    # Add phone
+    if data.get('PHONE_INTL'):
+        vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
+    elif data.get('PHONE'):
+        vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
+    
+    # Add email
+    if data.get('EMAIL'):
+        vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
+    
+    # Add social URLs
+    if data.get('INSTAGRAM'):
+        vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
+    
+    if data.get('LINKEDIN'):
+        vcard_lines.append(f'URL;TYPE=LinkedIn:https://linkedin.com/in/{data["LINKEDIN"]}')
+    
+    if data.get('TWITTER'):
+        vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
+    
+    # Add profile URL
+    vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
+    
+    # Add bio as note
+    if data.get('BIO'):
+        vcard_lines.append(f'NOTE:{data["BIO"]}')
+    
+    vcard_lines.append('END:VCARD')
+    
+    # Write VCF file
+    vcard_path = client_dir / 'contact.vcf'
+    with open(vcard_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(vcard_lines))
+    
+    return vcard_path
+    
     def git_push(self, message: str = 'Update cards', timeout: int = 30) -> Tuple[bool, str]:
         """Push changes to GitHub"""
         try:
