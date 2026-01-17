@@ -10,7 +10,7 @@ import json
 import subprocess
 import base64
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, List
 from datetime import datetime
 
 class CardGenerator:
@@ -28,6 +28,19 @@ class CardGenerator:
 
         self.clients_path.mkdir(parents=True, exist_ok=True)
         self.templates_path.mkdir(parents=True, exist_ok=True)
+
+    def get_available_templates(self) -> List[str]:
+        """Get list of available templates from templates/cards/"""
+        templates_dir = self.templates_path / "cards"
+        if not templates_dir.exists():
+            return ['professional']
+        
+        templates = []
+        for file in templates_dir.glob("*.html"):
+            template_name = file.stem
+            templates.append(template_name)
+        
+        return sorted(templates) if templates else ['professional']
 
     def sanitize_username(self, name: str) -> str:
         """Convert Arabic/English name to safe username"""
@@ -119,6 +132,10 @@ class CardGenerator:
         template_file = self.templates_path / "cards" / f"{template_name}.html"
 
         if not template_file.exists():
+            print(f"⚠️ Template not found: {template_name}, using professional")
+            template_file = self.templates_path / "cards" / "professional.html"
+            
+        if not template_file.exists():
             raise FileNotFoundError(f"Template not found: {template_name}")
 
         with open(template_file, 'r', encoding='utf-8') as f:
@@ -165,6 +182,7 @@ class CardGenerator:
         instagram: str = '',
         linkedin: str = '',
         twitter: str = '',
+        website: str = '',  # ← NEW: Website field
         bio: str = '',
         template: str = 'professional',
         username: Optional[str] = None,
@@ -209,6 +227,7 @@ class CardGenerator:
                 print(f"⚠️ Photo failed: {e}")
                 photo_path = ''
 
+        # ✅ FIX: Add template to data.json
         data = {
             'NAME': name,
             'PHONE': phone,
@@ -216,8 +235,10 @@ class CardGenerator:
             'INSTAGRAM': instagram.lstrip('@'),
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
+            'WEBSITE': website,  # ← NEW
             'BIO': bio or '',
             'PHOTO': photo_path,
+            'template': template,  # ← FIX: Save template name
             'created_at': datetime.now().isoformat(),
             'source': source,
             'status': 'pending',
@@ -228,13 +249,19 @@ class CardGenerator:
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
 
-        html = self.load_template(template)
-        html = self.replace_variables(html, data)
+        try:
+            html = self.load_template(template)
+            html = self.replace_variables(html, data)
+        except Exception as e:
+            print(f"⚠️ Template error: {e}")
+            html = self.load_template('professional')
+            html = self.replace_variables(html, data)
 
         output_file = client_dir / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
 
+        # ✅ FIX: Always save data.json
         data_file = client_dir / 'data.json'
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -258,6 +285,7 @@ class CardGenerator:
         instagram: str = None,
         linkedin: str = None,
         twitter: str = None,
+        website: str = None,  # ← NEW
         bio: str = None,
         template: str = None,
         photo: str = None
@@ -271,13 +299,19 @@ class CardGenerator:
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
+        # Update fields
         if name: data['NAME'] = name
         if phone: data['PHONE'] = phone
         if email: data['EMAIL'] = email
         if instagram: data['INSTAGRAM'] = instagram.lstrip('@')
         if linkedin: data['LINKEDIN'] = linkedin
         if twitter: data['TWITTER'] = twitter.lstrip('@')
+        if website is not None: data['WEBSITE'] = website  # ← NEW
         if bio is not None: data['BIO'] = bio
+        
+        # ✅ FIX: Update template
+        if template:
+            data['template'] = template
         
         if photo and photo.startswith('data:image'):
             client_dir = self.clients_path / username
@@ -304,15 +338,22 @@ class CardGenerator:
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
         
-        template_name = template if template else data.get('template', 'professional')
+        # ✅ FIX: Use template from data
+        template_name = data.get('template', 'professional')
         
-        html = self.load_template(template_name)
-        html = self.replace_variables(html, data)
+        try:
+            html = self.load_template(template_name)
+            html = self.replace_variables(html, data)
+        except Exception as e:
+            print(f"⚠️ Template error: {e}")
+            html = self.load_template('professional')
+            html = self.replace_variables(html, data)
         
         output_file = self.clients_path / username / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
         
+        # ✅ FIX: Save updated data.json
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         
@@ -321,7 +362,8 @@ class CardGenerator:
         return {
             'username': username,
             'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
-            'status': data.get('status')
+            'status': data.get('status'),
+            'template': template_name
         }
 
     def mark_as_printed(self, username: str) -> bool:
@@ -369,6 +411,9 @@ class CardGenerator:
         
         if data.get('EMAIL'):
             vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
+        
+        if data.get('WEBSITE'):
+            vcard_lines.append(f'URL;TYPE=Website:{data["WEBSITE"]}')
         
         if data.get('INSTAGRAM'):
             vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
@@ -447,6 +492,7 @@ class CardGenerator:
                                 'phone': data.get('PHONE', ''),
                                 'status': card_status,
                                 'source': data.get('source', 'admin'),
+                                'template': data.get('template', 'professional'),
                                 'print_count': data.get('print_count', 0),
                                 'created_at': data.get('created_at', ''),
                                 'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'

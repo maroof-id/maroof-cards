@@ -37,6 +37,16 @@ def register():
 def edit(username):
     return render_template('edit.html')
 
+# ✅ NEW: Get available templates
+@app.route('/api/templates', methods=['GET'])
+def get_templates():
+    """Get list of available templates"""
+    try:
+        templates = generator.get_available_templates()
+        return jsonify({'success': True, 'templates': templates})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/create', methods=['POST'])
 def create_card():
     try:
@@ -46,14 +56,25 @@ def create_card():
             return jsonify({'success': False, 'error': 'Name is required'}), 400
 
         result = generator.create_card(
-            name=name, phone=data.get('phone', ''), email=data.get('email', ''),
-            instagram=data.get('instagram', ''), linkedin=data.get('linkedin', ''),
-            twitter=data.get('twitter', ''), bio=data.get('bio', ''),
-            template=data.get('template', 'professional'), photo=data.get('photo', ''),
+            name=name,
+            phone=data.get('phone', ''),
+            email=data.get('email', ''),
+            instagram=data.get('instagram', ''),
+            linkedin=data.get('linkedin', ''),
+            twitter=data.get('twitter', ''),
+            website=data.get('website', ''),  # ← NEW
+            bio=data.get('bio', ''),
+            template=data.get('template', 'professional'),
+            photo=data.get('photo', ''),
             source='admin'
         )
         generator.git_push_background(f"Add card: {name}")
-        return jsonify({'success': True, 'url': result['url'], 'username': result['username']}), 201
+        return jsonify({
+            'success': True,
+            'url': result['url'],
+            'username': result['username'],
+            'template': result['template']
+        }), 201
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
 
@@ -66,10 +87,16 @@ def register_card():
             return jsonify({'success': False, 'error': 'Name is required'}), 400
 
         result = generator.create_card(
-            name=name, phone=data.get('phone', ''), email=data.get('email', ''),
-            instagram=data.get('instagram', ''), linkedin=data.get('linkedin', ''),
-            twitter=data.get('twitter', ''), bio=data.get('bio', ''),
-            template=data.get('template', 'professional'), photo=data.get('photo', ''),
+            name=name,
+            phone=data.get('phone', ''),
+            email=data.get('email', ''),
+            instagram=data.get('instagram', ''),
+            linkedin=data.get('linkedin', ''),
+            twitter=data.get('twitter', ''),
+            website=data.get('website', ''),  # ← NEW
+            bio=data.get('bio', ''),
+            template=data.get('template', 'professional'),
+            photo=data.get('photo', ''),
             source='client'
         )
         generator.git_push_background(f"Client registration: {name}")
@@ -105,12 +132,23 @@ def get_card(username):
 def update_card(username):
     try:
         data = request.get_json() or {}
-        generator.update_card(username=username, name=data.get('name'), phone=data.get('phone'),
-            email=data.get('email'), instagram=data.get('instagram'), linkedin=data.get('linkedin'),
-            twitter=data.get('twitter'), bio=data.get('bio'), template=data.get('template'),
-            photo=data.get('photo'))
+        
+        result = generator.update_card(
+            username=username,
+            name=data.get('name'),
+            phone=data.get('phone'),
+            email=data.get('email'),
+            instagram=data.get('instagram'),
+            linkedin=data.get('linkedin'),
+            twitter=data.get('twitter'),
+            website=data.get('website'),  # ← NEW
+            bio=data.get('bio'),
+            template=data.get('template'),  # ← FIX: Pass template
+            photo=data.get('photo')
+        )
+        
         generator.git_push_background(f"Update card: {username}")
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'result': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -180,5 +218,10 @@ if __name__ == '__main__':
     print("="*50)
     print("📡 http://0.0.0.0:7070")
     print("📱 http://0.0.0.0:7070/register")
+    
+    # Show available templates
+    templates = generator.get_available_templates()
+    print(f"📋 Templates: {', '.join(templates)}")
+    
     print("="*50)
     app.run(host='0.0.0.0', port=7070, debug=False)
