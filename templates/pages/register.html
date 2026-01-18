@@ -14,7 +14,6 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            /* خلفية احترافية: أخضر داكن → رمادي → أزرق داكن */
             background: linear-gradient(135deg, #1a3a2e 0%, #2c3e50 50%, #1e3a5f 100%);
             min-height: 100vh;
             padding: 40px 20px;
@@ -22,7 +21,6 @@
             overflow-x: hidden;
         }
         
-        /* Animated subtle background circles */
         body::before,
         body::after {
             content: '';
@@ -64,7 +62,61 @@
             z-index: 1;
         }
         
-        /* Glass Card - Dark Professional */
+        /* Offline Banner */
+        .offline-banner {
+            display: none;
+            background: rgba(255, 152, 0, 0.2);
+            border: 2px solid rgba(255, 152, 0, 0.5);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #fff;
+            animation: pulse 2s infinite;
+        }
+        
+        .offline-banner.show {
+            display: block;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .offline-banner i {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+            color: #ffa726;
+        }
+        
+        /* Pending Badge */
+        .pending-badge {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 152, 0, 0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(255, 152, 0, 0.4);
+            z-index: 9999;
+            cursor: pointer;
+            animation: bounce 1s infinite;
+        }
+        
+        .pending-badge.show {
+            display: block;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
         .glass-card {
             background: rgba(30, 40, 50, 0.85);
             backdrop-filter: blur(25px) saturate(180%);
@@ -80,7 +132,6 @@
             overflow: hidden;
         }
         
-        /* Subtle top highlight */
         .glass-card::before {
             content: '';
             position: absolute;
@@ -128,7 +179,6 @@
             text-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         
-        /* Notice Box - High Contrast */
         .notice {
             background: rgba(74, 157, 111, 0.15);
             border: 2px solid rgba(74, 157, 111, 0.35);
@@ -156,7 +206,6 @@
             color: #5dcea6;
         }
         
-        /* Section Title */
         .section-title {
             color: #ffffff;
             font-size: 21px;
@@ -175,7 +224,6 @@
             font-size: 24px;
         }
         
-        /* Form Groups */
         .form-group {
             margin-bottom: 22px;
             position: relative;
@@ -218,7 +266,6 @@
             font-weight: 400;
         }
         
-        /* Inputs - High Contrast */
         input[type="text"],
         input[type="tel"],
         input[type="email"],
@@ -245,7 +292,6 @@
             color: rgba(255, 255, 255, 0.45);
         }
         
-        /* Filled State - Green Accent */
         input:not(:placeholder-shown),
         textarea:not(:placeholder-shown),
         select:not([value=""]) {
@@ -256,7 +302,6 @@
                 inset 0 2px 6px rgba(0,0,0,0.15);
         }
         
-        /* Focus State */
         input:focus,
         textarea:focus,
         select:focus {
@@ -270,7 +315,6 @@
             transform: translateY(-2px);
         }
         
-        /* Active Label Effects */
         .form-group:has(input:not(:placeholder-shown)) label,
         .form-group:has(textarea:not(:placeholder-shown)) label,
         .form-group:has(input:focus) label,
@@ -286,7 +330,6 @@
             transform: scale(1.12);
         }
         
-        /* File Input */
         input[type="file"] {
             padding: 14px 18px;
             font-size: 14.5px;
@@ -323,7 +366,6 @@
             padding-left: 50px;
         }
         
-        /* Submit Button - Professional Green */
         .submit-btn {
             width: 100%;
             padding: 22px;
@@ -382,7 +424,6 @@
             margin-left: 12px;
         }
         
-        /* Loading */
         .loading {
             display: none;
             text-align: center;
@@ -410,7 +451,6 @@
             text-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         
-        /* Success Card */
         .success-card {
             display: none;
             background: rgba(30, 40, 50, 0.9);
@@ -451,7 +491,6 @@
             text-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         
-        /* Photo Preview */
         .photo-preview {
             margin-top: 16px;
             text-align: center;
@@ -475,7 +514,11 @@
             line-height: 1.5;
         }
         
-        /* Responsive */
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 25px 16px;
@@ -507,11 +550,31 @@
                 font-size: 18px;
                 padding: 19px;
             }
+            
+            .pending-badge {
+                top: 10px;
+                right: 10px;
+                padding: 10px 16px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Pending Badge -->
+    <div class="pending-badge" id="pendingBadge" onclick="retryPending()">
+        <i class="fas fa-clock"></i>
+        <span id="pendingCount">0</span> طلب معلق
+    </div>
+
     <div class="container">
+        <!-- Offline Banner -->
+        <div class="offline-banner" id="offlineBanner">
+            <i class="fas fa-wifi-slash"></i>
+            <strong>الخادم غير متاح حالياً</strong><br>
+            سيتم حفظ بياناتك محلياً وإرسالها تلقائياً عند عودة الاتصال
+        </div>
+
         <div class="glass-card">
             <div class="header">
                 <div class="header-icon">🌟</div>
@@ -526,7 +589,6 @@
             </div>
             
             <form id="registerForm">
-                
                 <!-- معلومات أساسية -->
                 <div class="section-title">
                     <i class="fas fa-user-circle"></i>
@@ -794,10 +856,113 @@
     </div>
 
     <script>
-    // Load templates dynamically
-    async function loadTemplates() {
+    // ========== CONFIG ==========
+    const API_ENDPOINTS = [
+        'http://raspberrypi.local:7070/api/register',  // محلي
+        'http://192.168.1.100:7070/api/register',      // IP محلي (غيّره حسب شبكتك)
+        // يمكن إضافة Cloudflare Tunnel هنا لاحقاً
+    ];
+    
+    const STORAGE_KEY = 'maroof_pending_registrations';
+    
+    // ========== UTILITY FUNCTIONS ==========
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    function getPendingRegistrations() {
         try {
-            const response = await fetch('/api/templates');
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch {
+            return [];
+        }
+    }
+    
+    function savePendingRegistration(data) {
+        const pending = getPendingRegistrations();
+        pending.push({
+            data: data,
+            timestamp: Date.now(),
+            id: Date.now() + Math.random()
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(pending));
+        updatePendingBadge();
+    }
+    
+    function removePendingRegistration(id) {
+        const pending = getPendingRegistrations();
+        const filtered = pending.filter(item => item.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+        updatePendingBadge();
+    }
+    
+    function updatePendingBadge() {
+        const pending = getPendingRegistrations();
+        const badge = document.getElementById('pendingBadge');
+        const count = document.getElementById('pendingCount');
+        
+        if (pending.length > 0) {
+            count.textContent = pending.length;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    }
+    
+    async function testServerConnection() {
+        for (const endpoint of API_ENDPOINTS) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                
+                const response = await fetch(endpoint.replace('/register', '/templates'), {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    return endpoint;
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+        return null;
+    }
+    
+    async function sendToServer(data, endpoint) {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Server error');
+        }
+        
+        return await response.json();
+    }
+    
+    // ========== MAIN FUNCTIONS ==========
+    async function loadTemplates() {
+        const endpoint = await testServerConnection();
+        
+        if (!endpoint) {
+            document.getElementById('templateInfo').textContent = 
+                'سيتم تحميل التصاميم عند الاتصال';
+            return;
+        }
+        
+        try {
+            const response = await fetch(endpoint.replace('/register', '/templates'));
             const result = await response.json();
             
             if (result.success && result.templates.length > 0) {
@@ -812,16 +977,86 @@
                 });
                 
                 document.getElementById('templateInfo').textContent = 
-                    `${result.templates.length} تصميم متاح للاختيار`;
+                    `${result.templates.length} تصميم متاح`;
             }
         } catch (error) {
             console.error('Failed to load templates:', error);
-            document.getElementById('templateInfo').textContent = 
-                'تعذر تحميل التصاميم - سيتم استخدام التصميم الافتراضي';
         }
     }
-
-    // Photo preview
+    
+    async function submitRegistration(data, showOfflineMessage = true) {
+        const endpoint = await testServerConnection();
+        
+        if (!endpoint) {
+            if (showOfflineMessage) {
+                // الخادم مقفل - احفظ محلياً
+                savePendingRegistration(data);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('offlineBanner').classList.add('show');
+                
+                setTimeout(() => {
+                    document.querySelector('.glass-card').style.display = 'none';
+                    document.getElementById('successCard').style.display = 'block';
+                    document.querySelector('.success-card h2').textContent = 
+                        'تم حفظ بياناتك محلياً!';
+                    document.querySelector('.success-card p').textContent = 
+                        'سيتم إرسال بياناتك تلقائياً عند عودة الاتصال بالخادم';
+                }, 1000);
+            }
+            return false;
+        }
+        
+        // الخادم متاح - أرسل
+        try {
+            const result = await sendToServer(data, endpoint);
+            
+            if (result.success) {
+                return true;
+            } else {
+                throw new Error(result.error || 'Unknown error');
+            }
+        } catch (error) {
+            if (showOfflineMessage) {
+                savePendingRegistration(data);
+                document.getElementById('offlineBanner').classList.add('show');
+            }
+            return false;
+        }
+    }
+    
+    async function retryPending() {
+        const pending = getPendingRegistrations();
+        
+        if (pending.length === 0) return;
+        
+        const badge = document.getElementById('pendingBadge');
+        badge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+        
+        let successCount = 0;
+        
+        for (const item of pending) {
+            const success = await submitRegistration(item.data, false);
+            if (success) {
+                removePendingRegistration(item.id);
+                successCount++;
+            }
+        }
+        
+        if (successCount > 0) {
+            alert(`✅ تم إرسال ${successCount} طلب بنجاح!`);
+            
+            if (getPendingRegistrations().length === 0) {
+                document.getElementById('offlineBanner').classList.remove('show');
+            }
+        } else {
+            alert('❌ لا يزال الخادم غير متاح. سنحاول لاحقاً.');
+        }
+        
+        updatePendingBadge();
+    }
+    
+    // ========== EVENT HANDLERS ==========
     document.getElementById('photoInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -842,8 +1077,7 @@
             document.getElementById('photoPreview').style.display = 'none';
         }
     });
-
-    // Form submit
+    
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -860,12 +1094,7 @@
             }
             
             try {
-                photoBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(photoFile);
-                });
+                photoBase64 = await fileToBase64(photoFile);
             } catch (error) {
                 alert('فشل قراءة الصورة');
                 return;
@@ -883,12 +1112,7 @@
             }
             
             try {
-                cvBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(cvFile);
-                });
+                cvBase64 = await fileToBase64(cvFile);
             } catch (error) {
                 alert('فشل قراءة ملف CV');
                 return;
@@ -905,34 +1129,37 @@
         document.getElementById('registerForm').style.display = 'none';
         document.getElementById('loading').style.display = 'block';
 
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
+        const success = await submitRegistration(data);
+        
+        document.getElementById('loading').style.display = 'none';
 
-            const result = await response.json();
-            
-            document.getElementById('loading').style.display = 'none';
-
-            if (result.success) {
-                document.querySelector('.glass-card').style.display = 'none';
-                document.getElementById('successCard').style.display = 'block';
-            } else {
-                alert(result.error || 'حدث خطأ أثناء إنشاء البطاقة');
-                document.getElementById('registerForm').style.display = 'block';
-            }
-        } catch (error) {
-            document.getElementById('loading').style.display = 'none';
+        if (success) {
+            document.querySelector('.glass-card').style.display = 'none';
+            document.getElementById('successCard').style.display = 'block';
+        } else {
             document.getElementById('registerForm').style.display = 'block';
-            alert('خطأ في الاتصال بالخادم');
-            console.error('Error:', error);
         }
     });
-
-    // Load templates on page load
-    loadTemplates();
+    
+    // ========== INIT ==========
+    window.addEventListener('load', () => {
+        loadTemplates();
+        updatePendingBadge();
+        
+        // محاولة إرسال الطلبات المعلقة عند فتح الصفحة
+        const pending = getPendingRegistrations();
+        if (pending.length > 0) {
+            setTimeout(retryPending, 2000);
+        }
+    });
+    
+    // محاولة إرسال كل 30 ثانية
+    setInterval(() => {
+        const pending = getPendingRegistrations();
+        if (pending.length > 0) {
+            retryPending();
+        }
+    }, 30000);
     </script>
 </body>
 </html>
