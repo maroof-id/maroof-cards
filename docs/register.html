@@ -62,7 +62,6 @@
             z-index: 1;
         }
         
-        /* Offline Banner */
         .offline-banner {
             display: none;
             background: rgba(255, 152, 0, 0.2);
@@ -91,7 +90,6 @@
             color: #ffa726;
         }
         
-        /* Pending Badge */
         .pending-badge {
             display: none;
             position: fixed;
@@ -120,13 +118,9 @@
         .glass-card {
             background: rgba(30, 40, 50, 0.85);
             backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
             border-radius: 32px;
             border: 2px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 
-                0 16px 48px 0 rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
-                0 0 0 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
             padding: 50px 45px;
             position: relative;
             overflow: hidden;
@@ -139,11 +133,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(74, 157, 111, 0.6), 
-                rgba(52, 152, 219, 0.6), 
-                transparent);
+            background: linear-gradient(90deg, transparent, rgba(74, 157, 111, 0.6), rgba(52, 152, 219, 0.6), transparent);
         }
         
         .header {
@@ -169,13 +159,11 @@
             font-weight: 700;
             margin-bottom: 12px;
             text-shadow: 0 3px 12px rgba(0,0,0,0.4);
-            letter-spacing: -0.5px;
         }
         
         .header p {
             color: rgba(255, 255, 255, 0.85);
             font-size: 17px;
-            font-weight: 400;
             text-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         
@@ -189,9 +177,6 @@
             text-align: center;
             font-size: 15.5px;
             line-height: 1.7;
-            box-shadow: 
-                0 6px 20px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.08);
         }
         
         .notice i {
@@ -199,7 +184,6 @@
             display: block;
             margin-bottom: 14px;
             color: #4a9d6f;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
         
         .notice strong {
@@ -213,7 +197,6 @@
             margin: 40px 0 24px;
             padding-bottom: 14px;
             border-bottom: 2px solid rgba(74, 157, 111, 0.3);
-            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -226,7 +209,6 @@
         
         .form-group {
             margin-bottom: 22px;
-            position: relative;
         }
         
         .form-group label {
@@ -237,8 +219,6 @@
             font-size: 15.5px;
             font-weight: 500;
             margin-bottom: 11px;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
         }
         
         .form-group label i {
@@ -246,10 +226,9 @@
             width: 28px;
             text-align: center;
             color: rgba(74, 157, 111, 0.85);
-            transition: all 0.3s ease;
         }
         
-        .form-group label .label-text {
+        .label-text {
             display: flex;
             flex-direction: column;
             gap: 3px;
@@ -263,7 +242,6 @@
         .label-en {
             font-size: 13px;
             opacity: 0.75;
-            font-weight: 400;
         }
         
         input[type="text"],
@@ -275,16 +253,11 @@
             width: 100%;
             padding: 17px 22px;
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.15);
             border-radius: 16px;
             color: #ffffff;
             font-size: 16px;
-            font-weight: 500;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 
-                inset 0 2px 6px rgba(0,0,0,0.2),
-                0 1px 0 rgba(255,255,255,0.03);
+            transition: all 0.4s;
         }
         
         input::placeholder,
@@ -292,65 +265,18 @@
             color: rgba(255, 255, 255, 0.45);
         }
         
-        input:not(:placeholder-shown),
-        textarea:not(:placeholder-shown),
-        select:not([value=""]) {
-            background: rgba(74, 157, 111, 0.12);
-            border-color: rgba(74, 157, 111, 0.4);
-            box-shadow: 
-                0 0 0 4px rgba(74, 157, 111, 0.08),
-                inset 0 2px 6px rgba(0,0,0,0.15);
-        }
-        
         input:focus,
         textarea:focus,
         select:focus {
             outline: none;
-            background: rgba(74, 157, 111, 0.15);
             border-color: #4a9d6f;
-            box-shadow: 
-                0 0 0 4px rgba(74, 157, 111, 0.15),
-                0 8px 28px rgba(74, 157, 111, 0.25),
-                inset 0 2px 6px rgba(0,0,0,0.1);
+            background: rgba(74, 157, 111, 0.15);
             transform: translateY(-2px);
-        }
-        
-        .form-group:has(input:not(:placeholder-shown)) label,
-        .form-group:has(textarea:not(:placeholder-shown)) label,
-        .form-group:has(input:focus) label,
-        .form-group:has(textarea:focus) label {
-            color: #ffffff;
-        }
-        
-        .form-group:has(input:not(:placeholder-shown)) label i,
-        .form-group:has(textarea:not(:placeholder-shown)) label i,
-        .form-group:has(input:focus) label i,
-        .form-group:has(textarea:focus) label i {
-            color: #4a9d6f;
-            transform: scale(1.12);
         }
         
         input[type="file"] {
             padding: 14px 18px;
-            font-size: 14.5px;
             cursor: pointer;
-        }
-        
-        input[type="file"]::file-selector-button {
-            background: rgba(74, 157, 111, 0.2);
-            border: 2px solid rgba(74, 157, 111, 0.4);
-            border-radius: 12px;
-            padding: 11px 22px;
-            color: #ffffff;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 15px;
-            transition: all 0.3s;
-        }
-        
-        input[type="file"]::file-selector-button:hover {
-            background: rgba(74, 157, 111, 0.35);
-            border-color: #4a9d6f;
         }
         
         textarea {
@@ -360,68 +286,23 @@
         
         select {
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%234a9d6f' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 22px center;
-            padding-left: 50px;
         }
         
         .submit-btn {
             width: 100%;
             padding: 22px;
             background: linear-gradient(135deg, #4a9d6f 0%, #3a7d5a 100%);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: none;
             border-radius: 18px;
             color: #ffffff;
             font-size: 20px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 
-                0 10px 28px rgba(74, 157, 111, 0.35),
-                inset 0 1px 0 rgba(255,255,255,0.2),
-                0 0 0 1px rgba(0,0,0,0.15);
             margin-top: 35px;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
         }
         
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.6s;
-        }
-        
-        .submit-btn:hover:not(:disabled)::before {
-            left: 100%;
-        }
-        
-        .submit-btn:hover:not(:disabled) {
+        .submit-btn:hover {
             transform: translateY(-3px);
-            background: linear-gradient(135deg, #5dcea6 0%, #4a9d6f 100%);
-            box-shadow: 
-                0 14px 36px rgba(74, 157, 111, 0.45),
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                0 0 0 1px rgba(0,0,0,0.1);
-        }
-        
-        .submit-btn:active:not(:disabled) {
-            transform: translateY(-1px);
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .submit-btn i {
-            margin-left: 12px;
         }
         
         .loading {
@@ -447,48 +328,32 @@
         .loading p {
             color: #ffffff;
             font-size: 17px;
-            font-weight: 500;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         
         .success-card {
             display: none;
             background: rgba(30, 40, 50, 0.9);
-            backdrop-filter: blur(25px);
             border: 2px solid rgba(74, 157, 111, 0.5);
             border-radius: 32px;
             padding: 60px 45px;
             text-align: center;
             color: #ffffff;
-            box-shadow: 
-                0 16px 48px rgba(74, 157, 111, 0.3),
-                inset 0 1px 0 rgba(255,255,255,0.1);
         }
         
         .success-icon {
             font-size: 88px;
             margin-bottom: 28px;
-            filter: drop-shadow(0 6px 16px rgba(74, 157, 111, 0.5));
-            animation: successPop 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        @keyframes successPop {
-            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-            50% { transform: scale(1.15) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         
         .success-card h2 {
             font-size: 34px;
             margin-bottom: 16px;
-            text-shadow: 0 3px 10px rgba(0,0,0,0.3);
             color: #5dcea6;
         }
         
         .success-card p {
             font-size: 18px;
             opacity: 0.9;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         
         .photo-preview {
@@ -501,9 +366,6 @@
             max-height: 220px;
             border-radius: 16px;
             border: 3px solid rgba(74, 157, 111, 0.4);
-            box-shadow: 
-                0 10px 28px rgba(0,0,0,0.3),
-                0 0 0 1px rgba(255,255,255,0.05);
         }
         
         small {
@@ -511,64 +373,16 @@
             color: rgba(255, 255, 255, 0.65);
             font-size: 13.5px;
             margin-top: 9px;
-            line-height: 1.5;
-        }
-        
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 25px 16px;
-            }
-            
-            .glass-card {
-                padding: 38px 28px;
-                border-radius: 26px;
-            }
-            
-            .header h1 {
-                font-size: 30px;
-            }
-            
-            .header-icon {
-                font-size: 56px;
-            }
-            
-            .section-title {
-                font-size: 19px;
-            }
-            
-            input, textarea, select {
-                font-size: 15px;
-                padding: 15px 19px;
-            }
-            
-            .submit-btn {
-                font-size: 18px;
-                padding: 19px;
-            }
-            
-            .pending-badge {
-                top: 10px;
-                right: 10px;
-                padding: 10px 16px;
-                font-size: 14px;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Pending Badge -->
     <div class="pending-badge" id="pendingBadge" onclick="retryPending()">
         <i class="fas fa-clock"></i>
         <span id="pendingCount">0</span> طلب معلق
     </div>
 
     <div class="container">
-        <!-- Offline Banner -->
         <div class="offline-banner" id="offlineBanner">
             <i class="fas fa-wifi-slash"></i>
             <strong>الخادم غير متاح حالياً</strong><br>
@@ -589,7 +403,6 @@
             </div>
             
             <form id="registerForm">
-                <!-- معلومات أساسية -->
                 <div class="section-title">
                     <i class="fas fa-user-circle"></i>
                     المعلومات الأساسية
@@ -651,10 +464,9 @@
                             <span class="label-en">Bio</span>
                         </div>
                     </label>
-                    <textarea name="bio" placeholder="اكتب نبذة مختصرة عنك أو عن عملك"></textarea>
+                    <textarea name="bio" placeholder="اكتب نبذة مختصرة"></textarea>
                 </div>
 
-                <!-- معلومات الاتصال -->
                 <div class="section-title">
                     <i class="fas fa-phone-alt"></i>
                     معلومات الاتصال
@@ -665,7 +477,7 @@
                         <i class="fas fa-mobile-alt"></i>
                         <div class="label-text">
                             <span class="label-ar">رقم الجوال الأول</span>
-                            <span class="label-en">Phone Number 1</span>
+                            <span class="label-en">Phone 1</span>
                         </div>
                     </label>
                     <input type="tel" name="phone" placeholder="05xxxxxxxx">
@@ -676,7 +488,7 @@
                         <i class="fas fa-phone-square-alt"></i>
                         <div class="label-text">
                             <span class="label-ar">رقم الجوال الثاني</span>
-                            <span class="label-en">Phone Number 2</span>
+                            <span class="label-en">Phone 2</span>
                         </div>
                     </label>
                     <input type="tel" name="phone2" placeholder="05xxxxxxxx">
@@ -693,147 +505,78 @@
                     <input type="email" name="email" placeholder="example@email.com">
                 </div>
 
-                <!-- مواقع التواصل والروابط -->
                 <div class="section-title">
                     <i class="fas fa-share-nodes"></i>
-                    مواقع التواصل والروابط
+                    مواقع التواصل
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fas fa-globe"></i>
-                        <div class="label-text">
-                            <span class="label-ar">الموقع الإلكتروني</span>
-                            <span class="label-en">Website</span>
-                        </div>
-                    </label>
+                    <label><i class="fas fa-globe"></i><span>الموقع الإلكتروني</span></label>
                     <input type="url" name="website" placeholder="https://example.com">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-instagram"></i>
-                        <div class="label-text">
-                            <span class="label-ar">انستقرام</span>
-                            <span class="label-en">Instagram</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-instagram"></i><span>Instagram</span></label>
                     <input type="text" name="instagram" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-linkedin"></i>
-                        <div class="label-text">
-                            <span class="label-ar">لينكد إن</span>
-                            <span class="label-en">LinkedIn</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-linkedin"></i><span>LinkedIn</span></label>
                     <input type="text" name="linkedin" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-x-twitter"></i>
-                        <div class="label-text">
-                            <span class="label-ar">تويتر / إكس</span>
-                            <span class="label-en">Twitter / X</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-x-twitter"></i><span>Twitter/X</span></label>
                     <input type="text" name="twitter" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-youtube"></i>
-                        <div class="label-text">
-                            <span class="label-ar">يوتيوب</span>
-                            <span class="label-en">YouTube</span>
-                        </div>
-                    </label>
-                    <input type="text" name="youtube" placeholder="channel name or URL">
+                    <label><i class="fab fa-youtube"></i><span>YouTube</span></label>
+                    <input type="text" name="youtube" placeholder="channel">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-tiktok"></i>
-                        <div class="label-text">
-                            <span class="label-ar">تيك توك</span>
-                            <span class="label-en">TikTok</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-tiktok"></i><span>TikTok</span></label>
                     <input type="text" name="tiktok" placeholder="@username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-snapchat"></i>
-                        <div class="label-text">
-                            <span class="label-ar">سناب شات</span>
-                            <span class="label-en">Snapchat</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-snapchat"></i><span>Snapchat</span></label>
                     <input type="text" name="snapchat" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fab fa-github"></i>
-                        <div class="label-text">
-                            <span class="label-ar">جيت هاب</span>
-                            <span class="label-en">GitHub</span>
-                        </div>
-                    </label>
+                    <label><i class="fab fa-github"></i><span>GitHub</span></label>
                     <input type="text" name="github" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fas fa-link"></i>
-                        <div class="label-text">
-                            <span class="label-ar">رابط مخصص</span>
-                            <span class="label-en">Custom Link</span>
-                        </div>
-                    </label>
+                    <label><i class="fas fa-link"></i><span>رابط مخصص</span></label>
                     <input type="url" name="custom_link" placeholder="https://...">
                 </div>
 
-                <!-- السيرة الذاتية -->
                 <div class="section-title">
                     <i class="fas fa-file-pdf"></i>
-                    السيرة الذاتية (CV)
+                    السيرة الذاتية
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fas fa-file-upload"></i>
-                        <div class="label-text">
-                            <span class="label-ar">رفع السيرة الذاتية</span>
-                            <span class="label-en">Upload CV (PDF only)</span>
-                        </div>
-                    </label>
+                    <label><i class="fas fa-file-upload"></i><span>رفع CV (PDF)</span></label>
                     <input type="file" name="cv" id="cvInput" accept=".pdf">
                     <small>PDF فقط (الحد الأقصى 5MB)</small>
                 </div>
 
-                <!-- التصميم -->
                 <div class="section-title">
                     <i class="fas fa-palette"></i>
-                    اختر تصميم البطاقة
+                    التصميم
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <i class="fas fa-paint-brush"></i>
-                        <div class="label-text">
-                            <span class="label-ar">التصميم</span>
-                            <span class="label-en">Card Template</span>
-                        </div>
-                    </label>
+                    <label><i class="fas fa-paint-brush"></i><span>اختر التصميم</span></label>
                     <select name="template" id="templateSelect">
                         <option value="professional">Professional</option>
                     </select>
-                    <small id="templateInfo">جاري تحميل التصاميم المتاحة...</small>
+                    <small id="templateInfo">جاري التحميل...</small>
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn">
@@ -844,7 +587,7 @@
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>جاري إنشاء بطاقتك الرقمية...</p>
+                <p>جاري الإنشاء...</p>
             </div>
         </div>
 
@@ -856,15 +599,9 @@
     </div>
 
     <script>
-    // ========== CONFIG ==========
-    const API_ENDPOINTS = [
-    'http://raspberrypi.local:7070/api/register',
-    'http://192.168.8.9:7070/api/register',
-    ];
-    
     const STORAGE_KEY = 'maroof_pending_registrations';
+    let DISCOVERED_ENDPOINT = null;
     
-    // ========== UTILITY FUNCTIONS ==========
     function fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -914,25 +651,53 @@
         }
     }
     
-    async function testServerConnection() {
-        for (const endpoint of API_ENDPOINTS) {
+    async function discoverPiServer() {
+        const tryEndpoints = [
+            'http://raspberrypi.local:7070',
+            'http://192.168.8.9:7070',
+            'http://192.168.1.1:7070',
+        ];
+        
+        for (const base of tryEndpoints) {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeout = setTimeout(() => controller.abort(), 2000);
                 
-                const response = await fetch(endpoint.replace('/register', '/templates'), {
+                const response = await fetch(`${base}/api/server-info`, {
                     signal: controller.signal
                 });
                 
-                clearTimeout(timeoutId);
+                clearTimeout(timeout);
                 
                 if (response.ok) {
-                    return endpoint;
+                    const info = await response.json();
+                    if (info.success && info.ip) {
+                        DISCOVERED_ENDPOINT = `http://${info.ip}:${info.port}`;
+                        console.log('Pi found:', DISCOVERED_ENDPOINT);
+                        return DISCOVERED_ENDPOINT;
+                    }
                 }
-            } catch (error) {
-                continue;
-            }
+            } catch {}
         }
+        
+        return null;
+    }
+    
+    async function testServerConnection() {
+        if (DISCOVERED_ENDPOINT) {
+            try {
+                const response = await fetch(`${DISCOVERED_ENDPOINT}/api/templates`, {
+                    signal: AbortSignal.timeout(2000)
+                });
+                if (response.ok) return `${DISCOVERED_ENDPOINT}/api/register`;
+            } catch {}
+        }
+        
+        const discovered = await discoverPiServer();
+        if (discovered) {
+            return `${discovered}/api/register`;
+        }
+        
         return null;
     }
     
@@ -950,7 +715,6 @@
         return await response.json();
     }
     
-    // ========== MAIN FUNCTIONS ==========
     async function loadTemplates() {
         const endpoint = await testServerConnection();
         
@@ -988,7 +752,6 @@
         
         if (!endpoint) {
             if (showOfflineMessage) {
-                // الخادم مقفل - احفظ محلياً
                 savePendingRegistration(data);
                 
                 document.getElementById('loading').style.display = 'none';
@@ -1000,13 +763,12 @@
                     document.querySelector('.success-card h2').textContent = 
                         'تم حفظ بياناتك محلياً!';
                     document.querySelector('.success-card p').textContent = 
-                        'سيتم إرسال بياناتك تلقائياً عند عودة الاتصال بالخادم';
+                        'سيتم إرسال بياناتك تلقائياً عند عودة الاتصال';
                 }, 1000);
             }
             return false;
         }
         
-        // الخادم متاح - أرسل
         try {
             const result = await sendToServer(data, endpoint);
             
@@ -1043,24 +805,23 @@
         }
         
         if (successCount > 0) {
-            alert(`✅ تم إرسال ${successCount} طلب بنجاح!`);
+            alert(`تم إرسال ${successCount} طلب بنجاح!`);
             
             if (getPendingRegistrations().length === 0) {
                 document.getElementById('offlineBanner').classList.remove('show');
             }
         } else {
-            alert('❌ لا يزال الخادم غير متاح. سنحاول لاحقاً.');
+            alert('لا يزال الخادم غير متاح');
         }
         
         updatePendingBadge();
     }
     
-    // ========== EVENT HANDLERS ==========
     document.getElementById('photoInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('الصورة كبيرة جداً! الحد الأقصى 5MB');
+                alert('الصورة كبيرة جداً!');
                 e.target.value = '';
                 document.getElementById('photoPreview').style.display = 'none';
                 return;
@@ -1082,13 +843,12 @@
         
         const formData = new FormData(e.target);
         
-        // Handle photo
         const photoFile = document.getElementById('photoInput').files[0];
         let photoBase64 = '';
         
         if (photoFile) {
             if (photoFile.size > 5 * 1024 * 1024) {
-                alert('الصورة كبيرة جداً! الحد الأقصى 5MB');
+                alert('الصورة كبيرة جداً!');
                 return;
             }
             
@@ -1100,20 +860,19 @@
             }
         }
         
-        // Handle CV
         const cvFile = document.getElementById('cvInput').files[0];
         let cvBase64 = '';
         
         if (cvFile) {
             if (cvFile.size > 5 * 1024 * 1024) {
-                alert('ملف CV كبير جداً! الحد الأقصى 5MB');
+                alert('ملف CV كبير جداً!');
                 return;
             }
             
             try {
                 cvBase64 = await fileToBase64(cvFile);
             } catch (error) {
-                alert('فشل قراءة ملف CV');
+                alert('فشل قراءة CV');
                 return;
             }
         }
@@ -1140,19 +899,16 @@
         }
     });
     
-    // ========== INIT ==========
     window.addEventListener('load', () => {
         loadTemplates();
         updatePendingBadge();
         
-        // محاولة إرسال الطلبات المعلقة عند فتح الصفحة
         const pending = getPendingRegistrations();
         if (pending.length > 0) {
             setTimeout(retryPending, 2000);
         }
     });
     
-    // محاولة إرسال كل 30 ثانية
     setInterval(() => {
         const pending = getPendingRegistrations();
         if (pending.length > 0) {
