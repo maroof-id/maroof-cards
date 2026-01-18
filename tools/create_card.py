@@ -144,16 +144,23 @@ class CardGenerator:
     def replace_variables(self, html: str, data: Dict[str, str]) -> str:
         """Replace variables in HTML template"""
 
+        # Format phone numbers
         if 'PHONE' in data and data['PHONE']:
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
+        
+        if 'PHONE2' in data and data['PHONE2']:
+            data['PHONE2_INTL'] = self.format_phone_international(data['PHONE2'])
 
+        # Get name initial
         if 'NAME' in data and data['NAME']:
             data['NAME_INITIAL'] = data['NAME'][0].upper()
 
+        # Replace all variables
         for key, value in data.items():
             if value:
                 html = html.replace(f'{{{{{key}}}}}', str(value))
 
+        # Handle {{#if FIELD}} conditionals
         for key, value in data.items():
             if value:
                 pattern = f'{{{{#if {key}}}}}(.*?){{{{/if}}}}'
@@ -162,6 +169,7 @@ class CardGenerator:
                 pattern = f'{{{{#if {key}}}}}.*?{{{{/if}}}}'
                 html = re.sub(pattern, '', html, flags=re.DOTALL)
 
+        # Handle {{#if !FIELD}} conditionals
         for key, value in data.items():
             if not value:
                 pattern = f'{{{{#if !{key}}}}}(.*?){{{{/if}}}}'
@@ -170,6 +178,7 @@ class CardGenerator:
                 pattern = f'{{{{#if !{key}}}}}.*?{{{{/if}}}}'
                 html = re.sub(pattern, '', html, flags=re.DOTALL)
 
+        # Clean up remaining variables
         html = re.sub(r'\{\{[^}]+\}\}', '', html)
 
         return html
@@ -178,15 +187,24 @@ class CardGenerator:
         self,
         name: str,
         phone: str = '',
+        phone2: str = '',  # 🆕 NEW
         email: str = '',
         instagram: str = '',
         linkedin: str = '',
         twitter: str = '',
-        website: str = '',  # ← NEW: Website field
+        youtube: str = '',  # 🆕 NEW
+        tiktok: str = '',  # 🆕 NEW
+        snapchat: str = '',  # 🆕 NEW
+        github: str = '',  # 🆕 NEW
+        website: str = '',
+        custom_link: str = '',  # 🆕 NEW
+        job_title: str = '',  # 🆕 NEW
+        company: str = '',  # 🆕 NEW
         bio: str = '',
         template: str = 'professional',
         username: Optional[str] = None,
         photo: str = '',
+        cv: str = '',  # 🆕 NEW: CV file
         source: str = 'admin'
     ) -> Dict[str, str]:
         """Create new business card"""
@@ -201,6 +219,7 @@ class CardGenerator:
         client_dir = self.clients_path / username
         client_dir.mkdir(exist_ok=True)
 
+        # Handle photo upload
         photo_path = ''
         if photo and photo.startswith('data:image'):
             try:
@@ -227,18 +246,50 @@ class CardGenerator:
                 print(f"⚠️ Photo failed: {e}")
                 photo_path = ''
 
-        # ✅ FIX: Add template to data.json
+        # 🆕 Handle CV upload
+        cv_path = ''
+        if cv and cv.startswith('data:application/pdf'):
+            try:
+                match = re.match(r'data:application/pdf;base64,(.+)', cv)
+                if match:
+                    cv_data = match.group(1)
+                    cv_bytes = base64.b64decode(cv_data)
+                    
+                    cv_filename = 'cv.pdf'
+                    cv_file_path = client_dir / cv_filename
+                    
+                    with open(cv_file_path, 'wb') as f:
+                        f.write(cv_bytes)
+                    
+                    cv_path = f'./{cv_filename}'
+                    
+                    cv_size = len(cv_bytes) / 1024
+                    print(f"✅ CV: {cv_size:.1f}KB")
+            except Exception as e:
+                print(f"⚠️ CV upload failed: {e}")
+                cv_path = ''
+
+        # 🆕 Build data with all new fields
         data = {
             'NAME': name,
+            'JOB_TITLE': job_title,  # 🆕
+            'COMPANY': company,  # 🆕
             'PHONE': phone,
+            'PHONE2': phone2,  # 🆕
             'EMAIL': email,
             'INSTAGRAM': instagram.lstrip('@'),
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
-            'WEBSITE': website,  # ← NEW
+            'YOUTUBE': youtube,  # 🆕
+            'TIKTOK': tiktok.lstrip('@'),  # 🆕
+            'SNAPCHAT': snapchat,  # 🆕
+            'GITHUB': github,  # 🆕
+            'WEBSITE': website,
+            'CUSTOM_LINK': custom_link,  # 🆕
             'BIO': bio or '',
             'PHOTO': photo_path,
-            'template': template,  # ← FIX: Save template name
+            'CV': cv_path,  # 🆕
+            'template': template,
             'created_at': datetime.now().isoformat(),
             'source': source,
             'status': 'pending',
@@ -246,9 +297,13 @@ class CardGenerator:
             'print_history': []
         }
 
+        # Format phone numbers
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
+        if data.get('PHONE2'):
+            data['PHONE2_INTL'] = self.format_phone_international(data['PHONE2'])
 
+        # Generate HTML from template
         try:
             html = self.load_template(template)
             html = self.replace_variables(html, data)
@@ -257,15 +312,17 @@ class CardGenerator:
             html = self.load_template('professional')
             html = self.replace_variables(html, data)
 
+        # Save index.html
         output_file = client_dir / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
 
-        # ✅ FIX: Always save data.json
+        # Save data.json
         data_file = client_dir / 'data.json'
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
+        # Create vCard
         self._create_vcard(data, username, client_dir)
 
         return {
@@ -280,15 +337,24 @@ class CardGenerator:
         self,
         username: str,
         name: str = None,
+        job_title: str = None,  # 🆕
+        company: str = None,  # 🆕
         phone: str = None,
+        phone2: str = None,  # 🆕
         email: str = None,
         instagram: str = None,
         linkedin: str = None,
         twitter: str = None,
-        website: str = None,  # ← NEW
+        youtube: str = None,  # 🆕
+        tiktok: str = None,  # 🆕
+        snapchat: str = None,  # 🆕
+        github: str = None,  # 🆕
+        website: str = None,
+        custom_link: str = None,  # 🆕
         bio: str = None,
         template: str = None,
-        photo: str = None
+        photo: str = None,
+        cv: str = None  # 🆕
     ) -> Dict[str, str]:
         """Update existing card"""
         
@@ -299,22 +365,29 @@ class CardGenerator:
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Update fields
+        # Update all fields
         if name: data['NAME'] = name
+        if job_title is not None: data['JOB_TITLE'] = job_title  # 🆕
+        if company is not None: data['COMPANY'] = company  # 🆕
         if phone: data['PHONE'] = phone
+        if phone2 is not None: data['PHONE2'] = phone2  # 🆕
         if email: data['EMAIL'] = email
         if instagram: data['INSTAGRAM'] = instagram.lstrip('@')
         if linkedin: data['LINKEDIN'] = linkedin
         if twitter: data['TWITTER'] = twitter.lstrip('@')
-        if website is not None: data['WEBSITE'] = website  # ← NEW
+        if youtube is not None: data['YOUTUBE'] = youtube  # 🆕
+        if tiktok is not None: data['TIKTOK'] = tiktok.lstrip('@')  # 🆕
+        if snapchat is not None: data['SNAPCHAT'] = snapchat  # 🆕
+        if github is not None: data['GITHUB'] = github  # 🆕
+        if website is not None: data['WEBSITE'] = website
+        if custom_link is not None: data['CUSTOM_LINK'] = custom_link  # 🆕
         if bio is not None: data['BIO'] = bio
+        if template: data['template'] = template
         
-        # ✅ FIX: Update template
-        if template:
-            data['template'] = template
+        client_dir = self.clients_path / username
         
+        # Update photo
         if photo and photo.startswith('data:image'):
-            client_dir = self.clients_path / username
             try:
                 match = re.match(r'data:image/(\w+);base64,(.+)', photo)
                 if match:
@@ -332,15 +405,38 @@ class CardGenerator:
             except Exception as e:
                 print(f"⚠️ Photo update failed: {e}")
         
+        # 🆕 Update CV
+        if cv and cv.startswith('data:application/pdf'):
+            try:
+                match = re.match(r'data:application/pdf;base64,(.+)', cv)
+                if match:
+                    cv_data = match.group(1)
+                    cv_bytes = base64.b64decode(cv_data)
+                    
+                    cv_filename = 'cv.pdf'
+                    cv_file_path = client_dir / cv_filename
+                    
+                    with open(cv_file_path, 'wb') as f:
+                        f.write(cv_bytes)
+                    
+                    data['CV'] = f'./{cv_filename}'
+            except Exception as e:
+                print(f"⚠️ CV update failed: {e}")
+        
+        # Update status
         if data.get('print_count', 0) > 0:
             data['status'] = 'modified'
         
+        # Format phone numbers
         if data.get('PHONE'):
             data['PHONE_INTL'] = self.format_phone_international(data['PHONE'])
+        if data.get('PHONE2'):
+            data['PHONE2_INTL'] = self.format_phone_international(data['PHONE2'])
         
-        # ✅ FIX: Use template from data
+        # Use template from data
         template_name = data.get('template', 'professional')
         
+        # Generate HTML
         try:
             html = self.load_template(template_name)
             html = self.replace_variables(html, data)
@@ -349,14 +445,16 @@ class CardGenerator:
             html = self.load_template('professional')
             html = self.replace_variables(html, data)
         
+        # Save index.html
         output_file = self.clients_path / username / 'index.html'
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html)
         
-        # ✅ FIX: Save updated data.json
+        # Save data.json
         with open(data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         
+        # Update vCard
         self._create_vcard(data, username, self.clients_path / username)
         
         return {
@@ -392,7 +490,7 @@ class CardGenerator:
         return True
 
     def _create_vcard(self, data: Dict[str, str], username: str, client_dir: Path):
-        """Create vCard file"""
+        """Create vCard file with all contact info"""
         vcard_lines = [
             'BEGIN:VCARD',
             'VERSION:3.0',
@@ -400,21 +498,40 @@ class CardGenerator:
             f'N:{data.get("NAME", "")};;;;',
         ]
         
+        # Job title & Company
+        if data.get('JOB_TITLE') or data.get('COMPANY'):
+            title = data.get('JOB_TITLE', '')
+            org = data.get('COMPANY', '')
+            if title:
+                vcard_lines.append(f'TITLE:{title}')
+            if org:
+                vcard_lines.append(f'ORG:{org}')
+        
+        # Photo
         if data.get('PHOTO') and data['PHOTO'].startswith('./'):
             photo_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["PHOTO"][2:]}'
             vcard_lines.append(f'PHOTO;VALUE=URL;TYPE=JPEG:{photo_url}')
         
+        # Phone numbers
         if data.get('PHONE_INTL'):
             vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE_INTL"]}')
         elif data.get('PHONE'):
             vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE"]}')
         
+        if data.get('PHONE2_INTL'):
+            vcard_lines.append(f'TEL;TYPE=CELL:+{data["PHONE2_INTL"]}')
+        elif data.get('PHONE2'):
+            vcard_lines.append(f'TEL;TYPE=CELL:{data["PHONE2"]}')
+        
+        # Email
         if data.get('EMAIL'):
             vcard_lines.append(f'EMAIL;TYPE=INTERNET:{data["EMAIL"]}')
         
+        # Website
         if data.get('WEBSITE'):
             vcard_lines.append(f'URL;TYPE=Website:{data["WEBSITE"]}')
         
+        # Social media
         if data.get('INSTAGRAM'):
             vcard_lines.append(f'URL;TYPE=Instagram:https://instagram.com/{data["INSTAGRAM"]}')
         
@@ -424,8 +541,35 @@ class CardGenerator:
         if data.get('TWITTER'):
             vcard_lines.append(f'URL;TYPE=Twitter:https://twitter.com/{data["TWITTER"]}')
         
+        if data.get('YOUTUBE'):
+            youtube = data['YOUTUBE']
+            if youtube.startswith('http'):
+                vcard_lines.append(f'URL;TYPE=YouTube:{youtube}')
+            else:
+                vcard_lines.append(f'URL;TYPE=YouTube:https://youtube.com/@{youtube}')
+        
+        if data.get('TIKTOK'):
+            vcard_lines.append(f'URL;TYPE=TikTok:https://tiktok.com/@{data["TIKTOK"]}')
+        
+        if data.get('SNAPCHAT'):
+            vcard_lines.append(f'URL;TYPE=Snapchat:https://snapchat.com/add/{data["SNAPCHAT"]}')
+        
+        if data.get('GITHUB'):
+            vcard_lines.append(f'URL;TYPE=GitHub:https://github.com/{data["GITHUB"]}')
+        
+        # Custom link
+        if data.get('CUSTOM_LINK'):
+            vcard_lines.append(f'URL;TYPE=Custom:{data["CUSTOM_LINK"]}')
+        
+        # CV
+        if data.get('CV') and data['CV'].startswith('./'):
+            cv_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["CV"][2:]}'
+            vcard_lines.append(f'URL;TYPE=CV:{cv_url}')
+        
+        # Card URL
         vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
         
+        # Bio
         if data.get('BIO'):
             vcard_lines.append(f'NOTE:{data["BIO"]}')
         

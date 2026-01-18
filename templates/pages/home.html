@@ -48,6 +48,9 @@
             <div class="form-group">
                 <label><i class="fas fa-image"></i> الصورة الشخصية</label>
                 <input type="file" name="photo" id="photoInput" accept="image/*">
+                <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
+                    JPG, PNG, GIF (الحد الأقصى 5MB)
+                </small>
                 <div class="photo-preview" id="photoPreview" style="display: none;">
                     <img id="previewImage" src="" alt="معاينة">
                 </div>
@@ -55,7 +58,7 @@
 
             <div class="form-group">
                 <label><i class="fas fa-align-right"></i> نبذة تعريفية</label>
-                <textarea name="bio" placeholder="نبذة مختصرة" rows="3"></textarea>
+                <textarea name="bio" placeholder="نبذة مختصرة عنك أو عن عملك" rows="3"></textarea>
             </div>
 
             <!-- معلومات الاتصال -->
@@ -151,7 +154,7 @@
                 <select name="template" id="templateSelect">
                     <option value="professional">Professional</option>
                 </select>
-                <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
+                <small id="templateInfo" style="color: var(--dark-gray); display: block; margin-top: 5px;">
                     جاري تحميل التصاميم المتاحة...
                 </small>
             </div>
@@ -269,11 +272,13 @@ async function loadTemplates() {
                 select.appendChild(option);
             });
             
-            document.querySelector('#templateSelect + small').textContent = 
+            document.getElementById('templateInfo').textContent = 
                 `${result.templates.length} تصميم متاح`;
         }
     } catch (error) {
         console.error('Failed to load templates:', error);
+        document.getElementById('templateInfo').textContent = 
+            'تعذر تحميل التصاميم - سيتم استخدام التصميم الافتراضي';
     }
 }
 
