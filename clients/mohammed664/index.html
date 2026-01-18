@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="البطاقة التعريفية الرقمية لـ mohammed664">
+    <title>mohammed664 - معروف</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --vintage-cream: #F4EBD9;
+            --vintage-brown: #4A3728;
+            --vintage-darkbrown: #2C1810;
+            --vintage-blue: #3D5A80;
+            --vintage-red: #A04747;
+            --vintage-beige: #D4C5B0;
+            --border-gray: #8B7F76;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+        }
+        
+        body {
+            font-family: 'IBM Plex Mono', 'Courier Prime', monospace;
+            background: var(--vintage-cream);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* Paper Texture Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Film Grain */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 580px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Classic Windows Style Card */
+        .vintage-card {
+            background: var(--vintage-beige);
+            border: 3px solid var(--border-gray);
+            box-shadow: 
+                6px 6px 0 var(--vintage-darkbrown),
+                6px 6px 0 1px var(--border-gray),
+                inset 2px 2px 0 rgba(255, 255, 255, 0.4),
+                inset -2px -2px 0 rgba(0, 0, 0, 0.15);
+            padding: 4px;
+            position: relative;
+        }
+        
+        /* Title Bar - Windows Style */
+        .title-bar {
+            background: linear-gradient(180deg, var(--vintage-blue) 0%, #2C4660 100%);
+            border: 2px solid var(--border-gray);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .title-icon {
+            width: 18px;
+            height: 18px;
+            background: var(--vintage-red);
+            border: 2px solid var(--border-gray);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .title-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+        }
+        
+        /* Content Area */
+        .content-area {
+            background: var(--vintage-cream);
+            border: 2px solid var(--border-gray);
+            padding: 32px 28px;
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        
+        .profile-photo {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            border: 4px solid var(--vintage-brown);
+            box-shadow: 
+                4px 4px 0 var(--vintage-darkbrown),
+                4px 4px 0 1px var(--border-gray),
+                inset 2px 2px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--vintage-beige);
+            position: relative;
+        }
+        
+        .profile-photo::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: sepia(0.15) contrast(1.1) brightness(0.95);
+        }
+        
+        .profile-photo i {
+            font-size: 56px;
+            color: var(--vintage-brown);
+            opacity: 0.6;
+        }
+        
+        .name {
+            font-family: 'Courier Prime', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--vintage-darkbrown);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        .bio {
+            font-size: 18px;
+            color: var(--vintage-brown);
+            line-height: 1.7;
+            font-weight: 500;
+        }
+        
+        /* Classic Divider */
+        .vintage-divider {
+            height: 2px;
+            background: var(--border-gray);
+            margin: 24px 0;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Windows Button Style */
+        .save-section {
+            margin-bottom: 24px;
+        }
+        
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(180deg, var(--vintage-beige) 0%, var(--vintage-cream) 100%);
+            border: 3px solid var(--border-gray);
+            color: var(--vintage-darkbrown);
+            text-decoration: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 
+                3px 3px 0 var(--vintage-darkbrown),
+                3px 3px 0 1px var(--border-gray),
+                inset 2px 2px 0 rgba(255, 255, 255, 0.6),
+                inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            letter-spacing: 1px;
+        }
+        
+        .save-btn:hover {
+            background: linear-gradient(180deg, #E8DCC8 0%, var(--vintage-beige) 100%);
+        }
+        
+        .save-btn:active {
+            box-shadow: 
+                1px 1px 0 var(--vintage-darkbrown),
+                inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translate(2px, 2px);
+        }
+        
+        .save-icon {
+            font-size: 18px;
+        }
+        
+        /* Split Button - Windows Style */
+        .contact-section {
+            margin-bottom: 24px;
+        }
+        
+        .split-btn {
+            display: flex;
+            height: 68px;
+            border: 3px solid var(--border-gray);
+            box-shadow: 
+                3px 3px 0 var(--vintage-darkbrown),
+                3px 3px 0 1px var(--border-gray);
+            overflow: hidden;
+        }
+        
+        .split-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.1s;
+            position: relative;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        .call-side {
+            background: linear-gradient(180deg, #6B8F71 0%, #5A7A61 100%);
+            border-left: 2px solid var(--border-gray);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .call-side:hover {
+            background: linear-gradient(180deg, #5A7A61 0%, #4A6851 100%);
+        }
+        
+        .call-side:active {
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .whatsapp-side {
+            background: linear-gradient(180deg, #7FB685 0%, #6FA076 100%);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .whatsapp-side:hover {
+            background: linear-gradient(180deg, #6FA076 0%, #5F8F66 100%);
+        }
+        
+        .whatsapp-side:active {
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .split-icon {
+            font-size: 24px;
+            color: var(--vintage-cream);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .split-text {
+            color: var(--vintage-cream);
+            text-align: center;
+        }
+        
+        .split-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .split-number {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+        
+        /* Info Cards - Windows 95 Style */
+        .info-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .info-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, var(--vintage-beige) 0%, var(--vintage-cream) 100%);
+            border: 2px solid var(--border-gray);
+            text-decoration: none;
+            transition: all 0.1s;
+            box-shadow: 
+                2px 2px 0 var(--vintage-darkbrown),
+                2px 2px 0 1px var(--border-gray),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        .info-card:hover {
+            background: linear-gradient(180deg, #E8DCC8 0%, var(--vintage-beige) 100%);
+            transform: translate(-1px, -1px);
+            box-shadow: 
+                3px 3px 0 var(--vintage-darkbrown),
+                3px 3px 0 1px var(--border-gray),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        
+        .info-card:active {
+            transform: translate(1px, 1px);
+            box-shadow: 
+                1px 1px 0 var(--vintage-darkbrown),
+                inset 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: var(--vintage-blue);
+            border: 2px solid var(--border-gray);
+            box-shadow: 
+                2px 2px 0 var(--vintage-darkbrown),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+            color: var(--vintage-cream);
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 11px;
+            color: var(--vintage-brown);
+            font-weight: 600;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            font-size: 15px;
+            color: var(--vintage-darkbrown);
+            font-weight: 600;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .vintage-card {
+                padding: 3px;
+            }
+            
+            .content-area {
+                padding: 24px 20px;
+            }
+            
+            .profile-photo {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .profile-photo i {
+                font-size: 48px;
+            }
+            
+            .name {
+                font-size: 26px;
+            }
+            
+            .bio {
+                font-size: 16px;
+            }
+            
+            .save-btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .split-btn {
+                height: 60px;
+            }
+            
+            .split-icon {
+                font-size: 20px;
+            }
+            
+            .split-label {
+                font-size: 12px;
+            }
+            
+            .split-number {
+                font-size: 11px;
+            }
+            
+            .info-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .info-label {
+                font-size: 10px;
+            }
+            
+            .info-value {
+                font-size: 14px;
+            }
+        }
+        
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Focus states */
+        .split-half:focus,
+        .info-card:focus,
+        .save-btn:focus {
+            outline: 2px dotted var(--vintage-darkbrown);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="vintage-card">
+            
+            <!-- Title Bar - Windows Style -->
+            <div class="title-bar">
+                <div class="title-icon"></div>
+                <div class="title-text">معروف - Maroof Digital Card</div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                
+                <!-- Profile Section -->
+                <div class="profile-section">
+                    <div class="profile-photo">
+                        
+                        <img src="./photo.jpg" alt="mohammed664">
+                        
+                        
+                    </div>
+                    
+                    <h1 class="name">mohammed664</h1>
+                    
+                    <p class="bio">انا احب الذهاب بعيدا </p>
+                    
+                </div>
+                
+                <div class="vintage-divider"></div>
+                
+                <!-- 1️⃣ Save Contact Button -->
+                <div class="save-section">
+                    <a href="./contact.vcf" download class="save-btn">
+                        <i class="fas fa-download save-icon"></i>
+                        <span>حفظ جهة الاتصال</span>
+                    </a>
+                </div>
+                
+                <!-- 2️⃣ Split Button -->
+                
+                <div class="contact-section">
+                    <div class="split-btn">
+                        <a href="tel:966540601467" class="split-half call-side">
+                            <i class="fas fa-phone split-icon"></i>
+                            <div class="split-text">
+                                <div class="split-label">اتصال</div>
+                                <div class="split-number" dir="ltr">0540601467</div>
+                            </div>
+                        </a>
+                        
+                        <a href="https://wa.me/966540601467" class="split-half whatsapp-side" target="_blank">
+                            <i class="fab fa-whatsapp split-icon"></i>
+                            <div class="split-text">
+                                <div class="split-label">واتساب</div>
+                                <div class="split-number">WhatsApp</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                
+                <!-- Divider -->
+                
+                
+                <!-- 3️⃣ Social Links & 4️⃣ Email -->
+                <div class="info-grid">
+                    
+                    
+                    
+                    
+                    <a href="https://linkedin.com/in/cdsc" class="info-card" target="_blank">
+                        <div class="info-icon">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">LinkedIn</div>
+                            <div class="info-value">cdsc</div>
+                        </div>
+                    </a>
+                    
+                    
+                    
+                    
+                    
+                    <a href="mailto:moha.alnamlan@gmail.com" class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">البريد الإلكتروني</div>
+                            <div class="info-value">moha.alnamlan@gmail.com</div>
+                        </div>
+                    </a>
+                    
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>
+    
+</body>
+</html>
