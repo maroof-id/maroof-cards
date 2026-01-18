@@ -1,177 +1,871 @@
-{% extends "base.html" %}
-
-{% block title %}Maroof - تسجيل بطاقة{% endblock %}
-
-{% block body %}
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 0;">
-    <div class="container" style="max-width: 700px;">
-        <div class="card" style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
-            <h1 style="margin-bottom: 10px;">مرحباً بك!</h1>
-            <p style="color: var(--dark-gray); margin-bottom: 30px;">سجل بياناتك للحصول على بطاقتك الرقمية</p>
-
-            <div id="alert" class="alert"></div>
-
-            <form id="registerForm" style="text-align: right;">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maroof - تسجيل بطاقة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background circles */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #fff 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+        }
+        
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #f093fb 0%, transparent 70%);
+            bottom: -250px;
+            left: -250px;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            padding: 50px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+        
+        .notice {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+            font-size: 15px;
+            line-height: 1.6;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .notice i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 35px 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        
+        .section-title i {
+            margin-left: 10px;
+            opacity: 0.9;
+        }
+        
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .form-group label i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group label .label-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .label-ar {
+            font-weight: 600;
+        }
+        
+        .label-en {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* Inputs */
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        input[type="url"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Filled state */
+        input:not(:placeholder-shown),
+        textarea:not(:placeholder-shown),
+        select:not([value=""]) {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                0 0 0 4px rgba(255, 255, 255, 0.1),
+                inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+            box-shadow: 
+                0 0 0 4px rgba(255, 255, 255, 0.2),
+                0 8px 24px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Active label */
+        .form-group:has(input:not(:placeholder-shown)) label,
+        .form-group:has(textarea:not(:placeholder-shown)) label,
+        .form-group:has(input:focus) label,
+        .form-group:has(textarea:focus) label {
+            color: white;
+        }
+        
+        .form-group:has(input:not(:placeholder-shown)) label i,
+        .form-group:has(textarea:not(:placeholder-shown)) label i,
+        .form-group:has(input:focus) label i,
+        .form-group:has(textarea:focus) label i {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        /* File inputs */
+        input[type="file"] {
+            padding: 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        input[type="file"]::file-selector-button {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: all 0.3s;
+        }
+        
+        input[type="file"]::file-selector-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 20px center;
+            padding-left: 45px;
+        }
+        
+        /* Submit button */
+        .submit-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 100%);
+            border: 2px solid white;
+            border-radius: 18px;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 8px 24px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.5);
+            margin-top: 30px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-4px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
+            box-shadow: 
+                0 12px 32px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .submit-btn i {
+            margin-left: 10px;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading p {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* Success card */
+        .success-card {
+            display: none;
+            background: rgba(76, 175, 80, 0.25);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            border-radius: 30px;
+            padding: 50px 40px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 25px;
+            animation: successPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes successPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .success-card h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .success-card p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        
+        /* Preview */
+        .photo-preview {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .photo-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+        
+        small {
+            display: block;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 13px;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+            
+            .glass-card {
+                padding: 35px 25px;
+                border-radius: 24px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .header-icon {
+                font-size: 48px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            input, textarea, select {
+                font-size: 15px;
+                padding: 14px 18px;
+            }
+            
+            .submit-btn {
+                font-size: 18px;
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <div class="header">
+                <div class="header-icon">👋</div>
+                <h1>مرحباً بك!</h1>
+                <p>سجل بياناتك للحصول على بطاقتك الرقمية</p>
+            </div>
+            
+            <div class="notice">
+                <i class="fas fa-info-circle"></i>
+                <strong>ملاحظة:</strong> فقط الخانات التي ستملأها هي التي سيتم إظهارها في البطاقة الشخصية. <br>
+                جميع الحقول اختيارية ما عدا الاسم
+            </div>
+            
+            <form id="registerForm">
+                
+                <!-- معلومات أساسية -->
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    المعلومات الأساسية
+                </div>
+                
                 <div class="form-group">
-                    <label>الاسم الكامل *</label>
+                    <label>
+                        <i class="fas fa-id-card"></i>
+                        <div class="label-text">
+                            <span class="label-ar">الاسم الكامل *</span>
+                            <span class="label-en">Full Name</span>
+                        </div>
+                    </label>
                     <input type="text" name="name" required placeholder="أدخل اسمك الكامل">
                 </div>
 
                 <div class="form-group">
-                    <label>الصورة الشخصية</label>
-                    <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp">
-                    <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
-                        اختياري - JPG, PNG, GIF (الحد الأقصى 5MB)
-                    </small>
+                    <label>
+                        <i class="fas fa-briefcase"></i>
+                        <div class="label-text">
+                            <span class="label-ar">المسمى الوظيفي</span>
+                            <span class="label-en">Job Title</span>
+                        </div>
+                    </label>
+                    <input type="text" name="job_title" placeholder="مثال: مدير تسويق">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-building"></i>
+                        <div class="label-text">
+                            <span class="label-ar">الشركة</span>
+                            <span class="label-en">Company</span>
+                        </div>
+                    </label>
+                    <input type="text" name="company" placeholder="اسم الشركة">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-image"></i>
+                        <div class="label-text">
+                            <span class="label-ar">الصورة الشخصية</span>
+                            <span class="label-en">Profile Photo</span>
+                        </div>
+                    </label>
+                    <input type="file" name="photo" id="photoInput" accept="image/*">
+                    <small>JPG, PNG, GIF (الحد الأقصى 5MB)</small>
                     <div class="photo-preview" id="photoPreview" style="display: none;">
                         <img id="previewImage" src="" alt="معاينة">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>رقم الجوال</label>
+                    <label>
+                        <i class="fas fa-align-right"></i>
+                        <div class="label-text">
+                            <span class="label-ar">نبذة تعريفية</span>
+                            <span class="label-en">Bio</span>
+                        </div>
+                    </label>
+                    <textarea name="bio" placeholder="اكتب نبذة مختصرة عنك"></textarea>
+                </div>
+
+                <!-- معلومات الاتصال -->
+                <div class="section-title">
+                    <i class="fas fa-phone"></i>
+                    معلومات الاتصال
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-mobile-alt"></i>
+                        <div class="label-text">
+                            <span class="label-ar">رقم الجوال الأول</span>
+                            <span class="label-en">Phone Number 1</span>
+                        </div>
+                    </label>
                     <input type="tel" name="phone" placeholder="05xxxxxxxx">
                 </div>
 
                 <div class="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" name="email" placeholder="example@email.com">
+                    <label>
+                        <i class="fas fa-phone-square-alt"></i>
+                        <div class="label-text">
+                            <span class="label-ar">رقم الجوال الثاني</span>
+                            <span class="label-en">Phone Number 2</span>
+                        </div>
+                    </label>
+                    <input type="tel" name="phone2" placeholder="05xxxxxxxx">
                 </div>
 
                 <div class="form-group">
-                    <label>Instagram</label>
+                    <label>
+                        <i class="fas fa-envelope"></i>
+                        <div class="label-text">
+                            <span class="label-ar">البريد الإلكتروني</span>
+                            <span class="label-en">Email</span>
+                        </div>
+                    </label>
+                    <input type="email" name="email" placeholder="example@email.com">
+                </div>
+
+                <!-- مواقع التواصل والروابط -->
+                <div class="section-title">
+                    <i class="fas fa-share-alt"></i>
+                    مواقع التواصل والروابط
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-globe"></i>
+                        <div class="label-text">
+                            <span class="label-ar">الموقع الإلكتروني</span>
+                            <span class="label-en">Website</span>
+                        </div>
+                    </label>
+                    <input type="url" name="website" placeholder="https://example.com">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fab fa-instagram"></i>
+                        <div class="label-text">
+                            <span class="label-ar">انستقرام</span>
+                            <span class="label-en">Instagram</span>
+                        </div>
+                    </label>
                     <input type="text" name="instagram" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>LinkedIn</label>
+                    <label>
+                        <i class="fab fa-linkedin"></i>
+                        <div class="label-text">
+                            <span class="label-ar">لينكد إن</span>
+                            <span class="label-en">LinkedIn</span>
+                        </div>
+                    </label>
                     <input type="text" name="linkedin" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>Twitter/X</label>
+                    <label>
+                        <i class="fab fa-x-twitter"></i>
+                        <div class="label-text">
+                            <span class="label-ar">تويتر / إكس</span>
+                            <span class="label-en">Twitter / X</span>
+                        </div>
+                    </label>
                     <input type="text" name="twitter" placeholder="username">
                 </div>
 
                 <div class="form-group">
-                    <label>نبذة تعريفية</label>
-                    <textarea name="bio" placeholder="اكتب نبذة مختصرة عنك" rows="3"></textarea>
+                    <label>
+                        <i class="fab fa-youtube"></i>
+                        <div class="label-text">
+                            <span class="label-ar">يوتيوب</span>
+                            <span class="label-en">YouTube</span>
+                        </div>
+                    </label>
+                    <input type="text" name="youtube" placeholder="channel name or URL">
                 </div>
 
                 <div class="form-group">
-                    <label>التصميم</label>
-                    <select name="template">
-                        <option value="professional">Professional (موصى به)</option>
-                        <option value="luxury">Luxury</option>
-                        <option value="friendly">Friendly</option>
-                        <option value="modern">Modern</option>
-                        <option value="classic">Classic</option>
-                        <option value="minimal">Minimal</option>
-                    </select>
+                    <label>
+                        <i class="fab fa-tiktok"></i>
+                        <div class="label-text">
+                            <span class="label-ar">تيك توك</span>
+                            <span class="label-en">TikTok</span>
+                        </div>
+                    </label>
+                    <input type="text" name="tiktok" placeholder="@username">
                 </div>
 
-                <button type="submit" class="btn" id="submitBtn" style="width: 100%; margin-top: 10px;">
-                    <i class="fas fa-paper-plane"></i> إرسال البيانات
+                <div class="form-group">
+                    <label>
+                        <i class="fab fa-snapchat"></i>
+                        <div class="label-text">
+                            <span class="label-ar">سناب شات</span>
+                            <span class="label-en">Snapchat</span>
+                        </div>
+                    </label>
+                    <input type="text" name="snapchat" placeholder="username">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fab fa-github"></i>
+                        <div class="label-text">
+                            <span class="label-ar">جيت هاب</span>
+                            <span class="label-en">GitHub</span>
+                        </div>
+                    </label>
+                    <input type="text" name="github" placeholder="username">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-link"></i>
+                        <div class="label-text">
+                            <span class="label-ar">رابط مخصص</span>
+                            <span class="label-en">Custom Link</span>
+                        </div>
+                    </label>
+                    <input type="url" name="custom_link" placeholder="https://...">
+                </div>
+
+                <!-- السيرة الذاتية -->
+                <div class="section-title">
+                    <i class="fas fa-file-pdf"></i>
+                    السيرة الذاتية (CV)
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-file-upload"></i>
+                        <div class="label-text">
+                            <span class="label-ar">رفع CV</span>
+                            <span class="label-en">Upload CV (PDF only)</span>
+                        </div>
+                    </label>
+                    <input type="file" name="cv" id="cvInput" accept=".pdf">
+                    <small>PDF فقط (الحد الأقصى 5MB)</small>
+                </div>
+
+                <!-- التصميم -->
+                <div class="section-title">
+                    <i class="fas fa-palette"></i>
+                    اختر التصميم
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-paint-brush"></i>
+                        <div class="label-text">
+                            <span class="label-ar">التصميم</span>
+                            <span class="label-en">Template</span>
+                        </div>
+                    </label>
+                    <select name="template" id="templateSelect">
+                        <option value="professional">Professional</option>
+                    </select>
+                    <small id="templateInfo">جاري تحميل التصاميم...</small>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    إرسال البيانات
                 </button>
             </form>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p style="margin-top: 10px;">جاري الإرسال...</p>
+                <p>جاري الإرسال...</p>
             </div>
         </div>
 
-        <div class="card" id="successCard" style="display: none; text-align: center; background: #e8f5e9;">
-            <div style="font-size: 64px; margin-bottom: 15px;">✅</div>
-            <h2 style="color: var(--success); margin-bottom: 10px;">تم إرسال بياناتك بنجاح!</h2>
-            <p style="color: var(--dark-gray);">سنتواصل معك قريباً لاستلام بطاقتك</p>
+        <div class="success-card" id="successCard">
+            <div class="success-icon">✅</div>
+            <h2>تم إرسال بياناتك بنجاح!</h2>
+            <p>سنتواصل معك قريباً لاستلام بطاقتك</p>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-document.getElementById('photoInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
-            e.target.value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            document.getElementById('previewImage').src = event.target.result;
-            document.getElementById('photoPreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        document.getElementById('photoPreview').style.display = 'none';
-    }
-});
-
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const photoFile = document.getElementById('photoInput').files[0];
-    let photoBase64 = '';
-    
-    if (photoFile) {
-        if (photoFile.size > 5 * 1024 * 1024) {
-            showAlert('الصورة كبيرة جداً! الحد الأقصى 5MB', 'error');
-            return;
-        }
-        
+    <script>
+    // Load templates
+    async function loadTemplates() {
         try {
-            photoBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(photoFile);
-            });
+            const response = await fetch('/api/templates');
+            const result = await response.json();
+            
+            if (result.success && result.templates.length > 0) {
+                const select = document.getElementById('templateSelect');
+                select.innerHTML = '';
+                
+                result.templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template;
+                    option.textContent = template.charAt(0).toUpperCase() + template.slice(1);
+                    select.appendChild(option);
+                });
+                
+                document.getElementById('templateInfo').textContent = 
+                    `${result.templates.length} تصميم متاح`;
+            }
         } catch (error) {
-            showAlert('فشل قراءة الصورة', 'error');
-            return;
+            console.error('Failed to load templates:', error);
         }
     }
-    
-    const data = Object.fromEntries(formData);
-    delete data.photo;
-    if (photoBase64) {
-        data.photo = photoBase64;
-    }
-    
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('submitBtn').disabled = true;
 
-    try {
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-        
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('submitBtn').disabled = false;
-
-        if (result.success) {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('successCard').style.display = 'block';
+    // Photo preview
+    document.getElementById('photoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('الصورة كبيرة جداً! الحد الأقصى 5MB');
+                e.target.value = '';
+                document.getElementById('photoPreview').style.display = 'none';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('previewImage').src = event.target.result;
+                document.getElementById('photoPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
         } else {
-            showAlert(result.error || 'حدث خطأ غير معروف', 'error');
+            document.getElementById('photoPreview').style.display = 'none';
         }
-    } catch (error) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('submitBtn').disabled = false;
-        showAlert('خطأ في الاتصال بالخادم', 'error');
-    }
-});
-</script>
-{% endblock %}
+    });
+
+    // Form submit
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        
+        // Handle photo
+        const photoFile = document.getElementById('photoInput').files[0];
+        let photoBase64 = '';
+        
+        if (photoFile) {
+            if (photoFile.size > 5 * 1024 * 1024) {
+                alert('الصورة كبيرة جداً!');
+                return;
+            }
+            
+            try {
+                photoBase64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(photoFile);
+                });
+            } catch (error) {
+                alert('فشل قراءة الصورة');
+                return;
+            }
+        }
+        
+        // Handle CV
+        const cvFile = document.getElementById('cvInput').files[0];
+        let cvBase64 = '';
+        
+        if (cvFile) {
+            if (cvFile.size > 5 * 1024 * 1024) {
+                alert('ملف CV كبير جداً!');
+                return;
+            }
+            
+            try {
+                cvBase64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(cvFile);
+                });
+            } catch (error) {
+                alert('فشل قراءة ملف CV');
+                return;
+            }
+        }
+        
+        const data = Object.fromEntries(formData);
+        delete data.photo;
+        delete data.cv;
+        
+        if (photoBase64) data.photo = photoBase64;
+        if (cvBase64) data.cv = cvBase64;
+        
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            document.getElementById('loading').style.display = 'none';
+
+            if (result.success) {
+                document.querySelector('.glass-card').style.display = 'none';
+                document.getElementById('successCard').style.display = 'block';
+            } else {
+                alert(result.error || 'حدث خطأ');
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        } catch (error) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            alert('خطأ في الاتصال');
+        }
+    });
+
+    // Load templates on page load
+    loadTemplates();
+    </script>
+</body>
+</html>
