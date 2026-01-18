@@ -268,7 +268,26 @@ def get_pending_count_api():
         return jsonify({'count': 0})
 
 # ==================== SERVER START ====================
-
+# Server IP endpoint
+@app.route('/api/server-info', methods=['GET'])
+def server_info():
+    """Get server IP"""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except:
+        local_ip = "127.0.0.1"
+    
+    return jsonify({
+        'success': True,
+        'ip': local_ip,
+        'hostname': 'raspberrypi.local',
+        'port': 7070
+    })
+    
 if __name__ == '__main__':
     print("="*60)
     print("🚀 Maroof NFC System - Digital Business Cards")
