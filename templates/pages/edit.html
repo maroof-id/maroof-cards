@@ -164,9 +164,14 @@
                 </small>
             </div>
 
-            <button type="submit" class="btn" id="saveBtn">
-                <i class="fas fa-save"></i> حفظ التعديلات
-            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <button type="submit" class="btn" id="saveBtn">
+                    <i class="fas fa-save"></i> حفظ التعديلات
+                </button>
+                <button type="button" class="btn" id="printBtn" onclick="printCurrentCard()" style="background: #4CAF50;">
+                    <i class="fas fa-wifi"></i> طباعة NFC
+                </button>
+            </div>
         </form>
 
         <div class="loading" id="loading">
@@ -429,6 +434,38 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
     }
 });
 
+async function printCurrentCard() {
+    const printBtn = document.getElementById('printBtn');
+    printBtn.disabled = true;
+    printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الطباعة...';
+    
+    try {
+        const cardUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/`;
+        
+        const response = await fetch('/api/nfc/write', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                url: cardUrl,
+                username: username
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('✅ تمت الطباعة بنجاح!', 'success');
+        } else {
+            showAlert('❌ ' + result.message, 'error');
+        }
+    } catch (error) {
+        showAlert('❌ خطأ في الاتصال بالطابعة', 'error');
+    } finally {
+        printBtn.disabled = false;
+        printBtn.innerHTML = '<i class="fas fa-wifi"></i> طباعة NFC';
+    }
+}
+
 async function writeToNFC() {
     if (!currentCardData) return;
     
@@ -466,8 +503,6 @@ async function writeToNFC() {
     }
 }
 
-
-
 loadCard();
 </script>
-{% endblock %} 
+{% endblock %}
