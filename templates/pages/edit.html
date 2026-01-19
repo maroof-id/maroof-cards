@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Maroof - إنشاء بطاقة{% endblock %}
+{% block title %}Maroof - تعديل بطاقة{% endblock %}
 
 {% block body %}
 <div class="nav">
     <div class="nav-inner">
-        <a href="/" class="nav-btn active">
+        <a href="/" class="nav-btn">
             <i class="fas fa-plus-circle"></i> إنشاء بطاقة
         </a>
         <a href="/dashboard" class="nav-btn">
@@ -18,12 +18,12 @@
 </div>
 
 <div class="container">
-    <h1>✨ إنشاء بطاقة جديدة</h1>
+    <h1>✏️ تعديل البطاقة</h1>
 
     <div id="alert" class="alert"></div>
 
     <div class="card">
-        <form id="createForm">
+        <form id="editForm">
             
             <!-- معلومات أساسية -->
             <h3 style="margin-bottom: 20px; color: var(--primary);">
@@ -32,17 +32,17 @@
             
             <div class="form-group">
                 <label><i class="fas fa-id-card"></i> الاسم الكامل *</label>
-                <input type="text" name="name" required placeholder="أدخل الاسم الكامل">
+                <input type="text" name="name" id="name" required>
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-briefcase"></i> المسمى الوظيفي</label>
-                <input type="text" name="job_title" placeholder="مثال: مدير تسويق">
+                <input type="text" name="job_title" id="job_title" placeholder="مثال: مدير تسويق">
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-building"></i> الشركة</label>
-                <input type="text" name="company" placeholder="اسم الشركة">
+                <input type="text" name="company" id="company" placeholder="اسم الشركة">
             </div>
 
             <div class="form-group">
@@ -58,7 +58,7 @@
 
             <div class="form-group">
                 <label><i class="fas fa-align-right"></i> نبذة تعريفية</label>
-                <textarea name="bio" placeholder="نبذة مختصرة عنك أو عن عملك" rows="3"></textarea>
+                <textarea name="bio" id="bio" rows="3" placeholder="نبذة مختصرة"></textarea>
             </div>
 
             <!-- معلومات الاتصال -->
@@ -68,17 +68,17 @@
 
             <div class="form-group">
                 <label><i class="fas fa-mobile-alt"></i> رقم الجوال الأول</label>
-                <input type="tel" name="phone" placeholder="05xxxxxxxx">
+                <input type="tel" name="phone" id="phone" placeholder="05xxxxxxxx">
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-phone-square-alt"></i> رقم الجوال الثاني</label>
-                <input type="tel" name="phone2" placeholder="05xxxxxxxx">
+                <input type="tel" name="phone2" id="phone2" placeholder="05xxxxxxxx">
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                <input type="email" name="email" placeholder="example@email.com">
+                <input type="email" name="email" id="email" placeholder="example@email.com">
             </div>
 
             <!-- مواقع التواصل -->
@@ -88,47 +88,47 @@
 
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> الموقع الإلكتروني</label>
-                <input type="url" name="website" placeholder="https://example.com">
+                <input type="url" name="website" id="website" placeholder="https://example.com">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-instagram"></i> Instagram</label>
-                <input type="text" name="instagram" placeholder="username">
+                <input type="text" name="instagram" id="instagram" placeholder="username">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-linkedin"></i> LinkedIn</label>
-                <input type="text" name="linkedin" placeholder="username">
+                <input type="text" name="linkedin" id="linkedin" placeholder="username">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-x-twitter"></i> Twitter/X</label>
-                <input type="text" name="twitter" placeholder="username">
+                <input type="text" name="twitter" id="twitter" placeholder="username">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-youtube"></i> YouTube</label>
-                <input type="text" name="youtube" placeholder="channel name or URL">
+                <input type="text" name="youtube" id="youtube" placeholder="channel name or URL">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-tiktok"></i> TikTok</label>
-                <input type="text" name="tiktok" placeholder="@username">
+                <input type="text" name="tiktok" id="tiktok" placeholder="@username">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-snapchat"></i> Snapchat</label>
-                <input type="text" name="snapchat" placeholder="username">
+                <input type="text" name="snapchat" id="snapchat" placeholder="username">
             </div>
 
             <div class="form-group">
                 <label><i class="fab fa-github"></i> GitHub</label>
-                <input type="text" name="github" placeholder="username">
+                <input type="text" name="github" id="github" placeholder="username">
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-link"></i> رابط مخصص</label>
-                <input type="url" name="custom_link" placeholder="https://...">
+                <input type="url" name="custom_link" id="custom_link" placeholder="https://...">
             </div>
 
             <!-- ملف CV -->
@@ -142,6 +142,11 @@
                 <small style="color: var(--dark-gray); display: block; margin-top: 5px;">
                     اختياري - PDF فقط (الحد الأقصى 5MB)
                 </small>
+                <div id="currentCv" style="display: none; margin-top: 10px;">
+                    <a id="cvLink" href="#" target="_blank" style="color: var(--primary); text-decoration: none;">
+                        <i class="fas fa-file-pdf"></i> عرض CV الحالي
+                    </a>
+                </div>
             </div>
 
             <!-- التصميم -->
@@ -150,23 +155,23 @@
             </h3>
 
             <div class="form-group">
-                <label><i class="fas fa-paint-brush"></i> اختر التصميم</label>
+                <label><i class="fas fa-paint-brush"></i> تغيير التصميم</label>
                 <select name="template" id="templateSelect">
                     <option value="professional">Professional</option>
                 </select>
                 <small id="templateInfo" style="color: var(--dark-gray); display: block; margin-top: 5px;">
-                    جاري تحميل التصاميم المتاحة...
+                    جاري تحميل التصاميم...
                 </small>
             </div>
 
-            <button type="submit" class="btn" id="submitBtn">
-                <i class="fas fa-paper-plane"></i> إنشاء البطاقة
+            <button type="submit" class="btn" id="saveBtn">
+                <i class="fas fa-save"></i> حفظ التعديلات
             </button>
         </form>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>جاري الإنشاء...</p>
+            <p>جاري الحفظ...</p>
         </div>
     </div>
 
@@ -174,7 +179,7 @@
     <div class="card" id="successCard" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px;">
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="font-size: 72px; margin-bottom: 20px;">✅</div>
-            <h2 style="color: white; font-size: 28px; margin: 0;">تم إنشاء البطاقة بنجاح!</h2>
+            <h2 style="color: white; font-size: 28px; margin: 0;">تم حفظ التعديلات بنجاح!</h2>
         </div>
 
         <div style="background: rgba(255,255,255,0.25); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
@@ -187,9 +192,9 @@
                 <i class="fas fa-wifi"></i>
                 <span>طباعة NFC</span>
             </button>
-            <button onclick="location.reload()" style="background: #2196F3; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fas fa-plus"></i>
-                <span>بطاقة جديدة</span>
+            <button onclick="window.location.href='/dashboard'" style="background: #2196F3; color: white; border: none; padding: 18px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-list"></i>
+                <span>لوحة التحكم</span>
             </button>
         </div>
 
@@ -237,13 +242,14 @@
 }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -20px);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 768px) {
+    #successCard button {
+        font-size: 16px !important;
+        padding: 15px !important;
     }
 }
 </style>
@@ -253,9 +259,9 @@
 {% block extra_js %}
 <script src="/static/js/main.js"></script>
 <script>
+const username = window.location.pathname.split('/').pop();
 let currentCardData = null;
 
-// Load templates from API
 async function loadTemplates() {
     try {
         const response = await fetch('/api/templates');
@@ -278,18 +284,75 @@ async function loadTemplates() {
     } catch (error) {
         console.error('Failed to load templates:', error);
         document.getElementById('templateInfo').textContent = 
-            'تعذر تحميل التصاميم - سيتم استخدام التصميم الافتراضي';
+            'تعذر تحميل التصاميم';
+    }
+}
+
+async function loadCard() {
+    try {
+        const response = await fetch(`/api/cards/${username}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            document.getElementById('name').value = data.NAME || '';
+            document.getElementById('job_title').value = data.JOB_TITLE || '';
+            document.getElementById('company').value = data.COMPANY || '';
+            document.getElementById('bio').value = data.BIO || '';
+            
+            document.getElementById('phone').value = data.PHONE || '';
+            document.getElementById('phone2').value = data.PHONE2 || '';
+            document.getElementById('email').value = data.EMAIL || '';
+            
+            document.getElementById('website').value = data.WEBSITE || '';
+            document.getElementById('instagram').value = data.INSTAGRAM || '';
+            document.getElementById('linkedin').value = data.LINKEDIN || '';
+            document.getElementById('twitter').value = data.TWITTER || '';
+            document.getElementById('youtube').value = data.YOUTUBE || '';
+            document.getElementById('tiktok').value = data.TIKTOK || '';
+            document.getElementById('snapchat').value = data.SNAPCHAT || '';
+            document.getElementById('github').value = data.GITHUB || '';
+            document.getElementById('custom_link').value = data.CUSTOM_LINK || '';
+            
+            if (data.PHOTO) {
+                const photoUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/${data.PHOTO.replace('./', '')}`;
+                document.getElementById('previewImage').src = photoUrl;
+                document.getElementById('photoPreview').style.display = 'block';
+            }
+            
+            if (data.CV) {
+                const cvUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/${data.CV.replace('./', '')}`;
+                document.getElementById('cvLink').href = cvUrl;
+                document.getElementById('currentCv').style.display = 'block';
+            }
+            
+            if (data.template) {
+                await loadTemplates();
+                const templateSelect = document.getElementById('templateSelect');
+                if (templateSelect.querySelector(`option[value="${data.template}"]`)) {
+                    templateSelect.value = data.template;
+                }
+            } else {
+                await loadTemplates();
+            }
+        } else {
+            alert('البطاقة غير موجودة');
+            window.location.href = '/dashboard';
+        }
+    } catch (error) {
+        alert('خطأ في التحميل');
+        console.error(error);
     }
 }
 
 document.getElementById('photoInput').addEventListener('change', handlePhotoPreview);
 
-document.getElementById('createForm').addEventListener('submit', async (e) => {
+document.getElementById('editForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = new FormData(e.target);
     
-    // Handle photo
     const photoFile = document.getElementById('photoInput').files[0];
     let photoBase64 = '';
     
@@ -307,7 +370,6 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
         }
     }
     
-    // Handle CV
     const cvFile = document.getElementById('cvInput').files[0];
     let cvBase64 = '';
     
@@ -333,11 +395,11 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
     if (cvBase64) data.cv = cvBase64;
     
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('saveBtn').disabled = true;
 
     try {
-        const response = await fetch('/api/create', {
-            method: 'POST',
+        const response = await fetch(`/api/cards/${username}`, {
+            method: 'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
@@ -345,21 +407,25 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
         const result = await response.json();
         
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('saveBtn').disabled = false;
 
         if (result.success) {
-            currentCardData = result;
-            document.getElementById('cardUrl').href = result.url;
-            document.getElementById('cardUrl').textContent = result.url;
+            currentCardData = {
+                url: `https://maroof-id.github.io/maroof-cards-data/${username}/`,
+                username: username
+            };
+            
+            document.getElementById('cardUrl').href = currentCardData.url;
+            document.getElementById('cardUrl').textContent = currentCardData.url;
             document.getElementById('successCard').style.display = 'block';
-            document.getElementById('successCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('successCard').scrollIntoView({ behavior: 'smooth' });
         } else {
-            showAlert(result.error || 'حدث خطأ غير معروف', 'error');
+            showAlert(result.error || 'فشل الحفظ', 'error');
         }
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('submitBtn').disabled = false;
-        showAlert('خطأ في الاتصال بالخادم', 'error');
+        document.getElementById('saveBtn').disabled = false;
+        showAlert('خطأ في الاتصال', 'error');
     }
 });
 
@@ -395,12 +461,11 @@ async function writeToNFC() {
     } catch (error) {
         document.getElementById('nfcLoading').style.display = 'none';
         document.getElementById('nfcResult').style.display = 'block';
-        document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ خطأ في الاتصال';
+        document.getElementById('nfcMessage').innerHTML = '<i class="fas fa-exclamation-circle"></i> ❌ خطأ';
         nfcBtn.disabled = false;
     }
 }
 
-// Load templates on page load
-loadTemplates();
+loadCard();
 </script>
 {% endblock %}
