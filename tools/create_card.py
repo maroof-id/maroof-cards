@@ -328,7 +328,7 @@ class CardGenerator:
 
         return {
             'username': username,
-            'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
+            'url': f'https://maroof-id.github.io/maroof-cards-data/{username}/',
             'path': str(output_file),
             'template': template,
             'source': source
@@ -460,7 +460,7 @@ class CardGenerator:
         
         return {
             'username': username,
-            'url': f'https://maroof-id.github.io/maroof-cards/clients/{username}/',
+            'url': f'https://maroof-id.github.io/maroof-cards-data/{username}/',
             'status': data.get('status'),
             'template': template_name
         }
@@ -510,7 +510,7 @@ class CardGenerator:
         
         # Photo
         if data.get('PHOTO') and data['PHOTO'].startswith('./'):
-            photo_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["PHOTO"][2:]}'
+            photo_url = f'https://maroof-id.github.io/maroof-cards-data/{username}/{data["PHOTO"][2:]}'
             vcard_lines.append(f'PHOTO;VALUE=URL;TYPE=JPEG:{photo_url}')
         
         # Phone numbers
@@ -564,11 +564,11 @@ class CardGenerator:
         
         # CV
         if data.get('CV') and data['CV'].startswith('./'):
-            cv_url = f'https://maroof-id.github.io/maroof-cards/clients/{username}/{data["CV"][2:]}'
+            cv_url = f'https://maroof-id.github.io/maroof-cards-data/{username}/{data["CV"][2:]}'
             vcard_lines.append(f'URL;TYPE=CV:{cv_url}')
         
         # Card URL
-        vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards/clients/{username}/')
+        vcard_lines.append(f'URL:https://maroof-id.github.io/maroof-cards-data/{username}/')
         
         # Bio
         if data.get('BIO'):
@@ -645,7 +645,7 @@ class CardGenerator:
                                 'template': data.get('template', 'professional'),
                                 'print_count': data.get('print_count', 0),
                                 'created_at': data.get('created_at', ''),
-                                'url': f'https://maroof-id.github.io/maroof-cards/clients/{client_dir.name}/'
+                                'url': f'https://maroof-id.github.io/maroof-cards-data/{client_dir.name}/'
                             })
         
         cards.sort(key=lambda x: x.get('created_at', ''), reverse=True)
