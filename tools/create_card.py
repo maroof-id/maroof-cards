@@ -9,6 +9,7 @@ import re
 import json
 import subprocess
 import base64
+import threading
 from pathlib import Path
 from typing import Dict, Optional, Tuple, List
 from datetime import datetime
@@ -187,24 +188,24 @@ class CardGenerator:
         self,
         name: str,
         phone: str = '',
-        phone2: str = '',  # 🆕 NEW
+        phone2: str = '',
         email: str = '',
         instagram: str = '',
         linkedin: str = '',
         twitter: str = '',
-        youtube: str = '',  # 🆕 NEW
-        tiktok: str = '',  # 🆕 NEW
-        snapchat: str = '',  # 🆕 NEW
-        github: str = '',  # 🆕 NEW
+        youtube: str = '',
+        tiktok: str = '',
+        snapchat: str = '',
+        github: str = '',
         website: str = '',
-        custom_link: str = '',  # 🆕 NEW
-        job_title: str = '',  # 🆕 NEW
-        company: str = '',  # 🆕 NEW
+        custom_link: str = '',
+        job_title: str = '',
+        company: str = '',
         bio: str = '',
         template: str = 'professional',
         username: Optional[str] = None,
         photo: str = '',
-        cv: str = '',  # 🆕 NEW: CV file
+        cv: str = '',
         source: str = 'admin'
     ) -> Dict[str, str]:
         """Create new business card"""
@@ -246,7 +247,7 @@ class CardGenerator:
                 print(f"⚠️ Photo failed: {e}")
                 photo_path = ''
 
-        # 🆕 Handle CV upload
+        # Handle CV upload
         cv_path = ''
         if cv and cv.startswith('data:application/pdf'):
             try:
@@ -269,26 +270,26 @@ class CardGenerator:
                 print(f"⚠️ CV upload failed: {e}")
                 cv_path = ''
 
-        # 🆕 Build data with all new fields
+        # Build data with all fields
         data = {
             'NAME': name,
-            'JOB_TITLE': job_title,  # 🆕
-            'COMPANY': company,  # 🆕
+            'JOB_TITLE': job_title,
+            'COMPANY': company,
             'PHONE': phone,
-            'PHONE2': phone2,  # 🆕
+            'PHONE2': phone2,
             'EMAIL': email,
             'INSTAGRAM': instagram.lstrip('@'),
             'LINKEDIN': linkedin,
             'TWITTER': twitter.lstrip('@'),
-            'YOUTUBE': youtube,  # 🆕
-            'TIKTOK': tiktok.lstrip('@'),  # 🆕
-            'SNAPCHAT': snapchat,  # 🆕
-            'GITHUB': github,  # 🆕
+            'YOUTUBE': youtube,
+            'TIKTOK': tiktok.lstrip('@'),
+            'SNAPCHAT': snapchat,
+            'GITHUB': github,
             'WEBSITE': website,
-            'CUSTOM_LINK': custom_link,  # 🆕
+            'CUSTOM_LINK': custom_link,
             'BIO': bio or '',
             'PHOTO': photo_path,
-            'CV': cv_path,  # 🆕
+            'CV': cv_path,
             'template': template,
             'created_at': datetime.now().isoformat(),
             'source': source,
@@ -337,24 +338,24 @@ class CardGenerator:
         self,
         username: str,
         name: str = None,
-        job_title: str = None,  # 🆕
-        company: str = None,  # 🆕
+        job_title: str = None,
+        company: str = None,
         phone: str = None,
-        phone2: str = None,  # 🆕
+        phone2: str = None,
         email: str = None,
         instagram: str = None,
         linkedin: str = None,
         twitter: str = None,
-        youtube: str = None,  # 🆕
-        tiktok: str = None,  # 🆕
-        snapchat: str = None,  # 🆕
-        github: str = None,  # 🆕
+        youtube: str = None,
+        tiktok: str = None,
+        snapchat: str = None,
+        github: str = None,
         website: str = None,
-        custom_link: str = None,  # 🆕
+        custom_link: str = None,
         bio: str = None,
         template: str = None,
         photo: str = None,
-        cv: str = None  # 🆕
+        cv: str = None
     ) -> Dict[str, str]:
         """Update existing card"""
         
@@ -367,20 +368,20 @@ class CardGenerator:
         
         # Update all fields
         if name: data['NAME'] = name
-        if job_title is not None: data['JOB_TITLE'] = job_title  # 🆕
-        if company is not None: data['COMPANY'] = company  # 🆕
+        if job_title is not None: data['JOB_TITLE'] = job_title
+        if company is not None: data['COMPANY'] = company
         if phone: data['PHONE'] = phone
-        if phone2 is not None: data['PHONE2'] = phone2  # 🆕
+        if phone2 is not None: data['PHONE2'] = phone2
         if email: data['EMAIL'] = email
         if instagram: data['INSTAGRAM'] = instagram.lstrip('@')
         if linkedin: data['LINKEDIN'] = linkedin
         if twitter: data['TWITTER'] = twitter.lstrip('@')
-        if youtube is not None: data['YOUTUBE'] = youtube  # 🆕
-        if tiktok is not None: data['TIKTOK'] = tiktok.lstrip('@')  # 🆕
-        if snapchat is not None: data['SNAPCHAT'] = snapchat  # 🆕
-        if github is not None: data['GITHUB'] = github  # 🆕
+        if youtube is not None: data['YOUTUBE'] = youtube
+        if tiktok is not None: data['TIKTOK'] = tiktok.lstrip('@')
+        if snapchat is not None: data['SNAPCHAT'] = snapchat
+        if github is not None: data['GITHUB'] = github
         if website is not None: data['WEBSITE'] = website
-        if custom_link is not None: data['CUSTOM_LINK'] = custom_link  # 🆕
+        if custom_link is not None: data['CUSTOM_LINK'] = custom_link
         if bio is not None: data['BIO'] = bio
         if template: data['template'] = template
         
@@ -405,7 +406,7 @@ class CardGenerator:
             except Exception as e:
                 print(f"⚠️ Photo update failed: {e}")
         
-        # 🆕 Update CV
+        # Update CV
         if cv and cv.startswith('data:application/pdf'):
             try:
                 match = re.match(r'data:application/pdf;base64,(.+)', cv)
@@ -599,18 +600,21 @@ class CardGenerator:
             return False, "Failed"
 
     def git_push_background(self, message: str):
-    def git_push():
-        try:
-            clients_path = str(self.clients_path)
-            
-            subprocess.run(['git', 'add', '.'], cwd=clients_path, check=False)
-            subprocess.run(['git', 'commit', '-m', message], cwd=clients_path, check=False)
-            subprocess.run(['git', 'push', 'origin', 'main'], cwd=clients_path, check=False)
-        except Exception as e:
-            print(f"Git error: {e}")
-    
-    thread = threading.Thread(target=git_push, daemon=True)
-    thread.start()
+        """Push only to clients submodule repo"""
+        def git_push():
+            try:
+                clients_path = str(self.clients_path)
+                
+                subprocess.run(['git', 'add', '.'], cwd=clients_path, check=False)
+                subprocess.run(['git', 'commit', '-m', message], cwd=clients_path, check=False)
+                subprocess.run(['git', 'push', 'origin', 'main'], cwd=clients_path, check=False)
+                
+                print(f"Client data pushed: {message}")
+            except Exception as e:
+                print(f"Git push error: {e}")
+        
+        thread = threading.Thread(target=git_push, daemon=True)
+        thread.start()
     
     def get_card_data(self, username: str) -> Optional[Dict]:
         """Load card data"""
