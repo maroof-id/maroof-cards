@@ -855,17 +855,11 @@
         </div>
     </div>
 
-    <script>
-    // ========== CONFIG ==========
-    const API_ENDPOINTS = [
-        'http://raspberrypi.local:7070/api/register',  // محلي
-        'http://192.168.1.100:7070/api/register',      // IP محلي (غيّره حسب شبكتك)
-        // يمكن إضافة Cloudflare Tunnel هنا لاحقاً
-    ];
-    
+</body>
+</html>    <script>
     const STORAGE_KEY = 'maroof_pending_registrations';
+    let DISCOVERED_ENDPOINT = null;
     
-    // ========== UTILITY FUNCTIONS ==========
     function fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -915,25 +909,55 @@
         }
     }
     
-    async function testServerConnection() {
-        for (const endpoint of API_ENDPOINTS) {
+    async function discoverPiServer() {
+        const tryEndpoints = [
+            'http://raspberrypi.local:7070',
+            'http://192.168.8.9:7070',
+            'http://192.168.1.1:7070',
+        ];
+        
+        for (const base of tryEndpoints) {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeout = setTimeout(() => controller.abort(), 2000);
                 
-                const response = await fetch(endpoint.replace('/register', '/templates'), {
+                const response = await fetch(base + '/api/server-info', {
                     signal: controller.signal
                 });
                 
-                clearTimeout(timeoutId);
+                clearTimeout(timeout);
                 
                 if (response.ok) {
-                    return endpoint;
+                    const info = await response.json();
+                    if (info.success && info.ip) {
+                        DISCOVERED_ENDPOINT = 'http://' + info.ip + ':' + info.port;
+                        console.log('Pi discovered:', DISCOVERED_ENDPOINT);
+                        return DISCOVERED_ENDPOINT;
+                    }
                 }
-            } catch (error) {
+            } catch (e) {
                 continue;
             }
         }
+        
+        return null;
+    }
+    
+    async function testServerConnection() {
+        if (DISCOVERED_ENDPOINT) {
+            try {
+                const response = await fetch(DISCOVERED_ENDPOINT + '/api/templates', {
+                    signal: AbortSignal.timeout(2000)
+                });
+                if (response.ok) return DISCOVERED_ENDPOINT + '/api/register';
+            } catch (e) {}
+        }
+        
+        const discovered = await discoverPiServer();
+        if (discovered) {
+            return discovered + '/api/register';
+        }
+        
         return null;
     }
     
@@ -951,7 +975,6 @@
         return await response.json();
     }
     
-    // ========== MAIN FUNCTIONS ==========
     async function loadTemplates() {
         const endpoint = await testServerConnection();
         
@@ -977,37 +1000,37 @@
                 });
                 
                 document.getElementById('templateInfo').textContent = 
-                    `${result.templates.length} تصميم متاح`;
+                    result.templates.length + ' تصميم متاح';
             }
         } catch (error) {
             console.error('Failed to load templates:', error);
         }
     }
     
-    async function submitRegistration(data, showOfflineMessage = true) {
+    async function submitRegistration(data, showOfflineMessage) {
+        if (typeof showOfflineMessage === 'undefined') showOfflineMessage = true;
+        
         const endpoint = await testServerConnection();
         
         if (!endpoint) {
             if (showOfflineMessage) {
-                // الخادم مقفل - احفظ محلياً
                 savePendingRegistration(data);
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('offlineBanner').classList.add('show');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     document.querySelector('.glass-card').style.display = 'none';
                     document.getElementById('successCard').style.display = 'block';
                     document.querySelector('.success-card h2').textContent = 
                         'تم حفظ بياناتك محلياً!';
                     document.querySelector('.success-card p').textContent = 
-                        'سيتم إرسال بياناتك تلقائياً عند عودة الاتصال بالخادم';
+                        'سيتم إرسال بياناتك تلقائياً عند عودة الاتصال';
                 }, 1000);
             }
             return false;
         }
         
-        // الخادم متاح - أرسل
         try {
             const result = await sendToServer(data, endpoint);
             
@@ -1035,7 +1058,8 @@
         
         let successCount = 0;
         
-        for (const item of pending) {
+        for (let i = 0; i < pending.length; i++) {
+            const item = pending[i];
             const success = await submitRegistration(item.data, false);
             if (success) {
                 removePendingRegistration(item.id);
@@ -1044,24 +1068,23 @@
         }
         
         if (successCount > 0) {
-            alert(`✅ تم إرسال ${successCount} طلب بنجاح!`);
+            alert('تم إرسال ' + successCount + ' طلب بنجاح!');
             
             if (getPendingRegistrations().length === 0) {
                 document.getElementById('offlineBanner').classList.remove('show');
             }
         } else {
-            alert('❌ لا يزال الخادم غير متاح. سنحاول لاحقاً.');
+            alert('لا يزال الخادم غير متاح');
         }
         
         updatePendingBadge();
     }
     
-    // ========== EVENT HANDLERS ==========
     document.getElementById('photoInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('الصورة كبيرة جداً! الحد الأقصى 5MB');
+                alert('الصورة كبيرة جداً!');
                 e.target.value = '';
                 document.getElementById('photoPreview').style.display = 'none';
                 return;
@@ -1078,18 +1101,17 @@
         }
     });
     
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(e.target);
         
-        // Handle photo
         const photoFile = document.getElementById('photoInput').files[0];
         let photoBase64 = '';
         
         if (photoFile) {
             if (photoFile.size > 5 * 1024 * 1024) {
-                alert('الصورة كبيرة جداً! الحد الأقصى 5MB');
+                alert('الصورة كبيرة جداً!');
                 return;
             }
             
@@ -1101,20 +1123,19 @@
             }
         }
         
-        // Handle CV
         const cvFile = document.getElementById('cvInput').files[0];
         let cvBase64 = '';
         
         if (cvFile) {
             if (cvFile.size > 5 * 1024 * 1024) {
-                alert('ملف CV كبير جداً! الحد الأقصى 5MB');
+                alert('ملف CV كبير جداً!');
                 return;
             }
             
             try {
                 cvBase64 = await fileToBase64(cvFile);
             } catch (error) {
-                alert('فشل قراءة ملف CV');
+                alert('فشل قراءة CV');
                 return;
             }
         }
@@ -1141,25 +1162,21 @@
         }
     });
     
-    // ========== INIT ==========
-    window.addEventListener('load', () => {
+    window.addEventListener('load', function() {
         loadTemplates();
         updatePendingBadge();
         
-        // محاولة إرسال الطلبات المعلقة عند فتح الصفحة
         const pending = getPendingRegistrations();
         if (pending.length > 0) {
             setTimeout(retryPending, 2000);
         }
     });
     
-    // محاولة إرسال كل 30 ثانية
-    setInterval(() => {
+    setInterval(function() {
         const pending = getPendingRegistrations();
         if (pending.length > 0) {
             retryPending();
         }
     }, 30000);
     </script>
-</body>
-</html>
+</body></html>
