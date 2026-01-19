@@ -598,18 +598,20 @@ class CardGenerator:
         except:
             return False, "Failed"
 
-    def git_push_background(self, message: str = 'Update cards', callback=None):
-        """Push in background"""
-        from threading import Thread
-        def task():
-            success, msg = self.git_push(message)
-            if callback:
-                try:
-                    callback(success, msg)
-                except:
-                    pass
-        Thread(target=task, daemon=True).start()
-
+    def git_push_background(self, message: str):
+    def git_push():
+        try:
+            clients_path = str(self.clients_path)
+            
+            subprocess.run(['git', 'add', '.'], cwd=clients_path, check=False)
+            subprocess.run(['git', 'commit', '-m', message], cwd=clients_path, check=False)
+            subprocess.run(['git', 'push', 'origin', 'main'], cwd=clients_path, check=False)
+        except Exception as e:
+            print(f"Git error: {e}")
+    
+    thread = threading.Thread(target=git_push, daemon=True)
+    thread.start()
+    
     def get_card_data(self, username: str) -> Optional[Dict]:
         """Load card data"""
         data_file = self.clients_path / username / 'data.json'
