@@ -600,21 +600,96 @@ class CardGenerator:
             return False, "Failed"
 
     def git_push_background(self, message: str):
-        """Push only to clients submodule repo"""
-        def git_push():
-            try:
-                clients_path = str(self.clients_path)
+    """Push only to clients submodule repo - WITH ERROR LOGGING"""
+    def git_push():
+        try:
+            clients_path = str(self.clients_path)
+            
+            # 1. Add files
+            result_add = subprocess.run(
+                ['git', 'add', '.'], 
+                cwd=clients_path, 
+                capture_output=True, 
+                text=True,
+                timeout=30
+            )
+            if result_add.returncode != 0:
+                print(f"❌ Git add failed: {result_add.stderr}")
+                return
+            
+            # 2. Check if there are changes
+            result_status = subprocess.run(
+                ['git', 'status', '--porcelain'],
+                cwd=clients_path,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if not result_status.stdout.strip():
+                print("⚠️ No changes to commit")
+                return
+            
+            # 3. Commit
+            result_commit = subprocess.run(
+                ['git', 'commit', '-m', message], 
+                cwd=clients_path, 
+                capture_output=True, 
+                text=True,
+                timeout=30
+            )
+            if result_commit.returncode != 0:
+                # Check if it's just "nothing to commit"
+                if "nothing to commit" not in result_commit.stdout:
+                    print(f"❌ Git commit failed: {result_commit.stderr}")
+                    return
+            
+            # 4. Push
+            result_push = subprocess.run(
+                ['git', 'push', 'origin', 'main'], 
+                cwd=clients_path, 
+                capture_output=True, 
+                text=True,
+                timeout=60
+            )
+            
+            if result_push.returncode == 0:
+                print(f"✅ Client data pushed: {message}")
+            else:
+                print(f"❌ Git push failed!")
+                print(f"   STDOUT: {result_push.stdout}")
+                print(f"   STDERR: {result_push.stderr}")
                 
-                subprocess.run(['git', 'add', '.'], cwd=clients_path, check=False)
-                subprocess.run(['git', 'commit', '-m', message], cwd=clients_path, check=False)
-                subprocess.run(['git', 'push', 'origin', 'main'], cwd=clients_path, check=False)
+                # Try to diagnose the issue
+                print("\n🔍 Diagnostics:")
                 
-                print(f"Client data pushed: {message}")
-            except Exception as e:
-                print(f"Git push error: {e}")
-        
-        thread = threading.Thread(target=git_push, daemon=True)
-        thread.start()
+                # Check remote
+                remote_check = subprocess.run(
+                    ['git', 'remote', '-v'],
+                    cwd=clients_path,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"   Remote: {remote_check.stdout}")
+                
+                # Check credentials
+                cred_check = subprocess.run(
+                    ['git', 'config', '--get', 'credential.helper'],
+                    cwd=clients_path,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"   Credential helper: {cred_check.stdout.strip()}")
+                
+        except subprocess.TimeoutExpired:
+            print("❌ Git push timeout (network issue?)")
+        except Exception as e:
+            print(f"❌ Git push exception: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    thread = threading.Thread(target=git_push, daemon=True)
+    thread.start()
     
     def get_card_data(self, username: str) -> Optional[Dict]:
         """Load card data"""
