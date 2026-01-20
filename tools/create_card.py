@@ -600,7 +600,7 @@ class CardGenerator:
             return False, "Failed"
 
     def git_push_background(self, message: str):
-        """Push clients to maroof-cards-data repo with error logging"""
+        """Push clients to maroof-cards-data repo with auto-pull"""
         import logging
         
         def git_push():
@@ -616,6 +616,21 @@ class CardGenerator:
                 )
                 
                 logging.info(f"Starting push: {message}")
+                
+                # ✅ FIX: Pull first to avoid conflicts
+                result_pull = subprocess.run(
+                    ['git', 'pull', 'origin', 'main', '--rebase'],
+                    cwd=clients_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=60
+                )
+                
+                if result_pull.returncode != 0:
+                    # If pull fails, log it but continue (might be first push)
+                    logging.warning(f"Pull failed (might be first push): {result_pull.stderr}")
+                else:
+                    logging.info("Pulled latest changes")
                 
                 # 1. Add all files
                 result_add = subprocess.run(
@@ -642,7 +657,6 @@ class CardGenerator:
                 
                 if not result_status.stdout.strip():
                     logging.info("No changes to commit")
-                    print("ℹ️  No changes to commit")
                     return
                 
                 logging.info(f"Changes detected:\n{result_status.stdout}")
@@ -667,56 +681,31 @@ class CardGenerator:
                 
                 logging.info("Commit successful")
                 
-                # 4. Push with verbose output
+                # 4. Push
                 result_push = subprocess.run(
                     ['git', 'push', 'origin', 'main'],
                     cwd=clients_path,
                     capture_output=True,
                     text=True,
-                    timeout=120  # Longer timeout for push
+                    timeout=120
                 )
                 
                 if result_push.returncode == 0:
                     logging.info(f"✅ Push successful: {message}")
                     print(f"✅ Client data pushed: {message}")
                 else:
-                    # Detailed error logging
-                    error_msg = f"Push failed!\nSTDOUT: {result_push.stdout}\nSTDERR: {result_push.stderr}"
-                    logging.error(error_msg)
-                    print(f"❌ Push failed!")
-                    print(f"   Error: {result_push.stderr}")
-                    
-                    # Diagnostic info
-                    remote_check = subprocess.run(
-                        ['git', 'remote', '-v'],
-                        cwd=clients_path,
-                        capture_output=True,
-                        text=True
-                    )
-                    logging.error(f"Remote config: {remote_check.stdout}")
-                    
-                    branch_check = subprocess.run(
-                        ['git', 'branch', '--show-current'],
-                        cwd=clients_path,
-                        capture_output=True,
-                        text=True
-                    )
-                    logging.error(f"Current branch: {branch_check.stdout.strip()}")
-                    
-                    print(f"   See logs: {log_file}")
+                    logging.error(f"Push failed!\nSTDOUT: {result_push.stdout}\nSTDERR: {result_push.stderr}")
+                    print(f"❌ Push failed: {result_push.stderr}")
                     
             except subprocess.TimeoutExpired as e:
-                error_msg = f"Timeout during git operation: {e}"
-                logging.error(error_msg)
-                print(f"❌ {error_msg}")
+                logging.error(f"Timeout: {e}")
+                print(f"❌ Timeout: {e}")
             except Exception as e:
-                error_msg = f"Exception during git push: {e}"
-                logging.error(error_msg)
-                print(f"❌ {error_msg}")
+                logging.error(f"Exception: {e}")
+                print(f"❌ Exception: {e}")
                 import traceback
                 logging.error(traceback.format_exc())
         
-        # Run in background thread
         thread = threading.Thread(target=git_push, daemon=True)
         thread.start()
             
