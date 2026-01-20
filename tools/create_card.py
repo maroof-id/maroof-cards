@@ -600,97 +600,126 @@ class CardGenerator:
             return False, "Failed"
 
     def git_push_background(self, message: str):
-    """Push only to clients submodule repo - WITH ERROR LOGGING"""
-    def git_push():
-        try:
-            clients_path = str(self.clients_path)
-            
-            # 1. Add files
-            result_add = subprocess.run(
-                ['git', 'add', '.'], 
-                cwd=clients_path, 
-                capture_output=True, 
-                text=True,
-                timeout=30
-            )
-            if result_add.returncode != 0:
-                print(f"❌ Git add failed: {result_add.stderr}")
-                return
-            
-            # 2. Check if there are changes
-            result_status = subprocess.run(
-                ['git', 'status', '--porcelain'],
-                cwd=clients_path,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if not result_status.stdout.strip():
-                print("⚠️ No changes to commit")
-                return
-            
-            # 3. Commit
-            result_commit = subprocess.run(
-                ['git', 'commit', '-m', message], 
-                cwd=clients_path, 
-                capture_output=True, 
-                text=True,
-                timeout=30
-            )
-            if result_commit.returncode != 0:
-                # Check if it's just "nothing to commit"
-                if "nothing to commit" not in result_commit.stdout:
-                    print(f"❌ Git commit failed: {result_commit.stderr}")
+        """Push clients to maroof-cards-data repo with error logging"""
+        import logging
+        
+        def git_push():
+            try:
+                clients_path = str(self.clients_path)
+                
+                # Configure logging
+                log_file = self.repo_path / 'git_push.log'
+                logging.basicConfig(
+                    filename=str(log_file),
+                    level=logging.INFO,
+                    format='%(asctime)s - %(message)s'
+                )
+                
+                logging.info(f"Starting push: {message}")
+                
+                # 1. Add all files
+                result_add = subprocess.run(
+                    ['git', 'add', '.'],
+                    cwd=clients_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                
+                if result_add.returncode != 0:
+                    logging.error(f"git add failed: {result_add.stderr}")
+                    print(f"❌ git add failed: {result_add.stderr}")
                     return
-            
-            # 4. Push
-            result_push = subprocess.run(
-                ['git', 'push', 'origin', 'main'], 
-                cwd=clients_path, 
-                capture_output=True, 
-                text=True,
-                timeout=60
-            )
-            
-            if result_push.returncode == 0:
-                print(f"✅ Client data pushed: {message}")
-            else:
-                print(f"❌ Git push failed!")
-                print(f"   STDOUT: {result_push.stdout}")
-                print(f"   STDERR: {result_push.stderr}")
                 
-                # Try to diagnose the issue
-                print("\n🔍 Diagnostics:")
-                
-                # Check remote
-                remote_check = subprocess.run(
-                    ['git', 'remote', '-v'],
+                # 2. Check for changes
+                result_status = subprocess.run(
+                    ['git', 'status', '--porcelain'],
                     cwd=clients_path,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    timeout=30
                 )
-                print(f"   Remote: {remote_check.stdout}")
                 
-                # Check credentials
-                cred_check = subprocess.run(
-                    ['git', 'config', '--get', 'credential.helper'],
+                if not result_status.stdout.strip():
+                    logging.info("No changes to commit")
+                    print("ℹ️  No changes to commit")
+                    return
+                
+                logging.info(f"Changes detected:\n{result_status.stdout}")
+                
+                # 3. Commit
+                result_commit = subprocess.run(
+                    ['git', 'commit', '-m', message],
                     cwd=clients_path,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    timeout=30
                 )
-                print(f"   Credential helper: {cred_check.stdout.strip()}")
                 
-        except subprocess.TimeoutExpired:
-            print("❌ Git push timeout (network issue?)")
-        except Exception as e:
-            print(f"❌ Git push exception: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    thread = threading.Thread(target=git_push, daemon=True)
-    thread.start()
-    
+                if result_commit.returncode != 0:
+                    if "nothing to commit" in result_commit.stdout:
+                        logging.info("Nothing to commit")
+                        return
+                    else:
+                        logging.error(f"git commit failed: {result_commit.stderr}")
+                        print(f"❌ git commit failed: {result_commit.stderr}")
+                        return
+                
+                logging.info("Commit successful")
+                
+                # 4. Push with verbose output
+                result_push = subprocess.run(
+                    ['git', 'push', 'origin', 'main'],
+                    cwd=clients_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=120  # Longer timeout for push
+                )
+                
+                if result_push.returncode == 0:
+                    logging.info(f"✅ Push successful: {message}")
+                    print(f"✅ Client data pushed: {message}")
+                else:
+                    # Detailed error logging
+                    error_msg = f"Push failed!\nSTDOUT: {result_push.stdout}\nSTDERR: {result_push.stderr}"
+                    logging.error(error_msg)
+                    print(f"❌ Push failed!")
+                    print(f"   Error: {result_push.stderr}")
+                    
+                    # Diagnostic info
+                    remote_check = subprocess.run(
+                        ['git', 'remote', '-v'],
+                        cwd=clients_path,
+                        capture_output=True,
+                        text=True
+                    )
+                    logging.error(f"Remote config: {remote_check.stdout}")
+                    
+                    branch_check = subprocess.run(
+                        ['git', 'branch', '--show-current'],
+                        cwd=clients_path,
+                        capture_output=True,
+                        text=True
+                    )
+                    logging.error(f"Current branch: {branch_check.stdout.strip()}")
+                    
+                    print(f"   See logs: {log_file}")
+                    
+            except subprocess.TimeoutExpired as e:
+                error_msg = f"Timeout during git operation: {e}"
+                logging.error(error_msg)
+                print(f"❌ {error_msg}")
+            except Exception as e:
+                error_msg = f"Exception during git push: {e}"
+                logging.error(error_msg)
+                print(f"❌ {error_msg}")
+                import traceback
+                logging.error(traceback.format_exc())
+        
+        # Run in background thread
+        thread = threading.Thread(target=git_push, daemon=True)
+        thread.start()
+            
     def get_card_data(self, username: str) -> Optional[Dict]:
         """Load card data"""
         data_file = self.clients_path / username / 'data.json'
