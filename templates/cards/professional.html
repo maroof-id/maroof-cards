@@ -624,13 +624,121 @@
                 </a>
                 {{/if}}
                 
+                {{#if JOB_TITLE}}
+                <div class="info-card">
+                    <div class="info-icon" style="background: var(--blue-500);">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">المسمى الوظيفي</div>
+                        <div class="info-value">{{JOB_TITLE}}</div>
+                    </div>
+                </div>
+                {{/if}}
+                
+                {{#if COMPANY}}
+                <div class="info-card">
+                    <div class="info-icon" style="background: var(--blue-500);">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">الشركة</div>
+                        <div class="info-value">{{COMPANY}}</div>
+                    </div>
+                </div>
+                {{/if}}
+                
+                {{#if YOUTUBE}}
+                <a href="https://youtube.com/{{YOUTUBE}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: #FF0000;">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">YouTube</div>
+                        <div class="info-value">{{YOUTUBE}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if TIKTOK}}
+                <a href="https://tiktok.com/@{{TIKTOK}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: #000000;">
+                        <i class="fab fa-tiktok"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">TikTok</div>
+                        <div class="info-value">@{{TIKTOK}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if SNAPCHAT}}
+                <a href="https://snapchat.com/add/{{SNAPCHAT}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: #FFFC00;">
+                        <i class="fab fa-snapchat"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Snapchat</div>
+                        <div class="info-value">@{{SNAPCHAT}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if GITHUB}}
+                <a href="https://github.com/{{GITHUB}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: #333333;">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">GitHub</div>
+                        <div class="info-value">{{GITHUB}}</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if WEBSITE}}
+                <a href="{{WEBSITE}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: var(--blue-500);">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">الموقع الإلكتروني</div>
+                        <div class="info-value">الموقع</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if CUSTOM_LINK}}
+                <a href="{{CUSTOM_LINK}}" class="info-card" target="_blank">
+                    <div class="info-icon" style="background: var(--amber-500);">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">الرابط المخصص</div>
+                        <div class="info-value">الرابط</div>
+                    </div>
+                </a>
+                {{/if}}
+                
+                {{#if CV}}
+                <a href="{{CV}}" download class="info-card">
+                    <div class="info-icon" style="background: var(--amber-500);">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">السيرة الذاتية</div>
+                        <div class="info-value">تحميل</div>
+                    </div>
+                </a>
+                {{/if}}
+                
             </div>
             
         </div>
         
         <!-- Footer -->
         <div class="footer">
-            <p class="footer-text">مدعوم بواسطة <span class="footer-brand">معروف</span></p>
+            <p class="footer-text">مدعوم بواسطة <a href="https://maroof-id.github.io/maroof-cards/" class="footer-brand" target="_blank">معروف</a></p>
         </div>
     </div>
 </body>
