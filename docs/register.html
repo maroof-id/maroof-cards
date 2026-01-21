@@ -1166,6 +1166,36 @@
         Website: { nameAr: 'موقع', icon: 'fa-globe' }
     };
 
+    // ✅ دوال عامة منفصلة
+    function selectTemplate(template) {
+        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+        const card = document.querySelector(`[data-template="${template}"]`);
+        if (card) {
+            card.classList.add('selected');
+            document.getElementById('selectedTemplate').value = template;
+            console.log('Template selected:', template);
+        }
+    }
+
+    function previewTemplate(template) {
+        const modal = document.getElementById('previewModal');
+        const iframe = document.getElementById('previewFrame');
+        const params = new URLSearchParams({
+            NAME: 'محمد أحمد',
+            JOB_TITLE: 'مدير تسويق',
+            COMPANY: 'شركة معروف',
+            PHONE: '0501234567',
+            EMAIL: 'demo@example.com'
+        });
+        iframe.src = `/preview/${template}?${params}`;
+        modal.classList.add('active');
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.remove('active');
+    }
+
+    // ✅ دالة تحميل التصاميم
     async function loadTemplates() {
         const gallery = document.getElementById('templateGallery');
         let templates = Object.keys(TEMPLATE_METADATA);
@@ -1198,33 +1228,31 @@
             // في حالة الفشل، استخدم الافتراضيات
             templates = Object.keys(TEMPLATE_METADATA);
         }
-
-        function selectTemplate(template) {
-            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-            const card = document.querySelector(`[data-template="${template}"]`);
-            if (card) {
-                card.classList.add('selected');
-                document.getElementById('selectedTemplate').value = template;
-                console.log('Template selected:', template);
-            }
-        }
-
-    function previewTemplate(template) {
-        const modal = document.getElementById('previewModal');
-        const iframe = document.getElementById('previewFrame');
-        const params = new URLSearchParams({
-            NAME: 'محمد أحمد',
-            JOB_TITLE: 'مدير تسويق',
-            COMPANY: 'شركة معروف',
-            PHONE: '0501234567',
-            EMAIL: 'demo@example.com'
+        
+        // ✅ إنشاء البطاقات
+        gallery.innerHTML = '';
+        
+        templates.forEach(template => {
+            const meta = TEMPLATE_METADATA[template] || { nameAr: template, icon: 'fa-file' };
+            const card = document.createElement('div');
+            card.className = 'template-card';
+            card.dataset.template = template;
+            if (template === 'professional') card.classList.add('selected');
+            
+            card.innerHTML = `
+                <div class="template-preview">
+                    <i class="fas ${meta.icon} template-icon"></i>
+                </div>
+                <div class="template-name">${meta.nameAr}</div>
+                <div class="template-check">
+                    <i class="fas fa-check" style="color:white;font-size:14px;"></i>
+                </div>
+            `;
+            
+            card.onclick = () => selectTemplate(template);
+            card.ondblclick = () => previewTemplate(template);
+            gallery.appendChild(card);
         });
-        iframe.src = `/preview/${template}?${params}`;
-        modal.classList.add('active');
-    }
-
-    function closePreview() {
-        document.getElementById('previewModal').classList.remove('active');
     }
 
     document.getElementById('previewModal').onclick = (e) => {
