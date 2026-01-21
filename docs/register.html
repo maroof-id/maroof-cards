@@ -357,6 +357,183 @@
             resize: vertical;
             min-height: 110px;
         }
+
+        /* Template Gallery */
+        .template-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .template-card {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 32px rgba(74, 157, 111, 0.4);
+        }
+
+        .template-card.selected {
+            border-color: #4a9d6f;
+            box-shadow: 0 0 0 4px rgba(74, 157, 111, 0.2);
+        }
+
+        .template-preview {
+            width: 100%;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .template-icon {
+            font-size: 36px;
+            color: white;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            z-index: 1;
+        }
+
+        .template-name {
+            padding: 10px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .template-check {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: #4a9d6f;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .template-card.selected .template-check {
+            display: flex;
+            animation: checkPop 0.3s ease;
+        }
+
+        @keyframes checkPop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .template-card[data-template="professional"] .template-preview {
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        }
+
+        .template-card[data-template="friendly"] .template-preview {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .template-card[data-template="luxury"] .template-preview {
+            background: linear-gradient(135deg, #78350f 0%, #000000 100%);
+        }
+
+        .template-card[data-template="modern"] .template-preview {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+
+        .template-card[data-template="classic"] .template-preview {
+            background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
+        }
+
+        .template-card[data-template="Gaming"] .template-preview {
+            background: linear-gradient(135deg, #dc2626 0%, #450a0a 100%);
+        }
+
+        .template-card[data-template="Japan70s"] .template-preview {
+            background: linear-gradient(135deg, #ec4899 0%, #fbbf24 100%);
+        }
+
+        .template-card[data-template="it"] .template-preview {
+            background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+        }
+
+        .template-card[data-template="minimal"] .template-preview {
+            background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+        }
+
+        .template-card[data-template="minimal"] .template-icon,
+        .template-card[data-template="minimal"] .template-name {
+            color: #1f2937;
+        }
+
+        .template-card[data-template="Website"] .template-preview {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            padding: 20px;
+        }
+
+        .preview-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-content {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .preview-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.8);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-close:hover {
+            background: rgba(220, 38, 38, 0.9);
+        }
+
+        .preview-iframe {
+            width: 100%;
+            min-height: 600px;
+            border: none;
+        }
         
         select {
             cursor: pointer;
@@ -822,19 +999,9 @@
                     اختر تصميم البطاقة
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-paint-brush"></i>
-                        <div class="label-text">
-                            <span class="label-ar">التصميم</span>
-                            <span class="label-en">Card Template</span>
-                        </div>
-                    </label>
-                    <select name="template" id="templateSelect">
-                        <option value="professional">Professional</option>
-                    </select>
-                    <small id="templateInfo">جاري تحميل التصاميم المتاحة...</small>
-                </div>
+                <div class="template-gallery" id="templateGallery"></div>
+                <input type="hidden" name="template" id="selectedTemplate" value="professional">
+                <small id="templateInfo" style="display:block;text-align:center;margin-top:15px;">اضغط لاختيار • اضغط مرتين للمعاينة</small>
 
                 <button type="submit" class="submit-btn" id="submitBtn">
                     <i class="fas fa-paper-plane"></i>
@@ -855,8 +1022,19 @@
         </div>
     </div>
 
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <button class="preview-close" onclick="closePreview()">
+                <i class="fas fa-times"></i>
+            </button>
+            <iframe id="previewFrame" class="preview-iframe"></iframe>
+        </div>
+    </div>
+
 </body>
-</html>    <script>
+</html>
+    <script>
     const STORAGE_KEY = 'maroof_pending_registrations';
     let DISCOVERED_ENDPOINT = null;
     
@@ -975,37 +1153,83 @@
         return await response.json();
     }
     
+    const TEMPLATE_METADATA = {
+        professional: { nameAr: 'احترافي', icon: 'fa-briefcase' },
+        friendly: { nameAr: 'ودي', icon: 'fa-smile' },
+        luxury: { nameAr: 'فاخر', icon: 'fa-gem' },
+        modern: { nameAr: 'عصري', icon: 'fa-rocket' },
+        classic: { nameAr: 'كلاسيكي', icon: 'fa-crown' },
+        Gaming: { nameAr: 'ألعاب', icon: 'fa-gamepad' },
+        Japan70s: { nameAr: 'ياباني', icon: 'fa-torii-gate' },
+        it: { nameAr: 'تقني', icon: 'fa-code' },
+        minimal: { nameAr: 'بسيط', icon: 'fa-minus' },
+        Website: { nameAr: 'موقع', icon: 'fa-globe' }
+    };
+
     async function loadTemplates() {
-        const endpoint = await testServerConnection();
+        const gallery = document.getElementById('templateGallery');
+        let templates = Object.keys(TEMPLATE_METADATA);
         
-        if (!endpoint) {
-            document.getElementById('templateInfo').textContent = 
-                'سيتم تحميل التصاميم عند الاتصال';
-            return;
-        }
-        
+        // 🔥 قراءة التصاميم من GitHub مباشرة
         try {
-            const response = await fetch(endpoint.replace('/register', '/templates'));
-            const result = await response.json();
+            const response = await fetch(
+                'https://api.github.com/repos/maroof-id/maroof-cards/contents/templates/cards',
+                {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
             
-            if (result.success && result.templates.length > 0) {
-                const select = document.getElementById('templateSelect');
-                select.innerHTML = '';
-                
-                result.templates.forEach(template => {
-                    const option = document.createElement('option');
-                    option.value = template;
-                    option.textContent = template.charAt(0).toUpperCase() + template.slice(1);
-                    select.appendChild(option);
-                });
-                
-                document.getElementById('templateInfo').textContent = 
-                    result.templates.length + ' تصميم متاح';
+            if (response.ok) {
+                const files = await response.json();
+                if (Array.isArray(files)) {
+                    // استخرج أسماء التصاميم من أسماء الملفات
+                    templates = files
+                        .filter(f => f.name.endsWith('.html'))
+                        .map(f => f.name.replace('.html', ''))
+                        .sort();
+                    
+                    console.log('Templates loaded from GitHub:', templates);
+                }
             }
-        } catch (error) {
-            console.error('Failed to load templates:', error);
+        } catch (e) {
+            console.warn('Failed to load templates from GitHub, using defaults:', e);
+            // في حالة الفشل، استخدم الافتراضيات
+            templates = Object.keys(TEMPLATE_METADATA);
         }
+
+        function selectTemplate(template) {
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+            const card = document.querySelector(`[data-template="${template}"]`);
+            if (card) {
+                card.classList.add('selected');
+                document.getElementById('selectedTemplate').value = template;
+                console.log('Template selected:', template);
+            }
+        }
+
+    function previewTemplate(template) {
+        const modal = document.getElementById('previewModal');
+        const iframe = document.getElementById('previewFrame');
+        const params = new URLSearchParams({
+            NAME: 'محمد أحمد',
+            JOB_TITLE: 'مدير تسويق',
+            COMPANY: 'شركة معروف',
+            PHONE: '0501234567',
+            EMAIL: 'demo@example.com'
+        });
+        iframe.src = `/preview/${template}?${params}`;
+        modal.classList.add('active');
     }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.remove('active');
+    }
+
+    document.getElementById('previewModal').onclick = (e) => {
+        if (e.target.id === 'previewModal') closePreview();
+    };
     
     async function submitRegistration(data, showOfflineMessage) {
         if (typeof showOfflineMessage === 'undefined') showOfflineMessage = true;
