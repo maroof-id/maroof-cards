@@ -17,6 +17,7 @@
     </div>
 </div>
 
+
 <div class="container">
     <h1>✏️ تعديل البطاقة</h1>
 
@@ -162,6 +163,22 @@
                 <small id="templateInfo" style="color: var(--dark-gray); display: block; margin-top: 5px;">
                     جاري تحميل التصاميم...
                 </small>
+            </div>
+
+            <!-- QR Code Section - جديد! -->
+            <div class="form-group" style="background: #f8f9fa; padding: 25px; border-radius: 12px; text-align: center; margin-top: 30px;">
+                <h3 style="margin-bottom: 15px; color: var(--primary);">
+                    <i class="fas fa-qrcode"></i> Apple Wallet QR Code
+                </h3>
+                <div id="walletQrCode" style="display: inline-block; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <!-- QR will be generated here -->
+                </div>
+                <p style="color: var(--dark-gray); margin-top: 15px; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> امسح هذا الرمز لإضافة البطاقة مباشرة إلى Apple Wallet
+                </p>
+                <button type="button" onclick="printQrCard()" class="btn" style="margin-top: 15px; background: #9333ea;">
+                    <i class="fas fa-print"></i> طباعة بطاقة مع QR
+                </button>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
@@ -466,6 +483,189 @@ async function printCurrentCard() {
     }
 }
 
+// QR Code Generation
+function generateWalletQR() {
+    const qrContainer = document.getElementById('walletQrCode');
+    const pkpassUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/${username}.pkpass`;
+    
+    // Clear previous QR
+    qrContainer.innerHTML = '';
+    
+    // Generate QR using API
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pkpassUrl)}`;
+    
+    const qrImg = document.createElement('img');
+    qrImg.src = qrApiUrl;
+    qrImg.alt = 'Wallet QR Code';
+    qrImg.style.width = '200px';
+    qrImg.style.height = '200px';
+    qrImg.style.display = 'block';
+    
+    qrContainer.appendChild(qrImg);
+}
+
+// Print Card with QR
+function printQrCard() {
+    const pkpassUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/${username}.pkpass`;
+    const cardUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pkpassUrl)}`;
+    
+    // Get card data
+    const name = document.getElementById('name').value || 'Business Card';
+    const jobTitle = document.getElementById('job_title').value || '';
+    const company = document.getElementById('company').value || '';
+    const phone = document.getElementById('phone').value || '';
+    const email = document.getElementById('email').value || '';
+    
+    // Create print window
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print Card - ${name}</title>
+            <style>
+                @media print {
+                    @page { margin: 0; size: A4; }
+                    body { margin: 0; }
+                }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    background: #f5f5f5;
+                    padding: 20px;
+                }
+                .print-card {
+                    background: white;
+                    border-radius: 15px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                    padding: 40px;
+                    max-width: 600px;
+                    width: 100%;
+                    text-align: center;
+                }
+                .header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 30px;
+                    border-radius: 12px;
+                    margin-bottom: 30px;
+                }
+                .name {
+                    font-size: 32px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }
+                .job-title {
+                    font-size: 18px;
+                    opacity: 0.9;
+                    margin-bottom: 5px;
+                }
+                .company {
+                    font-size: 16px;
+                    opacity: 0.8;
+                }
+                .contact-info {
+                    margin: 30px 0;
+                    text-align: center;
+                }
+                .contact-item {
+                    margin: 10px 0;
+                    font-size: 16px;
+                    color: #333;
+                }
+                .qr-section {
+                    margin-top: 30px;
+                    padding: 25px;
+                    background: #f8f9fa;
+                    border-radius: 12px;
+                }
+                .qr-section h3 {
+                    margin-bottom: 15px;
+                    color: #667eea;
+                    font-size: 20px;
+                }
+                .qr-code {
+                    margin: 20px auto;
+                    padding: 15px;
+                    background: white;
+                    border-radius: 10px;
+                    display: inline-block;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .qr-code img {
+                    display: block;
+                    width: 250px;
+                    height: 250px;
+                }
+                .qr-instructions {
+                    color: #666;
+                    font-size: 14px;
+                    margin-top: 15px;
+                    line-height: 1.6;
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 2px solid #e9ecef;
+                    color: #999;
+                    font-size: 14px;
+                }
+                @media print {
+                    body { background: white; }
+                    .print-card { box-shadow: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-card">
+                <div class="header">
+                    <div class="name">${name}</div>
+                    ${jobTitle ? `<div class="job-title">${jobTitle}</div>` : ''}
+                    ${company ? `<div class="company">${company}</div>` : ''}
+                </div>
+                
+                <div class="contact-info">
+                    ${phone ? `<div class="contact-item">📱 ${phone}</div>` : ''}
+                    ${email ? `<div class="contact-item">✉️ ${email}</div>` : ''}
+                    <div class="contact-item">🌐 <a href="${cardUrl}" style="color: #667eea; text-decoration: none;">${cardUrl}</a></div>
+                </div>
+                
+                <div class="qr-section">
+                    <h3>📲 Add to Apple Wallet</h3>
+                    <div class="qr-code">
+                        <img src="${qrApiUrl}" alt="Wallet QR Code">
+                    </div>
+                    <div class="qr-instructions">
+                        <strong>Scan to add this card to Apple Wallet</strong><br>
+                        امسح الرمز لإضافة البطاقة إلى المحفظة
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    Powered by Maroof Digital Cards
+                </div>
+            </div>
+            
+            <script>
+                window.onload = () => {
+                    setTimeout(() => {
+                        window.print();
+                    }, 500);
+                };
+            <\\/script>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+}
+
 async function writeToNFC() {
     if (!currentCardData) return;
     
@@ -504,5 +704,6 @@ async function writeToNFC() {
 }
 
 loadCard();
+generateWalletQR();
 </script>
 {% endblock %}
