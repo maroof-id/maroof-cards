@@ -340,6 +340,9 @@ function displayCards(cards) {
                     <button class="btn btn-outline" onclick="window.location.href='/edit/${card.username}'">
                         <i class="fas fa-edit"></i> تعديل
                     </button>
+                    <button class="btn btn-outline" onclick="showWalletQR('${card.username}')" style="background: #9333ea; color: white; border-color: #9333ea;">
+                        <i class="fas fa-qrcode"></i> QR
+                    </button>
                     <button class="btn btn-danger" onclick="deleteCard('${card.username}')">
                         <i class="fas fa-trash"></i> حذف
                     </button>
@@ -429,5 +432,49 @@ async function deleteCard(username) {
 
 loadCards();
 setInterval(loadCards, 30000);
+
+// Show Wallet QR Modal
+function showWalletQR(username) {
+    const pkpassUrl = `https://maroof-id.github.io/maroof-cards-data/${username}/${username}.pkpass`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pkpassUrl)}`;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 100%; text-align: center; position: relative;">
+            <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 15px; right: 15px; background: #f3f4f6; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 18px; color: #666;">×</button>
+            
+            <h2 style="margin-bottom: 10px; color: #667eea;">Apple Wallet QR</h2>
+            <p style="color: #666; margin-bottom: 25px; font-size: 14px;">Scan to add to Wallet</p>
+            
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 12px; display: inline-block;">
+                <img src="${qrApiUrl}" alt="QR Code" style="width: 250px; height: 250px; display: block;">
+            </div>
+            
+            <p style="margin-top: 20px; color: #999; font-size: 13px;">امسح الرمز لإضافة البطاقة</p>
+            
+            <button onclick="window.open('${pkpassUrl}', '_blank')" style="margin-top: 20px; padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                <i class="fas fa-download"></i> Download .pkpass
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
+
 </script>
 {% endblock %}
