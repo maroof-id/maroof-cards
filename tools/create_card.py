@@ -326,6 +326,26 @@ class CardGenerator:
         # Create vCard
         self._create_vcard(data, username, client_dir)
 
+        # ✅ Generate .pkpass for Apple Wallet
+        try:
+            build_pkpass_script = self.repo_path / 'tools' / 'build_pkpass.py'
+            if build_pkpass_script.exists():
+                result = subprocess.run(
+                    ['python3', str(build_pkpass_script), username],
+                    cwd=str(self.repo_path),
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    print(f"✅ Generated .pkpass for {username}")
+                else:
+                    print(f"⚠️ .pkpass generation failed: {result.stderr}")
+            else:
+                print(f"⚠️ build_pkpass.py not found")
+        except Exception as e:
+            print(f"⚠️ Failed to generate .pkpass: {e}")
+
         return {
             'username': username,
             'url': f'https://maroof-id.github.io/maroof-cards-data/{username}/',
@@ -457,6 +477,22 @@ class CardGenerator:
         
         # Update vCard
         self._create_vcard(data, username, self.clients_path / username)
+        
+        # ✅ Regenerate .pkpass
+        try:
+            build_pkpass_script = self.repo_path / 'tools' / 'build_pkpass.py'
+            if build_pkpass_script.exists():
+                result = subprocess.run(
+                    ['python3', str(build_pkpass_script), username],
+                    cwd=str(self.repo_path),
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    print(f"✅ Regenerated .pkpass for {username}")
+        except Exception as e:
+            print(f"⚠️ Failed to regenerate .pkpass: {e}")
         
         return {
             'username': username,
