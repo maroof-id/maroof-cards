@@ -52,24 +52,6 @@ def get_templates():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/server-info', methods=['GET'])
-def server_info():
-    import socket
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        local_ip = s.getsockname()[0]
-        s.close()
-    except:
-        local_ip = "127.0.0.1"
-    
-    return jsonify({
-        'success': True,
-        'ip': local_ip,
-        'hostname': 'raspberrypi.local',
-        'port': 7070
-    })
-
 @app.route('/api/create', methods=['POST'])
 def create_card():
     try:
