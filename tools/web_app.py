@@ -275,6 +275,166 @@ def get_pending_count_api():
     except:
         return jsonify({'count': 0})
 
+@app.route('/api/server-info')
+def server_info():
+    """Get current server IP and network info"""
+    import socket
+    import subprocess
+    
+    try:
+        hostname = socket.gethostname()
+        
+        # Get primary IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        
+        # Get WiFi SSID
+        try:
+            ssid_result = subprocess.run(
+                ['iwgetid', '-r'],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            current_ssid = ssid_result.stdout.strip() if ssid_result.returncode == 0 else "Unknown"
+        except:
+            current_ssid = "Unknown"
+        
+        return jsonify({
+            'success': True,
+            'hostname': hostname,
+            'local_ip': local_ip,
+            'port': 7070,
+            'current_network': current_ssid,
+            'urls': {
+                'mdns': f'http://{hostname}.local:7070',
+                'ip': f'http://{local_ip}:7070',
+                'dashboard': f'http://{local_ip}:7070/dashboard',
+                'register': f'http://{local_ip}:7070/register'
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/network-info')
+def network_info_page():
+    """Display network information page"""
+    import socket
+    hostname = socket.gethostname()
+    
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except:
+        local_ip = "Offline"
+    
+    html = f'''
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Network Info - Maroof</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                padding: 20px;
+            }}
+            .card {{
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 500px;
+                width: 100%;
+            }}
+            h1 {{
+                color: #667eea;
+                margin-bottom: 30px;
+                text-align: center;
+            }}
+            .info-item {{
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                border-left: 4px solid #667eea;
+            }}
+            .label {{
+                font-weight: bold;
+                color: #555;
+                font-size: 14px;
+            }}
+            .value {{
+                color: #333;
+                font-size: 18px;
+                margin-top: 5px;
+                direction: ltr;
+                text-align: left;
+            }}
+            .qr-section {{
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 30px;
+                border-top: 2px solid #eee;
+            }}
+            a {{
+                color: #667eea;
+                text-decoration: none;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>🌐 معلومات الاتصال</h1>
+            
+            <div class="info-item">
+                <div class="label">الاسم (Hostname)</div>
+                <div class="value">{hostname}.local</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="label">عنوان IP</div>
+                <div class="value">{local_ip}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="label">رابط mDNS (يعمل على أي شبكة)</div>
+                <div class="value">
+                    <a href="http://{hostname}.local:7070">http://{hostname}.local:7070</a>
+                </div>
+            </div>
+            
+            <div class="info-item">
+                <div class="label">رابط IP المباشر</div>
+                <div class="value">
+                    <a href="http://{local_ip}:7070">http://{local_ip}:7070</a>
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <p>📱 امسح QR Code للوصول السريع:</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://{local_ip}:7070/dashboard" alt="QR Code">
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    return html
+
 if __name__ == '__main__':
     print("="*60)
     print("🚀 Maroof NFC System - Digital Business Cards")
