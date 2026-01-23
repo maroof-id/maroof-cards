@@ -89,23 +89,41 @@ class NFCWriter:
         try:
             import ndef
             
-            # Check if tag has NDEF attribute first
+            # Check if tag has NDEF
             if not hasattr(tag, 'ndef'):
                 return False, "Card doesn't support NDEF"
             
+            # If NDEF is None, try raw write
             if tag.ndef is None:
-                # Try to format
+                print("⚠️ No NDEF, trying raw write...")
                 try:
-                    print("⚠️ Card not formatted, formatting...")
-                    tag.format(version=0x12)
-                    print("✅ Format successful!")
+                    # Create NDEF message manually
+                    record = ndef.UriRecord(url)
+                    message = ndef.message_encoder([record])
+                    
+                    # Write raw bytes starting at block 4
+                    block_num = 4
+                    
+                    # Write NDEF header (TLV)
+                    header = bytes([0x03, len(message)]) + message + bytes([0xFE])
+                    
+                    # Pad to 16-byte blocks
+                    while len(header) % 16 != 0:
+                        header += b'\x00'
+                    
+                    # Write blocks
+                    for i in range(0, len(header), 16):
+                        chunk = header[i:i+16]
+                        tag.write(block_num, chunk)
+                        print(f"   ✅ Written block {block_num}")
+                        block_num += 1
+                    
+                    return True, "Written (raw mode)"
+                    
                 except Exception as e:
-                    return False, f"Format failed: {e}"
+                    return False, f"Raw write failed: {e}"
             
-            # Check again after format
-            if tag.ndef is None:
-                return False, "Card still has no NDEF after format"
-            
+            # Normal NDEF write
             if not tag.ndef.is_writeable:
                 return False, "Card is write-protected"
             
