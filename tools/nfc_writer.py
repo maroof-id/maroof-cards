@@ -89,7 +89,7 @@ class NFCWriter:
         try:
             import ndef
             
-            # ✅ Check if tag has NDEF attribute first
+            # Check if tag has NDEF attribute first
             if not hasattr(tag, 'ndef'):
                 return False, "Card doesn't support NDEF (use MIFARE mode)"
             
@@ -102,7 +102,7 @@ class NFCWriter:
                 except Exception as e:
                     return False, f"Format failed: {e}"
             
-            # ✅ Check again after format
+            # Check again after format
             if tag.ndef is None:
                 return False, "Card still has no NDEF after format"
             
@@ -158,7 +158,7 @@ class NFCWriter:
                 except Exception as e:
                     return False, f"Write failed at block {block_num}: {e}"
             
-            return True, f"Written successfully (MIFARE Classic)"
+            return True, "Written successfully (MIFARE Classic)"
             
         except Exception as e:
             return False, f"MIFARE write error: {e}"
@@ -178,8 +178,11 @@ class NFCWriter:
             def on_connect(tag):
                 print(f"✅ Card detected: {tag.type}")
                 print(f"   ID: {tag.identifier.hex()}")
+                print(f"   Product: {tag.product}")
+                print(f"   Has NDEF: {hasattr(tag, 'ndef')}")
+                print(f"   Has Auth: {hasattr(tag, 'authenticate')}")
                 
-                # ✅ IMPROVED: Better card type detection
+                # IMPROVED: Better card type detection
                 card_type = str(tag.type)
                 
                 # Check if MIFARE Classic first (most specific)
@@ -211,6 +214,13 @@ class NFCWriter:
                         result[0], result[1] = False, f"Unsupported card type: {card_type}"
                 
                 return False  # Disconnect after write
+            
+            self.clf.connect(rdwr={'on-connect': on_connect, 'on-release': lambda tag: None}, terminate=lambda: time.time() - start > timeout)
+            
+            return result[0], result[1]
+                
+        except Exception as e:
+            return False, f"Error: {str(e)}"
     
     def _read_ntag(self, tag) -> Dict:
         """Read NTAG card"""
@@ -279,7 +289,7 @@ class NFCWriter:
                 
                 card_type = str(tag.type)
                 
-                if 'Type2Tag' in card_type:
+                if 'Type2Tag' in card_type or hasattr(tag, 'ndef'):
                     data = self._read_ntag(tag)
                     result[0], result[1] = data, "Read successfully"
                     
