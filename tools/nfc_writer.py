@@ -89,7 +89,11 @@ class NFCWriter:
         try:
             import ndef
             
-            if not tag.ndef:
+            # ✅ Check if tag has NDEF attribute first
+            if not hasattr(tag, 'ndef'):
+                return False, "Card doesn't support NDEF (use MIFARE mode)"
+            
+            if tag.ndef is None:
                 # Try to format
                 try:
                     print("⚠️ Card not formatted, formatting...")
@@ -98,13 +102,17 @@ class NFCWriter:
                 except Exception as e:
                     return False, f"Format failed: {e}"
             
+            # ✅ Check again after format
+            if tag.ndef is None:
+                return False, "Card still has no NDEF after format"
+            
             if not tag.ndef.is_writeable:
                 return False, "Card is write-protected"
             
             record = ndef.UriRecord(url)
             tag.ndef.records = [record]
             
-            return True, "Written successfully (NTAG)"
+            return True, "Written successfully (NTAG/NDEF)"
             
         except Exception as e:
             return False, f"NTAG write error: {e}"
@@ -171,30 +179,38 @@ class NFCWriter:
                 print(f"✅ Card detected: {tag.type}")
                 print(f"   ID: {tag.identifier.hex()}")
                 
-                # Detect card type
+                # ✅ IMPROVED: Better card type detection
                 card_type = str(tag.type)
                 
-                if 'Type2Tag' in card_type:
-                    # NTAG card
-                    print("   Type: NTAG (NDEF)")
-                    result[0], result[1] = self._write_ntag(tag, url)
-                    
-                elif 'Type1Tag' in card_type or hasattr(tag, 'authenticate'):
-                    # MIFARE Classic
-                    print("   Type: MIFARE Classic")
+                # Check if MIFARE Classic first (most specific)
+                if hasattr(tag, 'authenticate'):
+                    print("   Type: MIFARE Classic (authenticated)")
                     result[0], result[1] = self._write_mifare_classic(tag, url)
-                    
+                
+                # Check for NDEF support (NTAG/Ultralight)
+                elif hasattr(tag, 'ndef'):
+                    print("   Type: NTAG/NDEF compatible")
+                    result[0], result[1] = self._write_ntag(tag, url)
+                
+                # Fallback to string matching
+                elif 'Type2Tag' in card_type:
+                    print("   Type: Type2Tag (NTAG)")
+                    result[0], result[1] = self._write_ntag(tag, url)
+                
+                elif 'Type1Tag' in card_type:
+                    print("   Type: Type1Tag (MIFARE)")
+                    result[0], result[1] = self._write_mifare_classic(tag, url)
+                
                 else:
-                    result[0], result[1] = False, f"Unsupported card type: {card_type}"
+                    print(f"   ⚠️ Unknown type: {card_type}")
+                    # Try MIFARE as last resort
+                    if 'MIFARE' in str(tag.product).upper():
+                        print("   Attempting MIFARE Classic...")
+                        result[0], result[1] = self._write_mifare_classic(tag, url)
+                    else:
+                        result[0], result[1] = False, f"Unsupported card type: {card_type}"
                 
                 return False  # Disconnect after write
-            
-            self.clf.connect(rdwr={'on-connect': on_connect, 'on-release': lambda tag: None}, terminate=lambda: time.time() - start > timeout)
-            
-            return result[0], result[1]
-                
-        except Exception as e:
-            return False, f"Error: {str(e)}"
     
     def _read_ntag(self, tag) -> Dict:
         """Read NTAG card"""
