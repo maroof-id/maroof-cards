@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Maroof NFC Writer - Supports NTAG & MIFARE Classic
+Final version with raw write support
 """
 
 import nfc
@@ -93,44 +94,60 @@ class NFCWriter:
             if not hasattr(tag, 'ndef'):
                 return False, "Card doesn't support NDEF"
             
-            # If NDEF is None, try raw write
-            if tag.ndef is None:
-                print("⚠️ No NDEF, trying raw write...")
-                try:
-                    # Create NDEF message manually
-                    record = ndef.UriRecord(url)
-                    message = ndef.message_encoder([record])
+            # If NDEF exists and is writeable, use normal write
+            if tag.ndef and tag.ndef.is_writeable:
+                print("   Using NDEF write...")
+                record = ndef.UriRecord(url)
+                tag.ndef.records = [record]
+                return True, "Written successfully (NDEF)"
+            
+            # If NDEF is None or not writeable, try raw write
+            print("   ⚠️ NDEF unavailable, trying raw write...")
+            
+            try:
+                # Create NDEF message
+                record = ndef.UriRecord(url)
+                
+                # Encode to bytes (convert generator to bytes)
+                message_bytes = b''.join(ndef.message_encoder([record]))
+                
+                # Create TLV structure
+                # 0x03 = NDEF Message TLV, followed by length
+                tlv = bytes([0x03, len(message_bytes)]) + message_bytes + bytes([0xFE])
+                
+                # Pad to 16-byte blocks
+                if len(tlv) % 16 != 0:
+                    tlv += b'\x00' * (16 - len(tlv) % 16)
+                
+                print(f"   Message: {len(message_bytes)} bytes, TLV: {len(tlv)} bytes")
+                
+                # Write blocks starting at block 4 (first user block)
+                block_num = 4
+                blocks_written = 0
+                
+                for i in range(0, len(tlv), 16):
+                    chunk = tlv[i:i+16]
                     
-                    # Write raw bytes starting at block 4
-                    block_num = 4
+                    # Ensure chunk is exactly 16 bytes
+                    if len(chunk) < 16:
+                        chunk = chunk + b'\x00' * (16 - len(chunk))
                     
-                    # Write NDEF header (TLV)
-                    header = bytes([0x03, len(message)]) + message + bytes([0xFE])
-                    
-                    # Pad to 16-byte blocks
-                    while len(header) % 16 != 0:
-                        header += b'\x00'
-                    
-                    # Write blocks
-                    for i in range(0, len(header), 16):
-                        chunk = header[i:i+16]
+                    try:
                         tag.write(block_num, chunk)
-                        print(f"   ✅ Written block {block_num}")
+                        print(f"   ✅ Block {block_num} written")
+                        blocks_written += 1
                         block_num += 1
+                    except Exception as e:
+                        print(f"   ⚠️ Block {block_num} failed: {e}")
+                        break
+                
+                if blocks_written > 0:
+                    return True, f"Written (raw mode, {blocks_written} blocks)"
+                else:
+                    return False, "No blocks written"
                     
-                    return True, "Written (raw mode)"
-                    
-                except Exception as e:
-                    return False, f"Raw write failed: {e}"
-            
-            # Normal NDEF write
-            if not tag.ndef.is_writeable:
-                return False, "Card is write-protected"
-            
-            record = ndef.UriRecord(url)
-            tag.ndef.records = [record]
-            
-            return True, "Written successfully (NTAG/NDEF)"
+            except Exception as e:
+                return False, f"Raw write failed: {e}"
             
         except Exception as e:
             return False, f"NTAG write error: {e}"
@@ -142,12 +159,12 @@ class NFCWriter:
             product = str(tag.product).upper()
             
             if 'NTAG' in product or 'TYPE2TAG' in str(tag.type).upper():
-                print("   ⚠️ This is NTAG, redirecting to NDEF write...")
+                print("   ⚠️ This is NTAG, redirecting...")
                 return self._write_ntag(tag, url)
             
             # Real MIFARE Classic only from here
             if not hasattr(tag, 'authenticate'):
-                return False, "Card doesn't support authentication"
+                return False, "Card doesn't support MIFARE authentication"
             
             # MIFARE Classic default key
             key_a = bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
@@ -170,12 +187,11 @@ class NFCWriter:
                     break
                 
                 try:
-                    # MIFARE Classic auth: (block, key, use_key_a)
                     if not tag.authenticate(block_num, key_a, True):
                         return False, f"Auth failed at block {block_num}"
                     
                     tag.write(block_num, chunks[i])
-                    print(f"✅ Written to block {block_num}")
+                    print(f"   ✅ Block {block_num} written")
                     
                 except Exception as e:
                     return False, f"Write error at block {block_num}: {e}"
@@ -202,25 +218,24 @@ class NFCWriter:
                 print(f"   ID: {tag.identifier.hex()}")
                 print(f"   Product: {tag.product}")
                 
-                # IMPROVED: Detect by product name
+                # Detect by product name
                 product = str(tag.product).upper()
                 card_type = str(tag.type).upper()
                 
                 # NTAG cards (including NTAG215)
                 if 'NTAG' in product or 'TYPE2TAG' in card_type:
-                    print("   Type: NTAG (NDEF)")
+                    print("   Type: NTAG")
                     result[0], result[1] = self._write_ntag(tag, url)
                 
-                # Real MIFARE Classic (rare case)
-                elif 'MIFARE CLASSIC' in product or ('TYPE1TAG' in card_type and hasattr(tag, 'authenticate')):
+                # Real MIFARE Classic
+                elif 'MIFARE CLASSIC' in product:
                     print("   Type: MIFARE Classic")
                     result[0], result[1] = self._write_mifare_classic(tag, url)
                 
                 else:
                     print(f"   ⚠️ Unknown: {product}")
-                    # Default to NDEF
+                    # Try NDEF as default
                     if hasattr(tag, 'ndef'):
-                        print("   Trying NDEF write...")
                         result[0], result[1] = self._write_ntag(tag, url)
                     else:
                         result[0], result[1] = False, f"Unsupported: {product}"
