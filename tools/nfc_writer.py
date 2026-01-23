@@ -120,48 +120,52 @@ class NFCWriter:
     def _write_mifare_classic(self, tag, url: str) -> Tuple[bool, str]:
         """Write URL to MIFARE Classic 1K"""
         try:
+            # ✅ Check if this is actually NTAG (not MIFARE Classic)
+            product = str(tag.product).upper()
+            
+            if 'NTAG' in product or 'TYPE2TAG' in str(tag.type).upper():
+                print("   ⚠️ This is NTAG, redirecting to NDEF write...")
+                return self._write_ntag(tag, url)
+            
+            # Real MIFARE Classic only from here
+            if not hasattr(tag, 'authenticate'):
+                return False, "Card doesn't support authentication"
+            
             # MIFARE Classic default key
             key_a = bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
             
-            # Prepare URL data (max 48 bytes per sector)
+            # Prepare URL data
             url_bytes = url.encode('utf-8')
-            
-            # We'll use Sector 1, Blocks 4-6 (Block 7 is trailer)
-            sector = 1
             blocks_to_write = [4, 5, 6]
             
-            # Split URL into 16-byte chunks
+            # Split into chunks
             chunks = []
             for i in range(0, len(url_bytes), 16):
                 chunk = url_bytes[i:i+16]
-                # Pad to 16 bytes
                 chunk = chunk + b'\x00' * (16 - len(chunk))
                 chunks.append(chunk)
-            
-            # Limit to 3 blocks
             chunks = chunks[:3]
             
-            # Authenticate and write
+            # Write blocks
             for i, block_num in enumerate(blocks_to_write):
                 if i >= len(chunks):
                     break
                 
                 try:
-                    # Authenticate with Key A
+                    # MIFARE Classic auth: (block, key, use_key_a)
                     if not tag.authenticate(block_num, key_a, True):
-                        return False, f"Authentication failed at block {block_num}"
+                        return False, f"Auth failed at block {block_num}"
                     
-                    # Write data
                     tag.write(block_num, chunks[i])
                     print(f"✅ Written to block {block_num}")
                     
                 except Exception as e:
-                    return False, f"Write failed at block {block_num}: {e}"
+                    return False, f"Write error at block {block_num}: {e}"
             
             return True, "Written successfully (MIFARE Classic)"
             
         except Exception as e:
-            return False, f"MIFARE write error: {e}"
+            return False, f"MIFARE error: {e}"
     
     def write_url(self, url: str, timeout: int = 15) -> Tuple[bool, str]:
         """Write URL to NFC card (auto-detect type)"""
@@ -179,48 +183,31 @@ class NFCWriter:
                 print(f"✅ Card detected: {tag.type}")
                 print(f"   ID: {tag.identifier.hex()}")
                 print(f"   Product: {tag.product}")
-                print(f"   Has NDEF: {hasattr(tag, 'ndef')}")
-                print(f"   Has Auth: {hasattr(tag, 'authenticate')}")
                 
-                # IMPROVED: Better card type detection
-                card_type = str(tag.type)
+                # ✅ IMPROVED: Detect by product name
+                product = str(tag.product).upper()
+                card_type = str(tag.type).upper()
                 
-                # Check if MIFARE Classic first (most specific)
-                if hasattr(tag, 'authenticate'):
-                    print("   Type: MIFARE Classic (authenticated)")
-                    result[0], result[1] = self._write_mifare_classic(tag, url)
-                
-                # Check for NDEF support (NTAG/Ultralight)
-                elif hasattr(tag, 'ndef'):
-                    print("   Type: NTAG/NDEF compatible")
+                # NTAG cards (including NTAG215)
+                if 'NTAG' in product or 'TYPE2TAG' in card_type:
+                    print("   Type: NTAG (NDEF)")
                     result[0], result[1] = self._write_ntag(tag, url)
                 
-                # Fallback to string matching
-                elif 'Type2Tag' in card_type:
-                    print("   Type: Type2Tag (NTAG)")
-                    result[0], result[1] = self._write_ntag(tag, url)
-                
-                elif 'Type1Tag' in card_type:
-                    print("   Type: Type1Tag (MIFARE)")
+                # Real MIFARE Classic (rare case)
+                elif 'MIFARE CLASSIC' in product or ('TYPE1TAG' in card_type and hasattr(tag, 'authenticate')):
+                    print("   Type: MIFARE Classic")
                     result[0], result[1] = self._write_mifare_classic(tag, url)
                 
                 else:
-                    print(f"   ⚠️ Unknown type: {card_type}")
-                    # Try MIFARE as last resort
-                    if 'MIFARE' in str(tag.product).upper():
-                        print("   Attempting MIFARE Classic...")
-                        result[0], result[1] = self._write_mifare_classic(tag, url)
+                    print(f"   ⚠️ Unknown: {product}")
+                    # Default to NDEF
+                    if hasattr(tag, 'ndef'):
+                        print("   Trying NDEF write...")
+                        result[0], result[1] = self._write_ntag(tag, url)
                     else:
-                        result[0], result[1] = False, f"Unsupported card type: {card_type}"
+                        result[0], result[1] = False, f"Unsupported: {product}"
                 
-                return False  # Disconnect after write
-            
-            self.clf.connect(rdwr={'on-connect': on_connect, 'on-release': lambda tag: None}, terminate=lambda: time.time() - start > timeout)
-            
-            return result[0], result[1]
-                
-        except Exception as e:
-            return False, f"Error: {str(e)}"
+                return False
     
     def _read_ntag(self, tag) -> Dict:
         """Read NTAG card"""
