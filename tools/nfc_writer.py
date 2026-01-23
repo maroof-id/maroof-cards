@@ -91,7 +91,7 @@ class NFCWriter:
             
             # Check if tag has NDEF attribute first
             if not hasattr(tag, 'ndef'):
-                return False, "Card doesn't support NDEF (use MIFARE mode)"
+                return False, "Card doesn't support NDEF"
             
             if tag.ndef is None:
                 # Try to format
@@ -120,7 +120,7 @@ class NFCWriter:
     def _write_mifare_classic(self, tag, url: str) -> Tuple[bool, str]:
         """Write URL to MIFARE Classic 1K"""
         try:
-            # ✅ Check if this is actually NTAG (not MIFARE Classic)
+            # Check if this is actually NTAG (not MIFARE Classic)
             product = str(tag.product).upper()
             
             if 'NTAG' in product or 'TYPE2TAG' in str(tag.type).upper():
@@ -184,7 +184,7 @@ class NFCWriter:
                 print(f"   ID: {tag.identifier.hex()}")
                 print(f"   Product: {tag.product}")
                 
-                # ✅ IMPROVED: Detect by product name
+                # IMPROVED: Detect by product name
                 product = str(tag.product).upper()
                 card_type = str(tag.type).upper()
                 
@@ -208,6 +208,13 @@ class NFCWriter:
                         result[0], result[1] = False, f"Unsupported: {product}"
                 
                 return False
+            
+            self.clf.connect(rdwr={'on-connect': on_connect}, terminate=lambda: time.time() - start > timeout)
+            
+            return result[0], result[1]
+                
+        except Exception as e:
+            return False, f"Error: {str(e)}"
     
     def _read_ntag(self, tag) -> Dict:
         """Read NTAG card"""
