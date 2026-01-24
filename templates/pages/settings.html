@@ -20,8 +20,9 @@
 <div class="container">
     <h1>⚙️ إعدادات القارئ</h1>
 
+    <!-- حالة القارئ -->
     <div class="card">
-        <h2>حالة القارئ</h2>
+        <h2>📡 حالة القارئ</h2>
         <div id="readerStatus" class="reader-status offline" style="margin: 20px 0;">
             <span class="status-dot red"></span>
             <span>جاري الفحص...</span>
@@ -46,10 +47,57 @@
 
         <div id="result" style="margin-top: 20px; display: none;">
             <h3 id="resultTitle"></h3>
-            <pre id="resultContent"></pre>
+            <pre id="resultContent" style="background: var(--light-gray); padding: 15px; border-radius: 8px; overflow-x: auto; max-height: 300px;"></pre>
         </div>
     </div>
 
+    <!-- فاحص البطاقات الشامل -->
+    <div class="card">
+        <h2>🔍 فاحص البطاقات الشامل</h2>
+        <p style="color: var(--dark-gray); margin-bottom: 20px;">
+            فحص شامل لكل بطاقة - يختبر القراءة والكتابة ويعطي حكم نهائي
+        </p>
+
+        <div id="inspectorArea" class="inspector-container">
+            <div class="inspector-icon">📇</div>
+            <h3>ضع البطاقة على القارئ</h3>
+            <p style="color: var(--dark-gray); margin: 10px 0;">سيتم فحصها تلقائياً وإعطاء تقرير كامل</p>
+            <br>
+            <button class="btn btn-success" onclick="startInspection()" id="startInspectBtn">
+                <i class="fas fa-play"></i> بدء الفحص
+            </button>
+            <button class="btn btn-error" onclick="stopInspection()" id="stopInspectBtn" style="display: none;">
+                <i class="fas fa-stop"></i> إيقاف الفحص
+            </button>
+        </div>
+
+        <div id="reportArea"></div>
+    </div>
+
+    <!-- إحصائيات الفحص -->
+    <div class="card" id="statsCard" style="display: none;">
+        <h2>📊 إحصائيات الفحص</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCards">0</div>
+                <div class="stat-label">إجمالي البطاقات</div>
+            </div>
+            <div class="stat-card" style="background: var(--success); color: white;">
+                <div class="stat-value" id="goodCards" style="color: white;">0</div>
+                <div class="stat-label" style="color: white;">بطاقات ممتازة</div>
+            </div>
+            <div class="stat-card" style="background: var(--warning); color: white;">
+                <div class="stat-value" id="readonlyCards" style="color: white;">0</div>
+                <div class="stat-label" style="color: white;">قراءة فقط</div>
+            </div>
+            <div class="stat-card" style="background: var(--error); color: white;">
+                <div class="stat-value" id="brokenCards" style="color: white;">0</div>
+                <div class="stat-label" style="color: white;">تالفة</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بيانات البطاقة المقروءة -->
     <div class="card" id="readResultCard" style="display: none;">
         <h2>📖 بيانات البطاقة</h2>
         <div id="readResult"></div>
@@ -58,12 +106,15 @@
         </button>
     </div>
 
+    <!-- نصائح -->
     <div class="card tips-card">
         <h3>💡 نصائح</h3>
         <ul>
             <li>افصل القارئ وأعد توصيله عند فشل الاتصال</li>
             <li>استخدم بطاقات NTAG213/215/216</li>
             <li>ضع البطاقة بشكل صحيح على القارئ</li>
+            <li>البطاقات "قراءة فقط" غير صالحة - أرجعها للبائع</li>
+            <li>البطاقات "التالفة" غير صالحة - تخلص منها</li>
         </ul>
     </div>
 </div>
@@ -96,6 +147,112 @@
     line-height: 1.8;
 }
 
+.inspector-container {
+    border: 3px dashed var(--gray);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    background: var(--light-gray);
+    margin: 20px 0;
+}
+
+.inspector-container.active {
+    background: #e3f2fd;
+    border-color: var(--pending);
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.inspector-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+}
+
+.report-box {
+    background: var(--white);
+    border: 2px solid var(--gray);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+    text-align: right;
+}
+
+.report-section {
+    margin: 15px 0;
+    padding: 15px;
+    background: var(--light-gray);
+    border-radius: 8px;
+}
+
+.report-section h4 {
+    color: var(--black);
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: bold;
+    color: var(--dark-gray);
+}
+
+.info-value {
+    color: var(--black);
+}
+
+.verdict-box {
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    border: 3px solid;
+}
+
+.verdict-box.excellent {
+    background: #e8f5e9;
+    border-color: var(--success);
+}
+
+.verdict-box.readonly {
+    background: #fff3e0;
+    border-color: var(--warning);
+}
+
+.verdict-box.broken {
+    background: #ffebee;
+    border-color: var(--error);
+}
+
+.verdict-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+.verdict-status {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.verdict-text {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
 @media (max-width: 768px) {
     .button-group {
         flex-direction: column;
@@ -107,7 +264,10 @@
     
     #resultContent {
         font-size: 11px;
-        overflow-x: auto;
+    }
+    
+    .inspector-container {
+        padding: 20px;
     }
 }
 </style>
@@ -117,6 +277,14 @@
 {% block extra_js %}
 <script>
 let readData = null;
+let inspectionActive = false;
+let inspectionInterval = null;
+let cardsInspected = [];
+
+// فحص القارئ عند تحميل الصفحة
+window.onload = function() {
+    checkReaderStatus();
+};
 
 async function checkReaderStatus() {
     try {
@@ -174,9 +342,17 @@ async function testReader() {
 }
 
 async function resetReader() {
-    if (!confirm('إعادة ضبط القارئ؟')) return;
-    alert('افصل القارئ من USB ثم أعد توصيله');
-    setTimeout(testReader, 3000);
+    if (!confirm('إعادة ضبط القارئ؟\n\nسيتم إيقاف الخدمة مؤقتاً.')) return;
+    
+    const resetBtn = document.getElementById('resetBtn');
+    resetBtn.disabled = true;
+    
+    alert('افصل القارئ من USB ثم أعد توصيله\n\nبعد ذلك سيتم اختبار القارئ تلقائياً');
+    
+    setTimeout(() => {
+        testReader();
+        resetBtn.disabled = false;
+    }, 5000);
 }
 
 async function readCard() {
@@ -244,7 +420,135 @@ function useReadData() {
     }
 }
 
-checkReaderStatus();
+// ========== فاحص البطاقات الشامل ==========
+
+function startInspection() {
+    inspectionActive = true;
+    document.getElementById('startInspectBtn').style.display = 'none';
+    document.getElementById('stopInspectBtn').style.display = 'inline-flex';
+    document.getElementById('inspectorArea').classList.add('active');
+    document.getElementById('statsCard').style.display = 'block';
+    
+    checkForCard();
+    inspectionInterval = setInterval(checkForCard, 2000);
+}
+
+function stopInspection() {
+    inspectionActive = false;
+    document.getElementById('startInspectBtn').style.display = 'inline-flex';
+    document.getElementById('stopInspectBtn').style.display = 'none';
+    document.getElementById('inspectorArea').classList.remove('active');
+    
+    if (inspectionInterval) {
+        clearInterval(inspectionInterval);
+        inspectionInterval = null;
+    }
+}
+
+async function checkForCard() {
+    if (!inspectionActive) return;
+
+    try {
+        const response = await fetch('/api/reader/inspect-card');
+        const data = await response.json();
+
+        if (data.success && data.report) {
+            displayReport(data.report);
+            updateStats(data.report);
+        }
+    } catch (error) {
+        console.error('Inspection error:', error);
+    }
+}
+
+function displayReport(report) {
+    const reportArea = document.getElementById('reportArea');
+    const verdict = report.verdict;
+    
+    let verdictClass = 'excellent';
+    let verdictIcon = '🟢';
+    
+    if (verdict.status.includes('قراءة فقط')) {
+        verdictClass = 'readonly';
+        verdictIcon = '🟡';
+    } else if (verdict.status.includes('تالفة')) {
+        verdictClass = 'broken';
+        verdictIcon = '🔴';
+    }
+
+    const reportHTML = `
+        <div class="report-box">
+            <h3 style="color: var(--black); margin-bottom: 15px;">📋 تقرير الفحص - ${report.basic_info.uid}</h3>
+            
+            <div class="verdict-box ${verdictClass}">
+                <div class="verdict-icon">${verdictIcon}</div>
+                <div class="verdict-status">${verdict.status}</div>
+                <div class="verdict-text">${verdict.verdict}</div>
+                <p style="font-weight: bold;">${verdict.recommendation}</p>
+            </div>
+
+            <div class="report-section">
+                <h4>📊 المعلومات الأساسية</h4>
+                <div class="info-row">
+                    <span class="info-label">UID:</span>
+                    <span class="info-value">${report.basic_info.uid}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">النوع:</span>
+                    <span class="info-value">${report.basic_info.type}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">المنتج:</span>
+                    <span class="info-value">${report.basic_info.product}</span>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h4>✅ القدرات</h4>
+                <div class="info-row">
+                    <span class="info-label">القراءة:</span>
+                    <span class="info-value">${verdict.can_read ? '✅ ممكنة' : '❌ غير ممكنة'} (${verdict.readable_pages} pages)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الكتابة:</span>
+                    <span class="info-value">${verdict.can_write ? '✅ ممكنة' : '❌ غير ممكنة'} (${verdict.successful_writes} نجح)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">NDEF:</span>
+                    <span class="info-value">${verdict.has_ndef ? '✅ موجود' : '❌ غير موجود'}</span>
+                </div>
+            </div>
+
+            <p style="margin-top: 15px; color: var(--dark-gray); font-size: 0.9em;">
+                ⏰ تم الفحص: ${new Date(report.timestamp).toLocaleString('ar-SA')}
+            </p>
+        </div>
+    `;
+
+    reportArea.innerHTML = reportHTML + reportArea.innerHTML;
+}
+
+function updateStats(report) {
+    const uid = report.basic_info.uid;
+    if (!cardsInspected.find(c => c.uid === uid)) {
+        cardsInspected.push({
+            uid: uid,
+            verdict: report.verdict.status
+        });
+    }
+
+    const total = cardsInspected.length;
+    const good = cardsInspected.filter(c => c.verdict.includes('ممتازة')).length;
+    const readonly = cardsInspected.filter(c => c.verdict.includes('قراءة فقط')).length;
+    const broken = cardsInspected.filter(c => c.verdict.includes('تالفة')).length;
+
+    document.getElementById('totalCards').textContent = total;
+    document.getElementById('goodCards').textContent = good;
+    document.getElementById('readonlyCards').textContent = readonly;
+    document.getElementById('brokenCards').textContent = broken;
+}
+
+// فحص دوري لحالة القارئ
 setInterval(checkReaderStatus, 30000);
 </script>
 {% endblock %}
