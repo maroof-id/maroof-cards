@@ -417,6 +417,197 @@ def network_info_page():
     '''
     return html
 
+@app.route('/api/reader/inspect-card')
+def api_inspect_card():
+    """فحص بطاقة NFC - شامل"""
+    import ndef
+    from datetime import datetime
+    
+    try:
+        writer = NFCWriter()
+        
+        if not writer.ensure_connected():
+            return jsonify({
+                'success': False,
+                'message': 'القارئ غير متصل'
+            })
+        
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'basic_info': {},
+            'capabilities': {},
+            'pages_info': {},
+            'ndef_info': {},
+            'write_test': {},
+            'verdict': {}
+        }
+        
+        card_detected = False
+        
+        def inspect(tag):
+            nonlocal card_detected
+            card_detected = True
+            
+            # 1. المعلومات الأساسية
+            report['basic_info'] = {
+                'uid': tag.identifier.hex(),
+                'type': str(tag.type),
+                'product': str(tag.product),
+                'class': type(tag).__name__
+            }
+            
+            # 2. الخصائص
+            features = ['ndef', 'read', 'write', 'format', 'authenticate']
+            available = [f for f in features if hasattr(tag, f)]
+            report['capabilities']['available_methods'] = available
+            
+            # 3. NDEF
+            if hasattr(tag, 'ndef'):
+                ndef_obj = tag.ndef
+                report['ndef_info']['has_ndef_attr'] = True
+                report['ndef_info']['ndef_is_none'] = (ndef_obj is None)
+                
+                if ndef_obj:
+                    report['ndef_info']['capacity'] = ndef_obj.capacity
+                    report['ndef_info']['is_writeable'] = ndef_obj.is_writeable
+                    report['ndef_info']['has_records'] = len(ndef_obj.records) > 0
+                    
+                    if ndef_obj.records:
+                        for i, record in enumerate(ndef_obj.records):
+                            if hasattr(record, 'uri'):
+                                report['ndef_info'][f'record_{i}'] = record.uri
+            else:
+                report['ndef_info']['has_ndef_attr'] = False
+            
+            # 4. فحص القراءة
+            readable_pages = []
+            page = 0
+            
+            while page < 20:
+                try:
+                    data = tag.read(page)
+                    readable_pages.append({
+                        'page': page,
+                        'data': data.hex(),
+                        'size': len(data)
+                    })
+                    page += 1
+                except:
+                    break
+            
+            report['pages_info']['readable_pages'] = len(readable_pages)
+            report['pages_info']['page_size'] = readable_pages[0]['size'] if readable_pages else 0
+            
+            # 5. اختبار الكتابة
+            write_tests = []
+            
+            # Test A: NDEF Write
+            if tag.ndef:
+                try:
+                    test_url = f"https://test-{datetime.now().strftime('%H%M%S')}.com"
+                    record = ndef.UriRecord(test_url)
+                    tag.ndef.records = [record]
+                    
+                    if tag.ndef.records and tag.ndef.records[0].uri == test_url:
+                        write_tests.append({'method': 'NDEF', 'success': True})
+                    else:
+                        write_tests.append({'method': 'NDEF', 'success': False})
+                except Exception as e:
+                    write_tests.append({'method': 'NDEF', 'success': False, 'error': str(e)})
+            
+            # Test B: Raw Write
+            try:
+                test_page = 10
+                original = tag.read(test_page)
+                test_data = bytes([0xAA, 0xBB, 0xCC, 0xDD])
+                tag.write(test_page, test_data)
+                
+                verify = tag.read(test_page)
+                
+                if verify[:4] == test_data:
+                    write_tests.append({'method': 'Raw Pages', 'success': True})
+                    # استرجاع البيانات الأصلية
+                    try:
+                        tag.write(test_page, original[:4])
+                    except:
+                        pass
+                else:
+                    write_tests.append({'method': 'Raw Pages', 'success': False})
+                    
+            except Exception as e:
+                write_tests.append({'method': 'Raw Pages', 'success': False, 'error': str(e)})
+            
+            report['write_test']['tests'] = write_tests
+            
+            # 6. الحكم النهائي
+            can_read = len(readable_pages) > 0
+            can_write = any(test['success'] for test in write_tests)
+            has_ndef = tag.ndef is not None
+            
+            if can_read and can_write:
+                status = "✅ ممتازة"
+                verdict = "البطاقة تعمل بشكل كامل"
+                recommendation = "استخدمها بدون مشاكل!"
+            elif can_read and not can_write:
+                status = "⚠️ قراءة فقط"
+                verdict = "البطاقة محمية ضد الكتابة"
+                recommendation = "لا يمكن استخدامها - أرجعها للبائع"
+            elif not can_read:
+                status = "❌ تالفة"
+                verdict = "البطاقة لا تعمل"
+                recommendation = "ارمها - غير صالحة للاستخدام"
+            else:
+                status = "❓ غير محدد"
+                verdict = "نتائج غير واضحة"
+                recommendation = "جرّب بطاقة أخرى"
+            
+            report['verdict'] = {
+                'status': status,
+                'verdict': verdict,
+                'recommendation': recommendation,
+                'can_read': can_read,
+                'can_write': can_write,
+                'has_ndef': has_ndef,
+                'readable_pages': len(readable_pages),
+                'successful_writes': sum(1 for t in write_tests if t['success'])
+            }
+            
+            return False
+        
+        # محاولة الكشف عن بطاقة (بدون انتظار طويل)
+        import time
+        start = time.time()
+        
+        try:
+            writer.clf.connect(
+                rdwr={'on-connect': inspect},
+                terminate=lambda: time.time() - start > 1.5  # 1.5 ثانية فقط
+            )
+        except:
+            pass
+        
+        if card_detected:
+            return jsonify({
+                'success': True,
+                'report': report
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'لا توجد بطاقة'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'خطأ: {str(e)}'
+        })
+    finally:
+        try:
+            writer.close()
+        except:
+            pass
+
 if __name__ == '__main__':
     print("="*60)
     print("🚀 Maroof NFC System - Digital Business Cards")
