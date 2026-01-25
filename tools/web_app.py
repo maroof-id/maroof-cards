@@ -608,6 +608,69 @@ def api_inspect_card():
         except:
             pass
 
+@app.route('/api/webhook/register', methods=['POST', 'OPTIONS'])
+def webhook_register():
+    """استقبال التسجيلات من Webhook"""
+    
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = jsonify({'success': True})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+    
+    try:
+        payload = request.get_json() or {}
+        
+        # استخراج البيانات
+        data = payload.get('data', {})
+        
+        if not data.get('name'):
+            return jsonify({
+                'success': False,
+                'error': 'Name is required'
+            }), 400
+        
+        # إنشاء البطاقة
+        result = generator.create_card(
+            name=data.get('name', ''),
+            job_title=data.get('job_title', ''),
+            company=data.get('company', ''),
+            phone=data.get('phone', ''),
+            phone2=data.get('phone2', ''),
+            email=data.get('email', ''),
+            instagram=data.get('instagram', ''),
+            linkedin=data.get('linkedin', ''),
+            twitter=data.get('twitter', ''),
+            youtube=data.get('youtube', ''),
+            tiktok=data.get('tiktok', ''),
+            snapchat=data.get('snapchat', ''),
+            github=data.get('github', ''),
+            website=data.get('website', ''),
+            custom_link=data.get('custom_link', ''),
+            bio=data.get('bio', ''),
+            template=data.get('template', 'professional'),
+            photo='',
+            cv='',
+            source='webhook'
+        )
+        
+        # Git push
+        generator.git_push_background(f"Webhook registration: {data.get('name')}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Registration received',
+            'username': result['username']
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     print("="*60)
     print("🚀 Maroof NFC System - Digital Business Cards")
