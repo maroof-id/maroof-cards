@@ -872,8 +872,6 @@
     async function discoverPiServer() {
         const tryEndpoints = [
             'http://raspberrypi.local:7070',
-            'http://192.168.8.9:7070',
-            'http://192.168.1.100:7070',
             'http://localhost:7070',
         ];
         
@@ -889,8 +887,7 @@
                 const timeout = setTimeout(() => controller.abort(), 2000);
                 
                 const response = await fetch(base + '/api/server-info', {
-                    signal: controller.signal,
-                    mode: 'cors'
+                    signal: controller.signal
                 });
                 
                 clearTimeout(timeout);
@@ -898,9 +895,9 @@
                 if (response.ok) {
                     const info = await response.json();
                     
-                    // ✅ FIX: Check for local_ip instead of ip
-                    if (info.success && info.local_ip) {
-                        DISCOVERED_ENDPOINT = 'http://' + info.local_ip + ':' + (info.port || 7070);
+                    // ✅ FIX: Check for local_ip or ip
+                    if (info.success && (info.local_ip || info.ip)) {
+                        DISCOVERED_ENDPOINT = 'http://' + (info.local_ip || info.ip) + ':' + (info.port || 7070);
                         localStorage.setItem('maroof_server_endpoint', DISCOVERED_ENDPOINT);
                         console.log('✅ Pi discovered:', DISCOVERED_ENDPOINT);
                         return DISCOVERED_ENDPOINT;
@@ -925,10 +922,15 @@
         // Test cached endpoint first
         if (DISCOVERED_ENDPOINT) {
             try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 2000);
+                
                 const response = await fetch(DISCOVERED_ENDPOINT + '/api/templates', {
-                    signal: AbortSignal.timeout(2000),
-                    mode: 'cors'
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeout);
+                
                 if (response.ok) {
                     updateServerStatus('online');
                     return DISCOVERED_ENDPOINT + '/api/register';
@@ -1108,6 +1110,13 @@
         }
     }
     
+    async function autoRetryPending() {
+        const endpoint = await testServerConnection();
+        if (endpoint && getPendingRegistrations().length > 0) {
+            await retryPending();
+        }
+    }
+    
     async function retryPending() {
         const pending = getPendingRegistrations();
         
@@ -1212,23 +1221,12 @@
         updateServerStatus('searching');
         await testServerConnection();
         
-        // Retry pending registrations
-        const pending = getPendingRegistrations();
-        if (pending.length > 0) {
-            setTimeout(retryPending, 3000);
-        }
+        // Auto-retry pending registrations after 2 seconds
+        setTimeout(autoRetryPending, 2000);
     });
     
     // Periodic retry
-    setInterval(async function() {
-        const pending = getPendingRegistrations();
-        if (pending.length > 0) {
-            await testServerConnection();
-            if (SERVER_STATUS === 'online') {
-                retryPending();
-            }
-        }
-    }, 30000); // Every 30 seconds
+    setInterval(autoRetryPending, 30000); // Every 30 seconds
     </script>
 </body>
 </html>
