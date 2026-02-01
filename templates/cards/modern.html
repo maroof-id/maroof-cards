@@ -397,6 +397,152 @@
                 transition-duration: 0.01ms !important;
             }
         }
+
+        /* New: Split contact button and email circle */
+        .split-contact {
+            display: flex;
+            gap: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid var(--border-light);
+        }
+
+        .split-contact .split-half {
+            flex: 1 1 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            transition: background 0.22s ease, transform 0.12s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .split-contact .split-half .icon { font-size: 18px; width: 22px; }
+
+        .split-contact .whatsapp-half {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: #fff;
+        }
+
+        .split-contact .call-half {
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.95));
+            color: var(--text-dark);
+        }
+
+        .split-contact .call-half:hover { background: linear-gradient(90deg, #f7f7f7, #ffffff); }
+        .split-contact .whatsapp-half:hover { filter: brightness(0.95); }
+
+        .split-contact .separator {
+            width: 1px;
+            background: rgba(0,0,0,0.08);
+            align-self: stretch;
+        }
+
+        .phone-number-inline {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Email circle button */
+        .email-circle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0; /* hide text, show icon only */
+            position: relative;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .email-circle .fa-envelope { font-size: 20px; }
+
+        .email-circle:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+
+        .email-circle[title]::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 50%;
+            transform: translateX(50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 30;
+        }
+
+        .email-circle:hover::after { opacity: 1; transform: translateX(50%) translateY(-4px); }
+
+        /* Toast */
+        .copy-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 9999;
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Ensure ellipsis for long email when displayed */
+        .contact-value.ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+            max-width: 100%;
+        }
+
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0 0 0 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -433,40 +579,35 @@
         <!-- Contact Buttons -->
         <div class="contact-section">
             {{#if PHONE}}
-            <!-- WhatsApp Button -->
-            <a href="https://wa.me/{{PHONE_INTL}}" class="contact-btn whatsapp-btn" target="_blank">
-                <div class="contact-icon">
-                    <i class="fab fa-whatsapp"></i>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <div class="split-contact" role="group" aria-label="خيارات الاتصال">
+                    <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-half" target="_blank" rel="noopener noreferrer" aria-label="واتساب">
+                        <i class="fab fa-whatsapp icon" aria-hidden="true"></i>
+                        <span class="label">واتساب</span>
+                    </a>
+                    <div class="separator" aria-hidden="true"></div>
+                    <a href="tel:+{{PHONE_INTL}}" class="split-half call-half" aria-label="اتصال">
+                        <i class="fas fa-phone icon" aria-hidden="true"></i>
+                        <span class="label">اتصال</span>
+                    </a>
                 </div>
-                <div class="contact-info">
-                    <div class="contact-label">واتساب / WhatsApp</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
-                </div>
-            </a>
-            
-            <!-- Phone Button -->
-            <a href="tel:+{{PHONE_INTL}}" class="contact-btn">
-                <div class="contact-icon phone-icon">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">اتصال / Call</div>
-                    <div class="contact-value" dir="ltr">{{PHONE}}</div>
-                </div>
-            </a>
+
+                <div class="phone-number-inline" dir="ltr" aria-label="رقم الهاتف">{{PHONE}}</div>
+            </div>
             {{/if}}
-            
+
             {{#if EMAIL}}
-            <!-- Email Button -->
-            <a href="mailto:{{EMAIL}}" class="contact-btn">
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="contact-info">
+            <div style="display:flex;gap:12px;align-items:center;justify-content:flex-end;">
+                <button type="button" class="email-circle" id="copy-email-btn" data-email="{{EMAIL}}" aria-label="نسخ البريد الإلكتروني" title="{{EMAIL}}">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                    <span class="sr-only">Copy email</span>
+                </button>
+
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0;">
                     <div class="contact-label">بريد إلكتروني / Email</div>
-                    <div class="contact-value">{{EMAIL}}</div>
+                    <div class="contact-value ellipsis" style="max-width:200px;" dir="ltr" title="{{EMAIL}}">{{EMAIL}}</div>
                 </div>
-            </a>
+            </div>
             {{/if}}
         </div>
         
@@ -587,5 +728,59 @@
             <p style="color: var(--text-light); font-size: 13px;">مدعوم بواسطة <a href="https://maroof-id.github.io/maroof-cards/" style="color: var(--accent-coral); font-weight: 700; text-decoration: none;" target="_blank">معروف</a></p>
         </div>
     </div>
+
+    <div id="copy-toast" class="copy-toast" role="status" aria-live="polite">تم النسخ!</div>
+
+    <script>
+        (function(){
+            const btn = document.getElementById('copy-email-btn');
+            const toast = document.getElementById('copy-toast');
+            function showToast(text){
+                if(!toast) return;
+                toast.textContent = text || 'تم النسخ!';
+                toast.classList.add('show');
+                clearTimeout(window._toastTimeout);
+                window._toastTimeout = setTimeout(()=> toast.classList.remove('show'), 2000);
+            }
+
+            async function copyText(text){
+                if(!text) return false;
+                try{
+                    if(navigator.clipboard && navigator.clipboard.writeText){
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    }
+                }catch(e){}
+                try{
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'absolute';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    ta.remove();
+                    return true;
+                }catch(e){
+                    return false;
+                }
+            }
+
+            if(btn){
+                btn.addEventListener('click', async function(e){
+                    const email = this.dataset.email || this.getAttribute('data-email') || '';
+                    const ok = await copyText(email);
+                    if(ok){
+                        showToast('تم النسخ!');
+                        try{ this.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:260}); }catch(e){}
+                    }else{
+                        showToast('Copy failed');
+                    }
+                });
+            }
+        })();
+    </script>
+
 </body>
 </html>
