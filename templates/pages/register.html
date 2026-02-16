@@ -1107,9 +1107,13 @@
                 
                 if (response.ok) {
                     const info = await response.json();
-                    if (info.success && info.ip) {
-                        DISCOVERED_ENDPOINT = 'http://' + info.ip + ':' + info.port;
+                    if (info.success && (info.local_ip || info.ip)) {
+                        DISCOVERED_ENDPOINT = 'http://' + (info.local_ip || info.ip) + ':' + (info.port || 7070);
                         console.log('Pi discovered:', DISCOVERED_ENDPOINT);
+                        return DISCOVERED_ENDPOINT;
+                    } else if (info.success) {
+                        DISCOVERED_ENDPOINT = base;
+                        console.log('Pi discovered (fallback):', DISCOVERED_ENDPOINT);
                         return DISCOVERED_ENDPOINT;
                     }
                 }
