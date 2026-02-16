@@ -2,3 +2,4 @@ flask>=2.3.0
 nfcpy>=1.0.4
 qrcode>=7.4.2
 Pillow>=10.0.0
+pyngrok>=7.0.0
