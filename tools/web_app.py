@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, render_template
 import sys
+import json
+import subprocess
+import threading
 from pathlib import Path
 from datetime import datetime
 
@@ -10,6 +13,9 @@ sys.path.append(str(current_dir))
 
 from create_card import CardGenerator
 from nfc_writer import NFCWriter
+
+# Ngrok public URL (set when tunnel starts)
+NGROK_PUBLIC_URL = None
 
 app = Flask(__name__, template_folder='../templates/pages', static_folder='../static')
 app.config['JSON_AS_ASCII'] = False
@@ -671,6 +677,96 @@ def webhook_register():
             'error': str(e)
         }), 500
 
+@app.route('/api/ngrok-url')
+def get_ngrok_url():
+    """Return current ngrok public URL"""
+    if NGROK_PUBLIC_URL:
+        return jsonify({'success': True, 'url': NGROK_PUBLIC_URL})
+    return jsonify({'success': False, 'url': None})
+
+
+def save_ngrok_url_to_docs(url):
+    """Save ngrok URL to docs/ngrok_url.json and push to GitHub"""
+    try:
+        repo_path = current_dir.parent
+        docs_path = repo_path / 'docs'
+        docs_path.mkdir(exist_ok=True)
+
+        url_file = docs_path / 'ngrok_url.json'
+        data = {
+            'url': url,
+            'updated_at': datetime.now().isoformat(),
+            'port': 7070
+        }
+
+        with open(url_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        print(f"📄 Saved ngrok URL to {url_file}")
+
+        # Push to GitHub in background
+        def push_url():
+            try:
+                subprocess.run(
+                    ['git', 'add', 'docs/ngrok_url.json'],
+                    cwd=str(repo_path), capture_output=True, timeout=10
+                )
+                subprocess.run(
+                    ['git', 'commit', '-m', f'Update ngrok URL: {url}'],
+                    cwd=str(repo_path), capture_output=True, timeout=10
+                )
+                subprocess.run(
+                    ['git', 'push'],
+                    cwd=str(repo_path), capture_output=True, timeout=30
+                )
+                print("✅ Ngrok URL pushed to GitHub")
+            except Exception as e:
+                print(f"⚠️ Failed to push ngrok URL: {e}")
+
+        threading.Thread(target=push_url, daemon=True).start()
+
+    except Exception as e:
+        print(f"⚠️ Failed to save ngrok URL: {e}")
+
+
+def start_ngrok(port=7070):
+    """Start ngrok tunnel"""
+    global NGROK_PUBLIC_URL
+
+    try:
+        from pyngrok import ngrok
+
+        # Check for authtoken in environment or config file
+        config_file = current_dir.parent / '.ngrok_token'
+
+        if config_file.exists():
+            token = config_file.read_text().strip()
+            if token:
+                ngrok.set_auth_token(token)
+                print("🔑 Ngrok authtoken loaded from .ngrok_token")
+
+        # Start tunnel
+        tunnel = ngrok.connect(port, "http")
+        NGROK_PUBLIC_URL = tunnel.public_url
+
+        print(f"🌍 Ngrok tunnel: {NGROK_PUBLIC_URL}")
+        print(f"🌍 External register: {NGROK_PUBLIC_URL}/register")
+
+        # Save URL to docs for GitHub Pages
+        save_ngrok_url_to_docs(NGROK_PUBLIC_URL)
+
+        return NGROK_PUBLIC_URL
+
+    except ImportError:
+        print("⚠️ pyngrok not installed. Run: pip install pyngrok")
+        print("⚠️ External registration will not work.")
+        return None
+    except Exception as e:
+        print(f"⚠️ Ngrok failed: {e}")
+        print("⚠️ External registration will not work.")
+        return None
+
+
 if __name__ == '__main__':
     print("="*60)
     print("🚀 Maroof NFC System - Digital Business Cards")
@@ -679,14 +775,24 @@ if __name__ == '__main__':
     print("📱 Registration:   http://0.0.0.0:7070/register")
     print("📊 Dashboard:      http://0.0.0.0:7070/dashboard")
     print("="*60)
-    
+
     templates = generator.get_available_templates()
     print(f"📋 Available Templates ({len(templates)}):")
     for i, t in enumerate(templates, 1):
         print(f"   {i}. {t}")
-    
+
+    print("="*60)
+
+    # Start ngrok tunnel for external access
+    ngrok_url = start_ngrok(7070)
+    if ngrok_url:
+        print(f"🌍 EXTERNAL ACCESS: {ngrok_url}")
+        print(f"🌍 Share this link: {ngrok_url}/register")
+    else:
+        print("📡 Local access only (no ngrok)")
+
     print("="*60)
     print("✨ Ready to create digital business cards!")
     print("="*60)
-    
+
     app.run(host='0.0.0.0', port=7070, debug=False)
