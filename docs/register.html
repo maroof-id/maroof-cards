@@ -868,41 +868,69 @@
     }
     
     // ========== Server Discovery ==========
-    
+
+    async function fetchNgrokUrl() {
+        // Try fetching ngrok URL from GitHub Pages (same origin)
+        try {
+            const response = await fetch('./ngrok_url.json?t=' + Date.now(), {
+                signal: AbortSignal.timeout(3000)
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.url) {
+                    // Check if the ngrok URL is still alive
+                    try {
+                        const check = await fetch(data.url + '/api/server-info', {
+                            signal: AbortSignal.timeout(4000)
+                        });
+                        if (check.ok) {
+                            console.log('✅ Ngrok URL active:', data.url);
+                            return data.url;
+                        }
+                    } catch (e) {
+                        console.log('⚠️ Ngrok URL found but server not responding:', data.url);
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('ℹ️ No ngrok_url.json found');
+        }
+        return null;
+    }
+
     async function discoverPiServer() {
         const tryEndpoints = [
             'http://raspberrypi.local:7070',
             'http://localhost:7070',
         ];
-        
+
         // Try saved endpoint first
         const savedEndpoint = localStorage.getItem('maroof_server_endpoint');
         if (savedEndpoint) {
             tryEndpoints.unshift(savedEndpoint);
         }
-        
+
+        // 1. Try local endpoints first (same network)
         for (const base of tryEndpoints) {
             try {
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), 2000);
-                
+
                 const response = await fetch(base + '/api/server-info', {
                     signal: controller.signal
                 });
-                
+
                 clearTimeout(timeout);
-                
+
                 if (response.ok) {
                     const info = await response.json();
-                    
-                    // ✅ FIX: Check for local_ip or ip
+
                     if (info.success && (info.local_ip || info.ip)) {
                         DISCOVERED_ENDPOINT = 'http://' + (info.local_ip || info.ip) + ':' + (info.port || 7070);
                         localStorage.setItem('maroof_server_endpoint', DISCOVERED_ENDPOINT);
-                        console.log('✅ Pi discovered:', DISCOVERED_ENDPOINT);
+                        console.log('✅ Pi discovered (local):', DISCOVERED_ENDPOINT);
                         return DISCOVERED_ENDPOINT;
                     } else if (info.success) {
-                        // Fallback if local_ip is not present
                         DISCOVERED_ENDPOINT = base;
                         localStorage.setItem('maroof_server_endpoint', DISCOVERED_ENDPOINT);
                         console.log('✅ Pi discovered (fallback):', DISCOVERED_ENDPOINT);
@@ -910,11 +938,19 @@
                     }
                 }
             } catch (e) {
-                console.log(`❌ Failed to reach ${base}:`, e.message);
                 continue;
             }
         }
-        
+
+        // 2. Try ngrok (external access)
+        const ngrokUrl = await fetchNgrokUrl();
+        if (ngrokUrl) {
+            DISCOVERED_ENDPOINT = ngrokUrl;
+            localStorage.setItem('maroof_server_endpoint', ngrokUrl);
+            console.log('✅ Pi discovered (ngrok):', ngrokUrl);
+            return ngrokUrl;
+        }
+
         return null;
     }
     
