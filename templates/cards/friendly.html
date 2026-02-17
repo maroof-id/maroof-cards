@@ -3,740 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{NAME}} - معروف</title>
-    
-    <!-- Google Fonts -->
+    <meta name="description" content="{{NAME}} - Maroof Digital Card">
+    <title>{{NAME}} - Maroof</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-light: #f8f9fa;
-            --text-dark: #1a1a2e;
-            --text-light: #6c757d;
-            --accent-coral: #E07A5F;
-            --whatsapp-green: #25D366;
-            --call-blue: #4A90E2;
-            --card-bg: #FFFFFF;
-            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.3);
-            --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.15);
-            --shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif;
-            background: var(--bg-light);
+            font-family: 'Tajawal', 'Rubik', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            color: var(--text-dark);
-            position: relative;
+            background: #FFF8F0;
+            color: #2D2014;
         }
-        
-        /* Animated Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(224, 122, 95, 0.1) 0%, transparent 50%);
-            z-index: 0;
-            pointer-events: none;
-        }
-        
+
         .container {
-            background: var(--card-bg);
-            border-radius: 32px;
-            max-width: 520px;
             width: 100%;
-            padding: 48px 40px 40px;
-            box-shadow: var(--shadow-medium);
-            position: relative;
-            z-index: 1;
+            max-width: 480px;
         }
-        
-        /* Profile Section */
-        .profile-section {
+
+        /* Hero Banner */
+        .hero {
+            background: linear-gradient(160deg, #FF9A56 0%, #FF6B6B 40%, #EE5A9D 100%);
+            border-radius: 32px 32px 0 0;
+            padding: 52px 32px 80px;
             text-align: center;
-            margin-bottom: 36px;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .profile-photo {
-            width: 150px;
-            height: 150px;
+
+        /* Decorative blobs */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.12);
             border-radius: 50%;
-            margin: 0 auto 28px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -30px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 4px solid rgba(255,255,255,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 64px;
-            font-weight: 800;
             overflow: hidden;
-            box-shadow: 
-                0 15px 40px rgba(102, 126, 234, 0.4),
-                0 0 0 8px rgba(255, 255, 255, 1),
-                0 0 0 12px rgba(102, 126, 234, 0.1);
-            position: relative;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
         }
-        
-        .profile-photo::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.2) 100%);
-        }
-        
-        .profile-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
+
+        .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-photo i { font-size: 48px; color: rgba(255,255,255,0.7); }
+
         .name {
-            font-size: 36px;
+            font-size: 30px;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 12px;
-            letter-spacing: -1px;
-            line-height: 1.2;
+            color: #ffffff;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
+
+        .subtitle {
+            font-size: 15px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+
         .bio {
-            font-size: 17px;
-            color: var(--text-light);
+            font-size: 15px;
+            color: rgba(255,255,255,0.85);
+            margin-top: 12px;
             line-height: 1.7;
-            max-width: 90%;
-            margin: 0 auto 28px;
         }
-        
-        /* Save Contact Button Section - الأول الآن */
-        .save-contact-section {
-            margin-bottom: 24px;
+
+        /* Body Card - overlaps hero */
+        .body-card {
+            background: #ffffff;
+            border-radius: 28px;
+            margin-top: -48px;
             position: relative;
+            z-index: 2;
+            padding: 32px 28px;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.08);
         }
-        
-        /* Contact Section - بعد زر الحفظ */
-        .contact-section {
-            margin-bottom: 32px;
-        }
-        
-        /* Email Section - في النهاية */
-        .email-section {
-            margin-bottom: 0;
-        }
-        
-        /* SPLIT BUTTON - الاتصال والواتساب في زر واحد مقسوم */
-        .split-contact-btn {
+
+        /* Save Contact */
+        .save-btn {
             display: flex;
-            height: 80px;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #FF9A56, #FF6B6B);
             border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow-medium);
-            margin-bottom: 0;
-            position: relative;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 17px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(255,107,107,0.3);
+            margin-bottom: 24px;
         }
-        
-        .split-half {
+
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(255,107,107,0.4);
+        }
+
+        .save-btn:active { transform: translateY(-1px); }
+
+        /* Action Buttons Row */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .action-btn {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
+            padding: 18px 12px;
+            border-radius: 20px;
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.25s;
+            border: 2px solid transparent;
         }
-        
-        .split-half::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
+
+        .action-btn:hover { transform: translateY(-3px); }
+
+        .action-btn i { font-size: 24px; }
+
+        .call-btn {
+            background: #F0FFF4;
+            color: #16A34A;
+            border-color: #BBF7D0;
         }
-        
-        .split-half:hover::before {
-            opacity: 1;
+        .call-btn:hover { background: #DCFCE7; box-shadow: 0 6px 20px rgba(22,163,74,0.15); }
+
+        .wa-btn {
+            background: #F0FDF4;
+            color: #15803D;
+            border-color: #BBF7D0;
         }
-        
-        .split-half:active {
-            transform: scale(0.98);
+        .wa-btn:hover { background: #DCFCE7; box-shadow: 0 6px 20px rgba(21,128,61,0.15); }
+
+        .email-btn {
+            background: #FFF1F2;
+            color: #E11D48;
+            border-color: #FECDD3;
         }
-        
-        /* Left Side - Call */
-        .call-side {
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            border-right: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .call-side:hover {
-            background: linear-gradient(135deg, #357ABD 0%, #2868A8 100%);
-            transform: translateX(-3px) scale(1.02);
-        }
-        
-        /* Right Side - WhatsApp */
-        .whatsapp-side {
-            background: linear-gradient(135deg, var(--whatsapp-green) 0%, #128C7E 100%);
-        }
-        
-        .whatsapp-side:hover {
-            background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
-            transform: translateX(3px) scale(1.02);
-        }
-        
-        .split-icon {
-            font-size: 32px;
-            color: white;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        }
-        
-        .split-text {
+        .email-btn:hover { background: #FFE4E6; box-shadow: 0 6px 20px rgba(225,29,72,0.15); }
+
+        /* Info Chips */
+        .info-section {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            color: white;
-            line-height: 1.2;
+            gap: 10px;
         }
-        
-        .split-label {
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+
+        .info-chip {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: #F9FAFB;
+            border-radius: 16px;
+            text-decoration: none;
+            color: #2D2014;
+            transition: all 0.2s;
+            border: 1.5px solid #F3F4F6;
+        }
+
+        .info-chip:hover {
+            background: #ffffff;
+            border-color: #E5E7EB;
+            transform: translateX(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .chip-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .chip-text { flex: 1; }
+
+        .chip-label {
+            font-size: 12px;
+            color: #9CA3AF;
+            font-weight: 600;
+        }
+
+        .chip-value {
             font-size: 15px;
             font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            color: #1F2937;
         }
-        
-        .split-number {
+
+        .chip-arrow {
+            color: #D1D5DB;
+            font-size: 12px;
+        }
+
+        /* Social icon backgrounds */
+        .bg-ig { background: linear-gradient(135deg, #FDF2F8, #FCE7F3); color: #E1306C; }
+        .bg-li { background: #EFF6FF; color: #0A66C2; }
+        .bg-tw { background: #F8FAFC; color: #0F172A; }
+        .bg-yt { background: #FEF2F2; color: #DC2626; }
+        .bg-tt { background: #F8FAFC; color: #0F172A; }
+        .bg-sc { background: #FEFCE8; color: #CA8A04; }
+        .bg-gh { background: #F8FAFC; color: #1F2937; }
+        .bg-gl { background: #EFF6FF; color: #2563EB; }
+        .bg-lk { background: #FAF5FF; color: #7C3AED; }
+        .bg-cv { background: #FEF2F2; color: #DC2626; }
+        .bg-ph { background: #F0FDF4; color: #16A34A; }
+        .bg-em { background: #EFF6FF; color: #2563EB; }
+        .bg-jb { background: #F0F9FF; color: #0369A1; }
+        .bg-co { background: #ECFDF5; color: #059669; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .footer a {
+            color: #D1D5DB;
             font-size: 13px;
-            font-weight: 500;
-            opacity: 0.95;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        /* Email Button */
-        .email-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            padding: 22px 28px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px solid #dee2e6;
-            border-radius: 18px;
             text-decoration: none;
-            color: var(--text-dark);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-soft);
-        }
-        
-        .email-btn:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-medium);
-            border-color: #adb5bd;
-        }
-        
-        .email-icon {
-            font-size: 26px;
-            color: #3498db;
-        }
-        
-        .email-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .email-label {
-            font-size: 13px;
-            color: var(--text-light);
             font-weight: 600;
         }
-        
-        .email-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-        
-        /* 3D SAVE CONTACT BUTTON - زر مميز جداً */
-        .save-contact {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            width: 100%;
-            padding: 26px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 24px;
-            font-weight: 800;
-            font-size: 19px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 
-                0 15px 35px rgba(102, 126, 234, 0.4),
-                0 5px 15px rgba(0, 0, 0, 0.1),
-                inset 0 -3px 0 rgba(0, 0, 0, 0.2),
-                inset 0 2px 0 rgba(255, 255, 255, 0.3);
-            position: relative;
-            overflow: hidden;
-            border: 3px solid rgba(255, 255, 255, 0.4);
-        }
-        
-        /* 3D Effect */
-        .save-contact::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
-            opacity: 1;
-        }
-        
-        /* Shine Effect */
-        .save-contact::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-            transition: transform 0.6s;
-        }
-        
-        .save-contact:hover {
-            transform: translateY(-6px) scale(1.03);
-            box-shadow: 
-                0 25px 50px rgba(102, 126, 234, 0.5),
-                0 10px 25px rgba(0, 0, 0, 0.15),
-                inset 0 -3px 0 rgba(0, 0, 0, 0.3),
-                inset 0 3px 0 rgba(255, 255, 255, 0.4);
-        }
-        
-        .save-contact:hover::after {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-        }
-        
-        .save-contact:active {
-            transform: translateY(-2px) scale(1);
-            box-shadow: 
-                0 10px 25px rgba(102, 126, 234, 0.4),
-                inset 0 3px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .save-icon {
-            font-size: 28px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        .save-text {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            position: relative;
-        }
-        
-        .save-main {
-            font-size: 19px;
-            font-weight: 800;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .save-sub {
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0.95;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* Social Links */
-        .social-section {
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-            margin-bottom: 0;
-        }
-        
-        .social-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: white;
-            font-size: 26px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-soft);
-            position: relative;
-        }
-        
-        .social-btn::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            background: inherit;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: -1;
-            filter: blur(8px);
-        }
-        
-        .social-btn:hover {
-            transform: translateY(-5px) scale(1.1);
-            box-shadow: var(--shadow-medium);
-        }
-        
-        .social-btn:hover::before {
-            opacity: 0.6;
-        }
-        
-        .instagram-btn { 
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-        }
-        
-        .linkedin-btn { 
-            background: #0077b5; 
-        }
-        
-        .twitter-btn { 
-            background: #1DA1F2; 
-        }
-        
-        /* Divider */
-        .divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #dee2e6, transparent);
-            margin: 36px 0;
-            position: relative;
-        }
-        
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 0 4px var(--card-bg), 0 0 0 6px #e9ecef;
-        }
-        
+
+        .footer a:hover { color: #FF6B6B; }
+
         /* Responsive */
         @media (max-width: 480px) {
-            .container {
-                padding: 40px 32px 36px;
-                border-radius: 28px;
-            }
-            
-            .name {
-                font-size: 30px;
-            }
-            
-            .bio {
-                font-size: 15px;
-            }
-            
-            .profile-photo {
-                width: 130px;
-                height: 130px;
-                font-size: 56px;
-            }
-            
-            .split-contact-btn {
-                height: 72px;
-            }
-            
-            .split-icon {
-                font-size: 28px;
-            }
-            
-            .split-label {
-                font-size: 14px;
-            }
-            
-            .split-number {
-                font-size: 12px;
-            }
-            
-            .save-contact {
-                padding: 22px 28px;
-                font-size: 18px;
-            }
-            
-            .save-main {
-                font-size: 18px;
-            }
-            
-            .save-sub {
-                font-size: 13px;
-            }
-            
-            .social-btn {
-                width: 56px;
-                height: 56px;
-                font-size: 24px;
-            }
-            
-            .email-btn {
-                padding: 20px 24px;
-            }
+            .hero { padding: 44px 24px 72px; }
+            .body-card { padding: 28px 22px; border-radius: 24px; }
+            .name { font-size: 26px; }
+            .profile-photo { width: 100px; height: 100px; }
+            .action-btn { padding: 14px 10px; font-size: 13px; }
+            .action-btn i { font-size: 20px; }
         }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+
+        /* Animation */
+        .container { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .container {
-            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Accessibility */
+
         @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-        
-        .split-half:focus,
-        .email-btn:focus,
-        .social-btn:focus,
-        .save-contact:focus {
-            outline: 3px solid #667eea;
-            outline-offset: 3px;
+            * { animation: none !important; transition: none !important; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Profile Section -->
-        <div class="profile-section">
-            <div class="profile-photo">
-                {{#if PHOTO}}
-                <img src="{{PHOTO}}" alt="{{NAME}}">
+
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-content">
+                <div class="profile-photo">
+                    {{#if PHOTO}}
+                    <img src="{{PHOTO}}" alt="{{NAME}}">
+                    {{/if}}
+                    {{#if !PHOTO}}
+                    <i class="fas fa-user"></i>
+                    {{/if}}
+                </div>
+                <h1 class="name">{{NAME}}</h1>
+                {{#if JOB_TITLE}}
+                <div class="subtitle">{{JOB_TITLE}}{{#if COMPANY}} - {{COMPANY}}{{/if}}</div>
                 {{/if}}
-                {{#if !PHOTO}}
-                {{NAME_INITIAL}}
+                {{#if BIO}}
+                <p class="bio">{{BIO}}</p>
                 {{/if}}
             </div>
-            
-            <h1 class="name">{{NAME}}</h1>
-            
-            {{#if BIO}}
-            <p class="bio">{{BIO}}</p>
-            {{/if}}
         </div>
-        
-        <!-- 1️⃣ 3D SAVE CONTACT BUTTON - الأول والأهم -->
-        <div class="save-contact-section">
-            <a href="./contact.vcf" download class="save-contact">
-                <i class="fas fa-address-card save-icon"></i>
-                <div class="save-text">
-                    <span class="save-main">إضافة لجهات الاتصال</span>
-                    <span class="save-sub">Add to Contacts</span>
-                </div>
+
+        <!-- Body -->
+        <div class="body-card">
+
+            <!-- Save Contact -->
+            <a href="./contact.vcf" download class="save-btn">
+                <i class="fas fa-user-plus"></i>
+                <span>Save Contact</span>
             </a>
-        </div>
-        
-        <!-- 2️⃣ Contact Section - الاتصال والواتساب -->
-        {{#if PHONE}}
-        <div class="contact-section">
-            <!-- SPLIT BUTTON - الاتصال والواتساب معاً -->
-            <div class="split-contact-btn">
-                <!-- Left Side: Call -->
-                <a href="tel:+{{PHONE_INTL}}" class="split-half call-side">
-                    <i class="fas fa-phone split-icon"></i>
-                    <div class="split-text">
-                        <span class="split-label">اتصال</span>
-                        <span class="split-number" dir="ltr">{{PHONE}}</span>
-                    </div>
+
+            <!-- Quick Actions -->
+            {{#if PHONE}}
+            <div class="action-row">
+                <a href="tel:{{PHONE_INTL}}" class="action-btn call-btn">
+                    <i class="fas fa-phone"></i>
+                    <span>Call</span>
                 </a>
-                
-                <!-- Right Side: WhatsApp -->
-                <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-side" target="_blank">
-                    <i class="fab fa-whatsapp split-icon"></i>
-                    <div class="split-text">
-                        <span class="split-label">واتساب</span>
-                        <span class="split-number" dir="ltr">{{PHONE}}</span>
-                    </div>
+                <a href="https://wa.me/{{PHONE_INTL}}" class="action-btn wa-btn" target="_blank">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
                 </a>
-            </div>
-        </div>
-        {{/if}}
-        
-        <!-- 3️⃣ Social Links -->
-        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
-        <div class="divider"></div>
-        {{/if}}{{/if}}{{/if}}
-        
-        <div class="social-section">
-            {{#if INSTAGRAM}}
-            <a href="https://instagram.com/{{INSTAGRAM}}" class="social-btn instagram-btn" target="_blank" aria-label="Instagram">
-                <i class="fab fa-instagram"></i>
-            </a>
-            {{/if}}
-            
-            {{#if LINKEDIN}}
-            <a href="https://linkedin.com/in/{{LINKEDIN}}" class="social-btn linkedin-btn" target="_blank" aria-label="LinkedIn">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            {{/if}}
-            
-            {{#if TWITTER}}
-            <a href="https://x.com/{{TWITTER}}" class="social-btn twitter-btn" target="_blank" aria-label="Twitter">
-                <i class="fab fa-x-twitter"></i>
-            </a>
-            {{/if}}
-            
-            {{#if YOUTUBE}}
-            <a href="https://youtube.com/{{YOUTUBE}}" class="social-btn" style="background: #FF0000;" target="_blank" aria-label="YouTube">
-                <i class="fab fa-youtube"></i>
-            </a>
-            {{/if}}
-            
-            {{#if TIKTOK}}
-            <a href="https://tiktok.com/@{{TIKTOK}}" class="social-btn" style="background: #000000;" target="_blank" aria-label="TikTok">
-                <i class="fab fa-tiktok"></i>
-            </a>
-            {{/if}}
-            
-            {{#if SNAPCHAT}}
-            <a href="https://snapchat.com/add/{{SNAPCHAT}}" class="social-btn" style="background: #FFFC00; color: #000;" target="_blank" aria-label="Snapchat">
-                <i class="fab fa-snapchat"></i>
-            </a>
-            {{/if}}
-            
-            {{#if GITHUB}}
-            <a href="https://github.com/{{GITHUB}}" class="social-btn" style="background: #333333;" target="_blank" aria-label="GitHub">
-                <i class="fab fa-github"></i>
-            </a>
-            {{/if}}
-        </div>
-        
-        <!-- 4️⃣ Email Button - في النهاية -->
-        {{#if EMAIL}}
-        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
-        <div class="divider"></div>
-        {{/if}}{{/if}}{{/if}}
-        
-        <div class="email-section">
-            <a href="mailto:{{EMAIL}}" class="email-btn">
-                <i class="fas fa-envelope email-icon"></i>
-                <div class="email-info">
-                    <span class="email-label">بريد إلكتروني / Email</span>
-                    <span class="email-value">{{EMAIL}}</span>
-                </div>
-            </a>
-        </div>
-        {{/if}}
-        
-        <!-- Additional Links Section -->
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
-            {{#if WEBSITE}}
-            <a href="{{WEBSITE}}" class="email-btn" target="_blank">
-                <i class="fas fa-globe" style="color: #667eea;"></i>
-                <div class="email-info">
-                    <span class="email-label">الموقع الإلكتروني</span>
-                    <span class="email-value">زيارة</span>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if CUSTOM_LINK}}
-            <a href="{{CUSTOM_LINK}}" class="email-btn" target="_blank">
-                <i class="fas fa-link" style="color: #764ba2;"></i>
-                <div class="email-info">
-                    <span class="email-label">الرابط المخصص</span>
-                    <span class="email-value">انقر هنا</span>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if CV}}
-            <a href="{{CV}}" class="email-btn" download>
-                <i class="fas fa-file-pdf" style="color: #e74c3c;"></i>
-                <div class="email-info">
-                    <span class="email-label">السيرة الذاتية</span>
-                    <span class="email-value">تحميل</span>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if JOB_TITLE}}
-            <div class="email-btn" style="cursor: default;">
-                <i class="fas fa-briefcase" style="color: #3498db;"></i>
-                <div class="email-info">
-                    <span class="email-label">المسمى الوظيفي</span>
-                    <span class="email-value">{{JOB_TITLE}}</span>
-                </div>
+                {{#if EMAIL}}
+                <a href="mailto:{{EMAIL}}" class="action-btn email-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email</span>
+                </a>
+                {{/if}}
             </div>
             {{/if}}
-            
-            {{#if COMPANY}}
-            <div class="email-btn" style="cursor: default;">
-                <i class="fas fa-building" style="color: #16a34a;"></i>
-                <div class="email-info">
-                    <span class="email-label">الشركة</span>
-                    <span class="email-value">{{COMPANY}}</span>
+
+            <!-- Contact Info -->
+            <div class="info-section">
+
+                {{#if PHONE}}
+                <a href="tel:{{PHONE_INTL}}" class="info-chip">
+                    <div class="chip-icon bg-ph"><i class="fas fa-phone"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Phone</div>
+                        <div class="chip-value" dir="ltr">{{PHONE}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if EMAIL}}
+                <a href="mailto:{{EMAIL}}" class="info-chip">
+                    <div class="chip-icon bg-em"><i class="fas fa-envelope"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Email</div>
+                        <div class="chip-value">{{EMAIL}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if INSTAGRAM}}
+                <div class="section-label">Social</div>
+                {{/if}}
+
+                {{#if INSTAGRAM}}
+                <a href="https://instagram.com/{{INSTAGRAM}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-ig"><i class="fab fa-instagram"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Instagram</div>
+                        <div class="chip-value">@{{INSTAGRAM}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if LINKEDIN}}
+                <a href="https://linkedin.com/in/{{LINKEDIN}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-li"><i class="fab fa-linkedin"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">LinkedIn</div>
+                        <div class="chip-value">{{LINKEDIN}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if TWITTER}}
+                <a href="https://x.com/{{TWITTER}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-tw"><i class="fab fa-x-twitter"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">X (Twitter)</div>
+                        <div class="chip-value">@{{TWITTER}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if YOUTUBE}}
+                <a href="https://youtube.com/{{YOUTUBE}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-yt"><i class="fab fa-youtube"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">YouTube</div>
+                        <div class="chip-value">{{YOUTUBE}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if TIKTOK}}
+                <a href="https://tiktok.com/@{{TIKTOK}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-tt"><i class="fab fa-tiktok"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">TikTok</div>
+                        <div class="chip-value">@{{TIKTOK}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if SNAPCHAT}}
+                <a href="https://snapchat.com/add/{{SNAPCHAT}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-sc"><i class="fab fa-snapchat"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Snapchat</div>
+                        <div class="chip-value">@{{SNAPCHAT}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if GITHUB}}
+                <a href="https://github.com/{{GITHUB}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-gh"><i class="fab fa-github"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">GitHub</div>
+                        <div class="chip-value">{{GITHUB}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if WEBSITE}}
+                <a href="{{WEBSITE}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-gl"><i class="fas fa-globe"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Website</div>
+                        <div class="chip-value">Visit</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if CUSTOM_LINK}}
+                <a href="{{CUSTOM_LINK}}" class="info-chip" target="_blank">
+                    <div class="chip-icon bg-lk"><i class="fas fa-link"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Link</div>
+                        <div class="chip-value">Open</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if CV}}
+                <a href="{{CV}}" download class="info-chip">
+                    <div class="chip-icon bg-cv"><i class="fas fa-file-pdf"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Resume / CV</div>
+                        <div class="chip-value">Download</div>
+                    </div>
+                    <i class="fas fa-chevron-left chip-arrow"></i>
+                </a>
+                {{/if}}
+
+                {{#if JOB_TITLE}}
+                <div class="info-chip" style="cursor:default;">
+                    <div class="chip-icon bg-jb"><i class="fas fa-briefcase"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Job Title</div>
+                        <div class="chip-value">{{JOB_TITLE}}</div>
+                    </div>
                 </div>
+                {{/if}}
+
+                {{#if COMPANY}}
+                <div class="info-chip" style="cursor:default;">
+                    <div class="chip-icon bg-co"><i class="fas fa-building"></i></div>
+                    <div class="chip-text">
+                        <div class="chip-label">Company</div>
+                        <div class="chip-value">{{COMPANY}}</div>
+                    </div>
+                </div>
+                {{/if}}
+
             </div>
-            {{/if}}
         </div>
-        
+
         <!-- Footer -->
-        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #dee2e6;">
-            <p style="color: #6c757d; font-size: 14px;">مدعوم بواسطة <a href="https://maroof-id.github.io/maroof-cards/" style="color: #667eea; font-weight: 700; text-decoration: none;" target="_blank">معروف</a></p>
+        <div class="footer">
+            <a href="https://maroof-id.github.io/maroof-cards/" target="_blank">Maroof</a>
         </div>
     </div>
 </body>
