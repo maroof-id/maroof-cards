@@ -3,784 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{NAME}} - معروف</title>
-    
-    <!-- Google Fonts: Inter (English) + Noto Kufi Arabic (Arabic) -->
+    <meta name="description" content="{{NAME}} - Maroof Digital Card">
+    <title>{{NAME}} - Maroof</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         :root {
-            --bg-warm: #FDFBF7;
-            --text-dark: #2D3436;
-            --text-light: #636e72;
-            --accent-coral: #E07A5F;
-            --accent-hover: #d4685a;
-            --card-bg: #FFFFFF;
-            --border-light: #e9ecef;
+            --accent: #6366F1;
+            --accent-light: #818CF8;
+            --bg: #0B0E14;
+            --surface: #12161F;
+            --surface-2: #1A1F2E;
+            --border: rgba(255,255,255,0.06);
+            --text: #E8EAF0;
+            --text-dim: rgba(255,255,255,0.45);
         }
-        
+
         body {
-            font-family: 'Noto Kufi Arabic', 'Inter', sans-serif;
-            background: var(--bg-warm);
+            font-family: 'Tajawal', 'Space Grotesk', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
-        
-        .container {
-            background: var(--card-bg);
-            border-radius: 24px;
-            max-width: 480px;
-            width: 100%;
-            padding: 40px 32px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-        }
-        
-        /* Profile Section */
-        .profile-section {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        
-        .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--accent-coral) 0%, #f4a261 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            font-weight: 700;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(224, 122, 95, 0.25);
-        }
-        
-        .profile-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .name {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-        
-        .bio {
-            font-size: 16px;
-            color: var(--text-light);
-            line-height: 1.6;
-            max-width: 90%;
-            margin: 0 auto 20px;
-        }
-        
-        /* Save Contact Button - PROMINENT AT TOP */
-        .save-contact-section {
-            margin-bottom: 32px;
-        }
-        
-        .save-contact {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            padding: 18px 24px;
-            background: var(--accent-coral);
-            color: white;
-            text-decoration: none;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 17px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
-            border: 3px solid transparent;
+            background: var(--bg);
+            color: var(--text);
             position: relative;
-            overflow: hidden;
         }
-        
-        /* Animated gradient background */
-        .save-contact::before {
+
+        /* Grid background */
+        body::before {
             content: '';
-            position: absolute;
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            z-index: 0;
+        }
+
+        /* Accent glow */
+        body::after {
+            content: '';
+            position: fixed;
             top: 0;
-            left: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
             width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
+            max-width: 500px;
+            position: relative;
+            z-index: 1;
         }
-        
-        .save-contact:hover::before {
-            left: 100%;
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.4);
         }
-        
-        .save-contact:hover {
-            background: var(--accent-hover);
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 32px rgba(224, 122, 95, 0.45);
-            border-color: rgba(255, 255, 255, 0.3);
+
+        /* Accent bar top */
+        .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light), #A78BFA, var(--accent));
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
         }
-        
-        .save-contact:active {
-            transform: translateY(-1px) scale(1);
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
-        
-        .save-contact i {
-            font-size: 20px;
-        }
-        
-        .save-contact-text {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            line-height: 1.3;
-        }
-        
-        .save-contact-main {
-            font-size: 17px;
-            font-weight: 700;
-        }
-        
-        .save-contact-sub {
-            font-size: 13px;
-            opacity: 0.9;
-            font-weight: 500;
-        }
-        
-        /* English text styling */
-        .name[lang="en"], .bio[lang="en"] {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        /* Contact Buttons */
-        .contact-section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 32px;
-        }
-        
-        .contact-btn {
+
+        /* Profile */
+        .profile {
+            padding: 40px 36px 28px;
             display: flex;
             align-items: center;
-            padding: 16px 20px;
-            background: var(--card-bg);
-            border: 2px solid var(--border-light);
-            border-radius: 16px;
-            text-decoration: none;
-            color: var(--text-dark);
-            transition: all 0.25s ease;
-            gap: 16px;
+            gap: 24px;
         }
-        
-        .contact-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            border-color: var(--accent-coral);
-        }
-        
-        .contact-btn:active {
-            transform: translateY(0);
-        }
-        
-        .contact-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+
+        .profile-photo {
+            width: 88px;
+            height: 88px;
+            border-radius: 20px;
+            background: var(--surface-2);
+            border: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            overflow: hidden;
             flex-shrink: 0;
         }
-        
-        .contact-info {
-            flex: 1;
-            text-align: right;
+
+        .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-photo i { font-size: 36px; color: var(--text-dim); }
+
+        .profile-info { flex: 1; min-width: 0; }
+
+        .name {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
         }
-        
-        .contact-label {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-bottom: 2px;
-            font-weight: 500;
-        }
-        
-        .contact-value {
-            font-size: 16px;
+
+        .role {
+            font-size: 14px;
+            color: var(--accent-light);
             font-weight: 600;
-            color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
         }
-        
-        /* WhatsApp Special Style */
-        .whatsapp-btn {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            border: none;
-            color: white;
+
+        .bio {
+            padding: 0 36px 24px;
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.7;
         }
-        
-        .whatsapp-btn:hover {
-            background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
-            border: none;
+
+        /* Content */
+        .content {
+            padding: 0 24px 28px;
         }
-        
-        .whatsapp-btn .contact-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+
+        /* Quick Actions Grid */
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        
-        .whatsapp-btn .contact-label,
-        .whatsapp-btn .contact-value {
-            color: white;
-        }
-        
-        /* Phone Icon */
-        .phone-icon {
-            background: rgba(224, 122, 95, 0.1);
-            color: var(--accent-coral);
-        }
-        
-        /* Email Icon */
-        .email-icon {
-            background: rgba(52, 152, 219, 0.1);
-            color: #3498db;
-        }
-        
-        /* Social Links */
-        .social-section {
+
+        .act-btn {
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 8px;
+            padding: 20px 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
-        
-        .social-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
+
+        .act-btn:hover {
+            background: rgba(99,102,241,0.1);
+            border-color: rgba(99,102,241,0.3);
+            transform: translateY(-2px);
+        }
+
+        .act-btn i { font-size: 22px; }
+
+        .act-save { color: var(--accent-light); }
+        .act-save:hover { color: #ffffff; }
+        .act-call i { color: #34D399; }
+        .act-wa i { color: #25D366; }
+        .act-email i { color: #60A5FA; }
+
+        /* Links Section */
+        .links-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .link-item:hover {
+            background: var(--surface-2);
+        }
+
+        .link-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+
+        .link-text { flex: 1; min-width: 0; }
+
+        .link-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .link-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .link-go {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* Brand icon colors */
+        .c-ig { color: #E1306C; }
+        .c-li { color: #0A66C2; }
+        .c-tw { color: #E8EAF0; }
+        .c-yt { color: #FF0000; }
+        .c-tt { color: #E8EAF0; }
+        .c-sc { color: #FFFC00; }
+        .c-gh { color: #E8EAF0; }
+        .c-gl { color: #60A5FA; }
+        .c-lk { color: #A78BFA; }
+        .c-cv { color: #F87171; }
+        .c-ph { color: #34D399; }
+        .c-em { color: #60A5FA; }
+
+        /* Footer */
+        .footer {
+            padding: 16px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a {
+            color: var(--text-dim);
+            font-size: 12px;
             text-decoration: none;
-            color: white;
-            font-size: 22px;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-        
-        .social-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .social-btn:active {
-            transform: translateY(-1px) scale(1);
-        }
-        
-        .instagram-btn { 
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-        }
-        
-        .linkedin-btn { 
-            background: #0077b5; 
-        }
-        
-        .twitter-btn { 
-            background: #1DA1F2; 
-        }
-        
-        /* Divider */
-        .divider {
-            height: 1px;
-            background: var(--border-light);
-            margin: 24px 0;
-        }
-        
+
+        .footer a:hover { color: var(--accent-light); }
+
         /* Responsive */
         @media (max-width: 480px) {
-            .container {
-                padding: 32px 24px;
-            }
-            
-            .name {
-                font-size: 24px;
-            }
-            
-            .bio {
-                font-size: 14px;
-            }
-            
-            .contact-btn {
-                padding: 14px 16px;
-            }
-            
-            .profile-photo {
-                width: 100px;
-                height: 100px;
-                font-size: 40px;
-            }
-            
-            .save-contact {
-                padding: 16px 20px;
-                font-size: 16px;
-            }
-            
-            .save-contact-main {
-                font-size: 16px;
-            }
-            
-            .save-contact-sub {
-                font-size: 12px;
-            }
+            .profile { padding: 32px 28px 20px; gap: 18px; }
+            .bio { padding: 0 28px 20px; }
+            .content { padding: 0 18px 24px; }
+            .name { font-size: 22px; }
+            .profile-photo { width: 72px; height: 72px; border-radius: 16px; }
+            .profile-photo i { font-size: 30px; }
+            .actions { gap: 8px; }
+            .act-btn { padding: 16px 6px; font-size: 11px; }
+            .act-btn i { font-size: 20px; }
         }
-        
-        /* Animations */
+
+        /* Animation */
+        .container { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .container {
-            animation: fadeIn 0.5s ease;
-        }
-        
-        /* Pulse animation for save button */
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 8px 20px rgba(224, 122, 95, 0.35);
-            }
-            50% {
-                box-shadow: 0 8px 24px rgba(224, 122, 95, 0.5);
-            }
-        }
-        
-        .save-contact {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        /* Accessibility */
+
         @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
+            *, *::before, *::after {
                 animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
-        }
-
-        /* New: Split contact button and email circle */
-        .split-contact {
-            display: flex;
-            gap: 0;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid var(--border-light);
-        }
-
-        .split-contact .split-half {
-            flex: 1 1 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px 12px;
-            text-decoration: none;
-            color: white;
-            font-weight: 700;
-            font-size: 15px;
-            transition: background 0.22s ease, transform 0.12s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .split-contact .split-half .icon { font-size: 18px; width: 22px; }
-
-        .split-contact .whatsapp-half {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: #fff;
-        }
-
-        .split-contact .call-half {
-            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.95));
-            color: var(--text-dark);
-        }
-
-        .split-contact .call-half:hover { background: linear-gradient(90deg, #f7f7f7, #ffffff); }
-        .split-contact .whatsapp-half:hover { filter: brightness(0.95); }
-
-        .split-contact .separator {
-            width: 1px;
-            background: rgba(0,0,0,0.08);
-            align-self: stretch;
-        }
-
-        .phone-number-inline {
-            display: block;
-            text-align: center;
-            margin-top: 8px;
-            font-weight: 600;
-            color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            direction: ltr;
-        }
-
-        /* Email circle button */
-        .email-circle {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%);
-            color: #fff;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            font-size: 0; /* hide text, show icon only */
-            position: relative;
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-        }
-
-        .email-circle .fa-envelope { font-size: 20px; }
-
-        .email-circle:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-
-        .email-circle[title]::after {
-            content: attr(title);
-            position: absolute;
-            bottom: calc(100% + 8px);
-            right: 50%;
-            transform: translateX(50%);
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-size: 13px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.12s ease, transform 0.12s ease;
-            z-index: 30;
-        }
-
-        .email-circle:hover::after { opacity: 1; transform: translateX(50%) translateY(-4px); }
-
-        /* Toast */
-        .copy-toast {
-            position: fixed;
-            left: 50%;
-            bottom: 24px;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(0,0,0,0.85);
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: 600;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.18s ease;
-            z-index: 9999;
-        }
-
-        .copy-toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-
-        /* Ensure ellipsis for long email when displayed */
-        .contact-value.ellipsis {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: block;
-            max-width: 100%;
-        }
-
-        .sr-only {
-            position: absolute !important;
-            width: 1px !important;
-            height: 1px !important;
-            padding: 0 !important;
-            margin: -1px !important;
-            overflow: hidden !important;
-            clip: rect(0 0 0 0) !important;
-            white-space: nowrap !important;
-            border: 0 !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Profile Section -->
-        <div class="profile-section">
-            <div class="profile-photo">
-                {{#if PHOTO}}
-                <img src="{{PHOTO}}" alt="{{NAME}}">
-                {{/if}}
-                {{#if !PHOTO}}
-                {{NAME_INITIAL}}
-                {{/if}}
+        <div class="card">
+            <div class="accent-bar"></div>
+
+            <!-- Profile -->
+            <div class="profile">
+                <div class="profile-photo">
+                    {{#if PHOTO}}
+                    <img src="{{PHOTO}}" alt="{{NAME}}">
+                    {{/if}}
+                    {{#if !PHOTO}}
+                    <i class="fas fa-user"></i>
+                    {{/if}}
+                </div>
+                <div class="profile-info">
+                    <h1 class="name">{{NAME}}</h1>
+                    {{#if JOB_TITLE}}
+                    <div class="role">{{JOB_TITLE}}{{#if COMPANY}} @ {{COMPANY}}{{/if}}</div>
+                    {{/if}}
+                </div>
             </div>
-            
-            <h1 class="name">{{NAME}}</h1>
-            
+
             {{#if BIO}}
             <p class="bio">{{BIO}}</p>
             {{/if}}
-        </div>
-        
-        <!-- Save Contact Button - MOVED TO TOP -->
-        <div class="save-contact-section">
-            <a href="./contact.vcf" download class="save-contact">
-                <i class="fas fa-address-card"></i>
-                <div class="save-contact-text">
-                    <span class="save-contact-main">إضافة لجهات الاتصال</span>
-                    <span class="save-contact-sub">Add to Contacts</span>
-                </div>
-            </a>
-        </div>
-        
-        <!-- Contact Buttons -->
-        <div class="contact-section">
-            {{#if PHONE}}
-            <div style="display:flex;flex-direction:column;gap:8px;">
-                <div class="split-contact" role="group" aria-label="خيارات الاتصال">
-                    <a href="https://wa.me/{{PHONE_INTL}}" class="split-half whatsapp-half" target="_blank" rel="noopener noreferrer" aria-label="واتساب">
-                        <i class="fab fa-whatsapp icon" aria-hidden="true"></i>
-                        <span class="label">واتساب</span>
+
+            <!-- Content -->
+            <div class="content">
+
+                <!-- Quick Actions -->
+                <div class="actions">
+                    <a href="./contact.vcf" download class="act-btn act-save">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Save</span>
                     </a>
-                    <div class="separator" aria-hidden="true"></div>
-                    <a href="tel:+{{PHONE_INTL}}" class="split-half call-half" aria-label="اتصال">
-                        <i class="fas fa-phone icon" aria-hidden="true"></i>
-                        <span class="label">اتصال</span>
+                    {{#if PHONE}}
+                    <a href="tel:{{PHONE_INTL}}" class="act-btn act-call">
+                        <i class="fas fa-phone"></i>
+                        <span>Call</span>
                     </a>
+                    <a href="https://wa.me/{{PHONE_INTL}}" class="act-btn act-wa" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </a>
+                    {{/if}}
+                    {{#if EMAIL}}
+                    <a href="mailto:{{EMAIL}}" class="act-btn act-email">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </a>
+                    {{/if}}
                 </div>
 
-                <div class="phone-number-inline" dir="ltr" aria-label="رقم الهاتف">{{PHONE}}</div>
-            </div>
-            {{/if}}
+                <!-- Links -->
+                <div class="links-label">Details</div>
 
-            {{#if EMAIL}}
-            <div style="display:flex;gap:12px;align-items:center;justify-content:flex-end;">
-                <button type="button" class="email-circle" id="copy-email-btn" data-email="{{EMAIL}}" aria-label="نسخ البريد الإلكتروني" title="{{EMAIL}}">
-                    <i class="fas fa-envelope" aria-hidden="true"></i>
-                    <span class="sr-only">Copy email</span>
-                </button>
+                {{#if PHONE}}
+                <a href="tel:{{PHONE_INTL}}" class="link-item">
+                    <div class="link-icon"><i class="fas fa-phone c-ph"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Phone</div>
+                        <div class="link-value" dir="ltr">{{PHONE}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
 
-                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0;">
-                    <div class="contact-label">بريد إلكتروني / Email</div>
-                    <div class="contact-value ellipsis" style="max-width:200px;" dir="ltr" title="{{EMAIL}}">{{EMAIL}}</div>
+                {{#if EMAIL}}
+                <a href="mailto:{{EMAIL}}" class="link-item">
+                    <div class="link-icon"><i class="fas fa-envelope c-em"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Email</div>
+                        <div class="link-value">{{EMAIL}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if INSTAGRAM}}
+                <a href="https://instagram.com/{{INSTAGRAM}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-instagram c-ig"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Instagram</div>
+                        <div class="link-value">@{{INSTAGRAM}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if LINKEDIN}}
+                <a href="https://linkedin.com/in/{{LINKEDIN}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-linkedin c-li"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">LinkedIn</div>
+                        <div class="link-value">{{LINKEDIN}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if TWITTER}}
+                <a href="https://x.com/{{TWITTER}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-x-twitter c-tw"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">X (Twitter)</div>
+                        <div class="link-value">@{{TWITTER}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if YOUTUBE}}
+                <a href="https://youtube.com/{{YOUTUBE}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-youtube c-yt"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">YouTube</div>
+                        <div class="link-value">{{YOUTUBE}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if TIKTOK}}
+                <a href="https://tiktok.com/@{{TIKTOK}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-tiktok c-tt"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">TikTok</div>
+                        <div class="link-value">@{{TIKTOK}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if SNAPCHAT}}
+                <a href="https://snapchat.com/add/{{SNAPCHAT}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-snapchat c-sc"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Snapchat</div>
+                        <div class="link-value">@{{SNAPCHAT}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if GITHUB}}
+                <a href="https://github.com/{{GITHUB}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fab fa-github c-gh"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">GitHub</div>
+                        <div class="link-value">{{GITHUB}}</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if WEBSITE}}
+                <a href="{{WEBSITE}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fas fa-globe c-gl"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Website</div>
+                        <div class="link-value">Visit</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if CUSTOM_LINK}}
+                <a href="{{CUSTOM_LINK}}" class="link-item" target="_blank">
+                    <div class="link-icon"><i class="fas fa-link c-lk"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Link</div>
+                        <div class="link-value">Open</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if CV}}
+                <a href="{{CV}}" download class="link-item">
+                    <div class="link-icon"><i class="fas fa-file-pdf c-cv"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Resume / CV</div>
+                        <div class="link-value">Download</div>
+                    </div>
+                    <i class="fas fa-chevron-left link-go"></i>
+                </a>
+                {{/if}}
+
+                {{#if JOB_TITLE}}
+                <div class="link-item" style="cursor:default;">
+                    <div class="link-icon"><i class="fas fa-briefcase" style="color:#34D399;"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Job Title</div>
+                        <div class="link-value">{{JOB_TITLE}}</div>
+                    </div>
                 </div>
+                {{/if}}
+
+                {{#if COMPANY}}
+                <div class="link-item" style="cursor:default;">
+                    <div class="link-icon"><i class="fas fa-building" style="color:#FBBF24;"></i></div>
+                    <div class="link-text">
+                        <div class="link-label">Company</div>
+                        <div class="link-value">{{COMPANY}}</div>
+                    </div>
+                </div>
+                {{/if}}
+
             </div>
-            {{/if}}
-        </div>
-        
-        <!-- Social Links -->
-        {{#if INSTAGRAM}}{{#if LINKEDIN}}{{#if TWITTER}}
-        <div class="divider"></div>
-        {{/if}}{{/if}}{{/if}}
-        
-        <div class="social-section">
-            {{#if INSTAGRAM}}
-            <a href="https://instagram.com/{{INSTAGRAM}}" class="social-btn instagram-btn" target="_blank" aria-label="Instagram">
-                <i class="fab fa-instagram"></i>
-            </a>
-            {{/if}}
-            
-            {{#if LINKEDIN}}
-            <a href="https://linkedin.com/in/{{LINKEDIN}}" class="social-btn linkedin-btn" target="_blank" aria-label="LinkedIn">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            {{/if}}
-            
-            {{#if TWITTER}}
-            <a href="https://x.com/{{TWITTER}}" class="social-btn twitter-btn" target="_blank" aria-label="Twitter">
-                <i class="fab fa-x-twitter"></i>
-            </a>
-            {{/if}}
-            
-            {{#if YOUTUBE}}
-            <a href="https://youtube.com/{{YOUTUBE}}" class="social-btn" style="background: #FF0000;" target="_blank" aria-label="YouTube">
-                <i class="fab fa-youtube"></i>
-            </a>
-            {{/if}}
-            
-            {{#if TIKTOK}}
-            <a href="https://tiktok.com/@{{TIKTOK}}" class="social-btn" style="background: #000000;" target="_blank" aria-label="TikTok">
-                <i class="fab fa-tiktok"></i>
-            </a>
-            {{/if}}
-            
-            {{#if SNAPCHAT}}
-            <a href="https://snapchat.com/add/{{SNAPCHAT}}" class="social-btn" style="background: #FFFC00; color: #000;" target="_blank" aria-label="Snapchat">
-                <i class="fab fa-snapchat"></i>
-            </a>
-            {{/if}}
-            
-            {{#if GITHUB}}
-            <a href="https://github.com/{{GITHUB}}" class="social-btn" style="background: #333333;" target="_blank" aria-label="GitHub">
-                <i class="fab fa-github"></i>
-            </a>
-            {{/if}}
-        </div>
-        
-        <!-- Additional Links Section -->
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
-            {{#if WEBSITE}}
-            <a href="{{WEBSITE}}" class="contact-btn" target="_blank">
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-globe"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">الموقع الإلكتروني</div>
-                    <div class="contact-value">زيارة</div>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if CUSTOM_LINK}}
-            <a href="{{CUSTOM_LINK}}" class="contact-btn" target="_blank">
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-link"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">الرابط المخصص</div>
-                    <div class="contact-value">انقر هنا</div>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if CV}}
-            <a href="{{CV}}" class="contact-btn" download>
-                <div class="contact-icon email-icon">
-                    <i class="fas fa-file-pdf"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">السيرة الذاتية</div>
-                    <div class="contact-value">تحميل</div>
-                </div>
-            </a>
-            {{/if}}
-            
-            {{#if JOB_TITLE}}
-            <div class="contact-btn" style="cursor: default;">
-                <div class="contact-icon phone-icon">
-                    <i class="fas fa-briefcase"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">المسمى الوظيفي</div>
-                    <div class="contact-value">{{JOB_TITLE}}</div>
-                </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <a href="https://maroof-id.github.io/maroof-cards/" target="_blank">Maroof</a>
             </div>
-            {{/if}}
-            
-            {{#if COMPANY}}
-            <div class="contact-btn" style="cursor: default;">
-                <div class="contact-icon phone-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-label">الشركة</div>
-                    <div class="contact-value">{{COMPANY}}</div>
-                </div>
-            </div>
-            {{/if}}
-        </div>
-        
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-light);">
-            <p style="color: var(--text-light); font-size: 13px;">مدعوم بواسطة <a href="https://maroof-id.github.io/maroof-cards/" style="color: var(--accent-coral); font-weight: 700; text-decoration: none;" target="_blank">معروف</a></p>
         </div>
     </div>
-
-    <div id="copy-toast" class="copy-toast" role="status" aria-live="polite">تم النسخ!</div>
-
-    <script>
-        (function(){
-            const btn = document.getElementById('copy-email-btn');
-            const toast = document.getElementById('copy-toast');
-            function showToast(text){
-                if(!toast) return;
-                toast.textContent = text || 'تم النسخ!';
-                toast.classList.add('show');
-                clearTimeout(window._toastTimeout);
-                window._toastTimeout = setTimeout(()=> toast.classList.remove('show'), 2000);
-            }
-
-            async function copyText(text){
-                if(!text) return false;
-                try{
-                    if(navigator.clipboard && navigator.clipboard.writeText){
-                        await navigator.clipboard.writeText(text);
-                        return true;
-                    }
-                }catch(e){}
-                try{
-                    const ta = document.createElement('textarea');
-                    ta.value = text;
-                    ta.setAttribute('readonly', '');
-                    ta.style.position = 'absolute';
-                    ta.style.left = '-9999px';
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    ta.remove();
-                    return true;
-                }catch(e){
-                    return false;
-                }
-            }
-
-            if(btn){
-                btn.addEventListener('click', async function(e){
-                    const email = this.dataset.email || this.getAttribute('data-email') || '';
-                    const ok = await copyText(email);
-                    if(ok){
-                        showToast('تم النسخ!');
-                        try{ this.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:260}); }catch(e){}
-                    }else{
-                        showToast('Copy failed');
-                    }
-                });
-            }
-        })();
-    </script>
-
 </body>
 </html>
